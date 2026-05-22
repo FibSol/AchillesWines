@@ -51,6 +51,23 @@
   - (c) Job queue externe (Redis, BullMQ) → over-engineering pour un RPi mono-utilisateur.
 - **Reasoning:** SQLite est déjà le bus de données partagé entre web et scraper containers. Une table `ops_job_queue` donne : (1) persistence à travers redémarrages, (2) state visible directement dans `/admin/jobs` sans appel cross-container, (3) atomicité native via UPDATE…RETURNING, (4) zéro dépendance supplémentaire. Polling 5 s est largement acceptable vu la cadence mensuelle des jobs réels.
 
+## ADR-009 — Backups : SQLite online-backup → GPG symmetric → NAS, retention 7d + 4w
+- **Date:** 2026-05-22
+- **Status:** accepted
+- **Decision:**
+  - Snapshot via l'API `sqlite3 .backup` (équivalent C `sqlite3_backup_step`) — fonctionne sous WAL avec lecteurs/écrivains concurrents, sans verrou exclusif.
+  - Chiffrement GPG **symétrique AES-256** avec passphrase via `ACHILLES_GPG_PASSPHRASE` (env), pas de clé asymétrique à gérer.
+  - Verification round-trip : on déchiffre dans /dev/null après le chiffrement et on fail si ça ne décode pas (un backup unreadable est pire que pas de backup).
+  - Rétention : 7 daily + 4 weekly (le dimanche est suffixé `-weekly`). Pruning par filename glob, immune au temps système / timezone.
+  - Pas de cron embarqué — `scripts/backup.sh` est idempotent et conçu pour être déclenché par : (a) cron host RPi, (b) HA shell_command via docker exec, (c) systemd timer.
+  - Script de restore companion `scripts/restore.sh` avec `PRAGMA integrity_check` avant l'install + refuse l'overwrite sans `--force`.
+- **Alternatives considered:**
+  - (a) `cp data/achilles.db backup.db` — race condition garantie avec WAL et lecteur/écrivain concurrent.
+  - (b) `pg_dump`-style SQL export — perd les blobs SQLite-specific (FTS shadow tables, triggers) et 10× plus lent.
+  - (c) GPG asymétrique avec clé GitHub-stored — plus paranoïaque mais complique le restore depuis un host neuf.
+  - (d) Litestream streaming replication vers S3 — over-engineering pour 50 MB de DB et un usage maison.
+- **Reasoning:** L'API online-backup est le seul mécanisme officiellement WAL-safe. GPG symétrique a une surface d'erreur minimale (passphrase = 1 secret à gérer). La vérification round-trip a déjà sauvé un projet précédent où la corruption GPG était silencieuse. Le suffixe `-weekly` rend la rétention prédictible et auditable au `ls`.
+
 ## ADR-008 — docker-compose orchestration : 3 services + named volumes
 - **Date:** 2026-05-22
 - **Status:** accepted

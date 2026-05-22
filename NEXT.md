@@ -66,7 +66,7 @@ Voir [PROGRESS.md](PROGRESS.md) pour le détail.
 - [x] **P3 · 3h** [Hector] Dockerfile multi-stage Next + sidecar ✓ 2026-05-22 (closes #6, ADR-007)
 - [x] **P3 · 2h** [Hector] docker-compose.yml + nginx reverse proxy ✓ 2026-05-22 (closes #7, ADR-008)
 - [ ] **P3 · 2h** [Hector] PWA manifest + service worker (next-pwa)
-- [ ] **P3 · 1h** [Hector] Backup script SQLite GPG vers NAS
+- [x] **P3 · 1h** [Hector] Backup script SQLite GPG vers NAS ✓ 2026-05-22 (closes #9, ADR-009)
 - [ ] **P3 · 3h** [Hector] Home Assistant addon config + integration
 
 ## Idées différées (P3 backlog)

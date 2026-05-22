@@ -58,6 +58,23 @@ jobs:
       - name: Validate compose file
         run: docker compose -f docker-compose.yml config --quiet
 
+  shell-lint:
+    name: Shellcheck + bash -n
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bash syntax check
+        run: |
+          for f in scripts/*.sh; do
+            bash -n "$f"
+            echo "ok $f"
+          done
+      - uses: ludeeus/action-shellcheck@2.0.0
+        with:
+          scandir: scripts
+          severity: warning
+
   docker-build:
     name: Docker build (web + scraper)
     runs-on: ubuntu-latest
