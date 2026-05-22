@@ -47,10 +47,39 @@ After completing a sprint step, the next Claude session launches automatically.
 - Append to PROGRESS.md under ## YYYY-MM-DD with role [RoleName]:
     - [RoleName] <what was built> · files: <comma-separated>
 - Tick the item in NEXT.md: change [ ] to [x] and append: ✓ YYYY-MM-DD
+- Commit and push all changed files to GitHub (see below)
 - Write file .claude/session-complete with content: RoleName
 ```
 
-The third step is what triggers the next auto-session. If you omit it, the chain stops (which is useful if you want to pause between steps).
+The last step is what triggers the next auto-session. If you omit it, the chain stops (which is useful if you want to pause between steps).
+
+### Git commit + push after every task
+
+Every agent must commit and push at the end of its task, immediately after updating PROGRESS.md and NEXT.md.
+
+```powershell
+cd C:\Claude\achilles-wines
+
+# Stage everything that changed (never stage .env, data/, *.db, *.jsonl)
+git add -A
+git reset HEAD .env data/ *.db *.jsonl logs/ raw/
+
+# Commit — write a concise conventional-commit subject line
+git commit -m "feat(role): short description of what was built"
+
+# Push
+git push origin main
+```
+
+Rules:
+- **Never commit** `.env`, `data/`, `*.db`, `*.jsonl`, `logs/`, `raw/` — these are gitignored but double-check.
+- Use conventional-commit prefixes: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`.
+- Scope is the role handle in lowercase: `feat(odysseus)`, `feat(patroclus)`, `fix(cassandra)`, etc.
+- If `git config user.email` is not set, run first:
+  ```powershell
+  git config user.email "nicolas.vandenbroeck@vcfcigars.com"
+  git config user.name "Nicolas"
+  ```
 
 ### Disabling auto-launch
 
