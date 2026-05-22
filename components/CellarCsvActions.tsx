@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
-import { Download, FileDown, Upload, X, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Download, FileDown, Upload, X, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
 
 export interface CsvLabels {
   importBtn: string;
@@ -35,11 +35,18 @@ interface ImportResponse {
 
 export function CellarCsvActions({ labels }: { labels: CsvLabels }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ImportResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
+
+  const dialogOpen = busy || result !== null || error !== null;
+
+  function closeDialog() {
+    setResult(null);
+    setError(null);
+    if (fileRef.current) fileRef.current.value = "";
+  }
 
   async function handleFile(file: File) {
     setBusy(true);
@@ -69,17 +76,28 @@ export function CellarCsvActions({ labels }: { labels: CsvLabels }) {
 
   return (
     <>
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".csv,text/csv,application/vnd.ms-excel"
+        className="sr-only"
+        aria-hidden="true"
+        tabIndex={-1}
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) handleFile(f);
+        }}
+      />
+
       <div className="flex items-center gap-3 flex-wrap">
         <button
-          onClick={() => {
-            setResult(null);
-            setError(null);
-            setOpen(true);
-          }}
-          className="btn btn-ghost text-xs"
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={busy}
+          className="btn btn-ghost text-xs disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <Upload className="size-3.5" strokeWidth={2.5} />
-          {labels.importBtn}
+          {busy ? labels.importing : labels.importBtn}
         </button>
         <a
           href="/api/cellar/export"
@@ -99,7 +117,7 @@ export function CellarCsvActions({ labels }: { labels: CsvLabels }) {
         </a>
       </div>
 
-      <Dialog.Root open={open} onOpenChange={setOpen}>
+      <Dialog.Root open={dialogOpen} onOpenChange={(v) => !v && closeDialog()}>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-[rgba(13,6,26,0.7)] backdrop-blur-sm z-40" />
           <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[min(560px,90vw)] max-h-[85vh] overflow-y-auto glass-card p-6">
@@ -112,33 +130,14 @@ export function CellarCsvActions({ labels }: { labels: CsvLabels }) {
               </Dialog.Close>
             </div>
 
-            {!result && !error && (
-              <>
-                <p className="text-sm text-[color:var(--color-fg-muted)] mb-4">
-                  {labels.importHint}
-                </p>
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept=".csv,text/csv"
-                  className="hidden"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) handleFile(f);
-                  }}
-                />
-                <button
-                  onClick={() => fileRef.current?.click()}
-                  disabled={busy}
-                  className="btn btn-primary text-xs disabled:opacity-40"
-                >
-                  <Upload className="size-3.5" strokeWidth={2.5} />
-                  {busy ? labels.importing : labels.importPick}
-                </button>
-              </>
+            {busy && (
+              <div className="flex items-center gap-3 p-4 text-sm text-[color:var(--color-fg-muted)]">
+                <Loader2 className="size-4 animate-spin text-[color:var(--color-coral-400)]" strokeWidth={2.5} />
+                {labels.importing}
+              </div>
             )}
 
-            {error && (
+            {!busy && error && (
               <div className="space-y-3">
                 <div className="flex items-start gap-2 p-3 rounded-md border border-[color:var(--color-coral-700)] bg-[rgba(255,92,138,0.1)]">
                   <AlertTriangle className="size-4 text-[color:var(--color-coral-400)] shrink-0 mt-0.5" />
@@ -147,13 +146,13 @@ export function CellarCsvActions({ labels }: { labels: CsvLabels }) {
                     <p className="font-mono text-xs text-[color:var(--color-fg-muted)] mt-1">{error}</p>
                   </div>
                 </div>
-                <button onClick={() => setOpen(false)} className="btn btn-ghost text-xs">
+                <button type="button" onClick={closeDialog} className="btn btn-ghost text-xs">
                   {labels.close}
                 </button>
               </div>
             )}
 
-            {result && (
+            {!busy && result && (
               <div className="space-y-4">
                 <div className="flex items-start gap-2 p-3 rounded-md border border-[color:var(--color-mint-600)] bg-[rgba(111,255,233,0.08)]">
                   <CheckCircle2 className="size-5 text-[color:var(--color-mint-400)] shrink-0 mt-0.5" />
@@ -208,7 +207,7 @@ export function CellarCsvActions({ labels }: { labels: CsvLabels }) {
                   </details>
                 )}
 
-                <button onClick={() => setOpen(false)} className="btn btn-ghost text-xs">
+                <button type="button" onClick={closeDialog} className="btn btn-ghost text-xs">
                   {labels.close}
                 </button>
               </div>
