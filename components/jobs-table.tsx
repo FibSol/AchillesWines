@@ -23,13 +23,15 @@ interface Job {
   params: Record<string, unknown> | null;
 }
 
-const SOURCE_MAP: Record<number, string> = {
-  2: "millesima",
-  3: "idealwine",
-  4: "cavissima",
-  5: "lavinia",
-  6: "vinatis",
-};
+interface Source {
+  sourceKey: number;
+  sourceCode: string;
+  sourceName: string;
+  sourceTier: string;
+  countryCode: string | null;
+  cadence: string;
+  requiresAuth: boolean;
+}
 
 const STATUS_BADGE: Record<JobStatus, string> = {
   queued: "bg-slate-700 text-slate-200",
@@ -64,12 +66,15 @@ function formatTs(ts: string | number | null): string {
 
 export function JobsTable() {
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [sources, setSources] = useState<Source[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [launching, setLaunching] = useState(false);
   const [openLogsJob, setOpenLogsJob] = useState<Job | null>(null);
   const sourceRef = useRef<HTMLSelectElement>(null);
   const limitRef = useRef<HTMLInputElement>(null);
+
+  const sourceByKey = new Map(sources.map((s) => [s.sourceKey, s]));
 
   const fetchJobs = async () => {
     try {
@@ -88,6 +93,11 @@ export function JobsTable() {
   useEffect(() => {
     fetchJobs();
     const id = setInterval(fetchJobs, 5000);
+    // Sources rarely change — fetch once on mount.
+    fetch("/api/sources")
+      .then((r) => (r.ok ? r.json() : { sources: [] }))
+      .then((j: { sources: Source[] }) => setSources(j.sources ?? []))
+      .catch(() => setSources([]));
     return () => clearInterval(id);
   }, []);
 
@@ -137,11 +147,18 @@ export function JobsTable() {
             <label className="text-xs text-[color:var(--color-fg-muted)]">Source</label>
             <select
               ref={sourceRef}
-              className="rounded-lg border border-[color:var(--color-border)] bg-[rgba(255,255,255,0.05)] px-3 py-2 text-sm text-[color:var(--color-fg)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]"
+              className="rounded-lg border border-[color:var(--color-border)] bg-[rgba(255,255,255,0.05)] px-3 py-2 text-sm text-[color:var(--color-fg)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] min-w-[16rem]"
+              disabled={sources.length === 0}
             >
-              <option value="">Sélectionner source</option>
-              {Object.entries(SOURCE_MAP).map(([key, name]) => (
-                <option key={key} value={key}>{name}</option>
+              <option value="">
+                {sources.length === 0 ? "Chargement des sources…" : "Sélectionner source"}
+              </option>
+              {sources.map((s) => (
+                <option key={s.sourceKey} value={s.sourceKey}>
+                  {s.sourceName}
+                  {s.countryCode ? ` (${s.countryCode})` : ""}
+                  {s.requiresAuth ? " 🔑" : ""}
+                </option>
               ))}
             </select>
           </div>
@@ -227,7 +244,9 @@ export function JobsTable() {
                     {job.jobId.slice(-8)}
                   </td>
                   <td className="p-3 text-[color:var(--color-fg)]">
-                    {job.sourceKey ? (SOURCE_MAP[job.sourceKey] ?? `source_${job.sourceKey}`) : "—"}
+                    {job.sourceKey
+                      ? (sourceByKey.get(job.sourceKey)?.sourceCode ?? `source_${job.sourceKey}`)
+                      : "—"}
                   </td>
                   <td className="p-3">
                     <span className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[job.status]}`}>
@@ -287,7 +306,11 @@ export function JobsTable() {
       <JobLogsDrawer
         jobId={openLogsJob?.jobId ?? null}
         jobStatus={openLogsJob?.status ?? null}
-        sourceCode={openLogsJob?.sourceKey ? (SOURCE_MAP[openLogsJob.sourceKey] ?? null) : null}
+        sourceCode={
+          openLogsJob?.sourceKey
+            ? (sourceByKey.get(openLogsJob.sourceKey)?.sourceCode ?? null)
+            : null
+        }
         onClose={() => setOpenLogsJob(null)}
       />
     </div>
