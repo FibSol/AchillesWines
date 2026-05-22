@@ -56,6 +56,28 @@ Voir [PROGRESS.md](PROGRESS.md) pour le détail.
 - [ ] **P2 · 4h** [Patroclus] Critic ratings publics : RVF articles libres, Decanter articles, James Suckling top-100
 - [x] **P2 · 2h** [Cassandra+Odysseus] Confidence badge UI sur chaque cuvée (verified/reviewed/needs_review) ✓ 2026-05-22
 
+### Sources added 2026-05-22 (login-gated, requires_auth=1)
+
+> ⚠ Credentials were leaked in chat on 2026-05-22 — rotate at each provider before pasting into .env. See ACHILLES_AUTH_* in .env.example for the variable names.
+
+Wine shops:
+- [ ] **P2 · 1.5h** [Patroclus] Scraper wine-searcher (global aggregator, login-gated for prices)
+- [ ] **P2 · 1h**   [Patroclus] Scraper cavissima_be (BE)
+- [ ] **P2 · 1.5h** [Patroclus] Scraper ventealapropriete (FR, flash sales — high cadence)
+- [ ] **P2 · 1h**   [Patroclus] Scraper hachette_vins_shop (FR, e-commerce)
+- [ ] **P2 · 1h**   [Patroclus] Scraper comptoir_des_millesimes (FR)
+- [ ] **P2 · 1h**   [Patroclus] Scraper topwijnen_be (BE)
+- [ ] **P2 · 0.5h** [Patroclus] Scraper millesima_be (BE — likely shares HTML with millesima FR, mostly retarget URLs)
+- [ ] **P2 · 1h**   [Patroclus] Scraper vinsbrunin (FR)
+- [ ] **P2 · 1h**   [Patroclus] Scraper wijnendeclerck_be (BE)
+- [ ] **P2 · 1h**   [Patroclus] Scraper belgiumwinewatchers (BE niche)
+
+Wine press (E_press_critic → write to fact_rating):
+- [ ] **P2 · 2h**   [Patroclus] Scraper magazines_fr (aggregator → bibliothèque numérique multi-magazine)
+- [ ] **P2 · 1.5h** [Patroclus] Scraper figaro_vin (lefigaro.fr/avis-vin)
+- [ ] **P2 · 1.5h** [Patroclus] Scraper terredevins
+- [ ] **P2 · 2h**   [Patroclus] Scraper hachette_vins (guide ratings)
+
 ## Sprint 6 — Menu pairing
 
 - [x] **P2 · 5h** [Odysseus + Helena] Page Menu : compose menu, drinking window matcher, scoring "depuis ta cave" ✓ 2026-05-22

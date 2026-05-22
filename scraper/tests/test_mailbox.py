@@ -57,7 +57,7 @@ class LoadConfigTests(unittest.TestCase):
         with mock.patch.dict(os.environ, {
             "ACHILLES_MAILBOX_HOST": "127.0.0.1",
             "ACHILLES_MAILBOX_PORT": "1143",
-            "ACHILLES_MAILBOX_USERNAME": "winenewsmail@proton.me",
+            "ACHILLES_MAILBOX_USERNAME": "newsletter-fixture@proton.me",
             "ACHILLES_MAILBOX_PASSWORD": "bridge-app-password",
             "ACHILLES_MAILBOX_SSL": "0",
             "ACHILLES_MAILBOX_STARTTLS": "1",

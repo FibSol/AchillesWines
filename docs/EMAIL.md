@@ -34,17 +34,17 @@ Proton Mail is end-to-end encrypted and **does not speak IMAP directly**. You co
 **Setup**:
 
 1. Install + launch Proton Mail Bridge. Sign in once with your Proton account credentials. Bridge stays running in the background.
-2. In Bridge's UI, click on `winenewsmail@proton.me` → **Mailbox configuration**. You'll see:
+2. In Bridge's UI, click on `your-newsletter-account@proton.me` → **Mailbox configuration**. You'll see:
    - **IMAP host**: `127.0.0.1`
    - **IMAP port**: `1143` (varies; read what Bridge displays)
-   - **Username**: your full address, e.g. `winenewsmail@proton.me`
+   - **Username**: your full address, e.g. `your-newsletter-account@proton.me`
    - **Password**: a **Bridge-generated app password** (16 chars or similar). **This is not your Proton account password.**
    - **Security**: STARTTLS, self-signed cert
 3. Set env vars:
    ```
    ACHILLES_MAILBOX_HOST=127.0.0.1
    ACHILLES_MAILBOX_PORT=1143
-   ACHILLES_MAILBOX_USERNAME=winenewsmail@proton.me
+   ACHILLES_MAILBOX_USERNAME=your-newsletter-account@proton.me
    ACHILLES_MAILBOX_PASSWORD=<bridge-generated password>
    ACHILLES_MAILBOX_SSL=0
    ACHILLES_MAILBOX_STARTTLS=1

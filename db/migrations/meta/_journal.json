@@ -29,6 +29,13 @@
       "when": 1779900000000,
       "tag": "0003_email_newsletter_sources",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1779950000000,
+      "tag": "0004_add_sources_2026_05",
+      "breakpoints": true
     }
   ]
 }
