@@ -50,7 +50,53 @@ class LoadConfigTests(unittest.TestCase):
         }, clear=True):
             cfg = mailbox.load_config_from_env()
             self.assertFalse(cfg.use_ssl)
+            self.assertFalse(cfg.starttls)
             self.assertEqual(cfg.port, 143)
+
+    def test_starttls_for_proton_bridge(self):
+        with mock.patch.dict(os.environ, {
+            "ACHILLES_MAILBOX_HOST": "127.0.0.1",
+            "ACHILLES_MAILBOX_PORT": "1143",
+            "ACHILLES_MAILBOX_USERNAME": "winenewsmail@proton.me",
+            "ACHILLES_MAILBOX_PASSWORD": "bridge-app-password",
+            "ACHILLES_MAILBOX_SSL": "0",
+            "ACHILLES_MAILBOX_STARTTLS": "1",
+        }, clear=True):
+            cfg = mailbox.load_config_from_env()
+            self.assertFalse(cfg.use_ssl)
+            self.assertTrue(cfg.starttls)
+            self.assertTrue(cfg.is_local)
+            self.assertEqual(cfg.port, 1143)
+
+    def test_ssl_and_starttls_mutually_exclusive(self):
+        with mock.patch.dict(os.environ, {
+            "ACHILLES_MAILBOX_HOST": "x",
+            "ACHILLES_MAILBOX_USERNAME": "y",
+            "ACHILLES_MAILBOX_PASSWORD": "z",
+            "ACHILLES_MAILBOX_SSL": "1",
+            "ACHILLES_MAILBOX_STARTTLS": "1",
+        }, clear=True):
+            with self.assertRaises(mailbox.MailboxConfigError):
+                mailbox.load_config_from_env()
+
+
+class IsLocalTests(unittest.TestCase):
+    def _cfg(self, host: str) -> mailbox.MailboxConfig:
+        return mailbox.MailboxConfig(host=host, port=1143, username="u", password="p")
+
+    def test_loopback_v4(self):
+        self.assertTrue(self._cfg("127.0.0.1").is_local)
+
+    def test_loopback_v6(self):
+        self.assertTrue(self._cfg("::1").is_local)
+
+    def test_localhost_name(self):
+        self.assertTrue(self._cfg("localhost").is_local)
+        self.assertTrue(self._cfg("bridge.localhost").is_local)
+
+    def test_remote_host(self):
+        self.assertFalse(self._cfg("imap.gmail.com").is_local)
+        self.assertFalse(self._cfg("10.0.0.5").is_local)
 
     def test_repr_redacts_password(self):
         cfg = mailbox.MailboxConfig(

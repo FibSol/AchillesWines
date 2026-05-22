@@ -39,14 +39,24 @@ class MailboxConfig:
     username: str
     password: str
     use_ssl: bool = True
+    starttls: bool = False
     folder: str = "INBOX"
 
     def __repr__(self) -> str:  # don't leak the password
         return (
             f"MailboxConfig(host={self.host!r}, port={self.port}, "
             f"username={self.username!r}, password=<redacted>, "
-            f"use_ssl={self.use_ssl}, folder={self.folder!r})"
+            f"use_ssl={self.use_ssl}, starttls={self.starttls}, "
+            f"folder={self.folder!r})"
         )
+
+    @property
+    def is_local(self) -> bool:
+        """True iff host is a loopback address — used to allow self-signed
+        certs from Proton Mail Bridge (and similar local proxies) without
+        weakening security for real remote hosts.
+        """
+        return self.host in ("127.0.0.1", "::1", "localhost") or self.host.endswith(".localhost")
 
 
 def load_config_from_env() -> MailboxConfig:
@@ -72,11 +82,20 @@ def load_config_from_env() -> MailboxConfig:
     ssl_raw = os.getenv("ACHILLES_MAILBOX_SSL", "1").strip().lower()
     use_ssl = ssl_raw not in ("0", "false", "no", "")
 
+    starttls_raw = os.getenv("ACHILLES_MAILBOX_STARTTLS", "0").strip().lower()
+    starttls = starttls_raw in ("1", "true", "yes")
+
+    # use_ssl and starttls are mutually exclusive (implicit TLS vs upgrade).
+    if use_ssl and starttls:
+        raise MailboxConfigError(
+            "ACHILLES_MAILBOX_SSL and ACHILLES_MAILBOX_STARTTLS are mutually exclusive"
+        )
+
     folder = os.getenv("ACHILLES_MAILBOX_FOLDER", "INBOX").strip() or "INBOX"
 
     return MailboxConfig(
         host=host, port=port, username=user, password=pw,
-        use_ssl=use_ssl, folder=folder,
+        use_ssl=use_ssl, starttls=starttls, folder=folder,
     )
 
 
@@ -92,6 +111,18 @@ class FetchedMessage:
 
 def _imap_class(use_ssl: bool):
     return imaplib.IMAP4_SSL if use_ssl else imaplib.IMAP4
+
+
+def _build_starttls_context(allow_self_signed: bool):
+    """SSL context for STARTTLS. Loopback hosts (Proton Mail Bridge etc.)
+    use a self-signed cert by design — we relax verification only there.
+    """
+    import ssl
+    ctx = ssl.create_default_context()
+    if allow_self_signed:
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+    return ctx
 
 
 def _decode_header(value: Optional[str]) -> str:
@@ -120,11 +151,23 @@ def _extract_from_addr(msg: Message) -> str:
 
 @contextmanager
 def open_mailbox(cfg: Optional[MailboxConfig] = None) -> Iterator["Mailbox"]:
-    """Context manager: connect → login → SELECT folder → yield → logout."""
+    """Context manager: connect → login → SELECT folder → yield → logout.
+
+    Supports three transport modes:
+      - implicit TLS (use_ssl=True)  — Gmail, classic IMAPS port 993
+      - STARTTLS    (starttls=True)  — Proton Mail Bridge (1143), some
+        corporate IMAP servers (143/STARTTLS)
+      - plain       (both False)     — dev only
+    """
     cfg = cfg or load_config_from_env()
     cls = _imap_class(cfg.use_ssl)
     conn = cls(cfg.host, cfg.port)
     try:
+        if cfg.starttls:
+            ctx = _build_starttls_context(allow_self_signed=cfg.is_local)
+            typ, _ = conn.starttls(ssl_context=ctx)
+            if typ != "OK":
+                raise MailboxError(f"STARTTLS upgrade failed: {typ}")
         typ, _ = conn.login(cfg.username, cfg.password)
         if typ != "OK":
             raise MailboxError(f"login failed: {typ}")

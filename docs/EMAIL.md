@@ -6,21 +6,60 @@ See [ADR-011](../DECISIONS.md) for the design rationale.
 
 ## Setting up the mailbox
 
-1. **Create a dedicated mailbox.** Don't reuse your personal Gmail — anything Achilles can read, it will `\Seen`-mark. Suggested: `wine-newsletters@<your domain>` or a new throwaway Gmail.
-2. **Subscribe** that address to each retailer/critic newsletter you want to track.
-3. **Generate an App Password** (Gmail-specific):
-   - Enable 2-step verification on the account.
-   - Visit https://myaccount.google.com/apppasswords
-   - Generate a 16-character app password labeled "Achilles Wines".
-4. **Set env vars** in `.env` (or `docker-compose` env):
+Create a **dedicated** mailbox. Don't reuse your personal mail — anything Achilles can read, it will `\Seen`-mark. Subscribe it to each retailer/critic newsletter you want to track, then pick **one** of the patterns below.
+
+### Pattern A — Gmail (App Password)
+
+1. Enable 2-step verification on the account.
+2. Visit https://myaccount.google.com/apppasswords and generate a 16-character password labeled "Achilles Wines".
+3. Set env vars:
    ```
    ACHILLES_MAILBOX_HOST=imap.gmail.com
    ACHILLES_MAILBOX_PORT=993
    ACHILLES_MAILBOX_USERNAME=wine-newsletters@yourdomain.com
-   ACHILLES_MAILBOX_PASSWORD=xxxx xxxx xxxx xxxx   # the app password
+   ACHILLES_MAILBOX_PASSWORD=xxxx xxxx xxxx xxxx
    ACHILLES_MAILBOX_SSL=1
    ACHILLES_MAILBOX_FOLDER=INBOX
    ```
+
+### Pattern B — Proton Mail (via Proton Mail Bridge)
+
+Proton Mail is end-to-end encrypted and **does not speak IMAP directly**. You connect to a local proxy called **Proton Mail Bridge** that runs on your host, decrypts client-side, and exposes the mailbox on `127.0.0.1:1143`.
+
+**Prerequisites**:
+
+- A **paid Proton Mail plan** (Plus / Unlimited / Family / Business). The free tier does NOT include Bridge — you cannot do IMAP at all on free Proton.
+- Bridge installed on the host that runs the Python sidecar (download: https://proton.me/mail/bridge).
+
+**Setup**:
+
+1. Install + launch Proton Mail Bridge. Sign in once with your Proton account credentials. Bridge stays running in the background.
+2. In Bridge's UI, click on `winenewsmail@proton.me` → **Mailbox configuration**. You'll see:
+   - **IMAP host**: `127.0.0.1`
+   - **IMAP port**: `1143` (varies; read what Bridge displays)
+   - **Username**: your full address, e.g. `winenewsmail@proton.me`
+   - **Password**: a **Bridge-generated app password** (16 chars or similar). **This is not your Proton account password.**
+   - **Security**: STARTTLS, self-signed cert
+3. Set env vars:
+   ```
+   ACHILLES_MAILBOX_HOST=127.0.0.1
+   ACHILLES_MAILBOX_PORT=1143
+   ACHILLES_MAILBOX_USERNAME=winenewsmail@proton.me
+   ACHILLES_MAILBOX_PASSWORD=<bridge-generated password>
+   ACHILLES_MAILBOX_SSL=0
+   ACHILLES_MAILBOX_STARTTLS=1
+   ACHILLES_MAILBOX_FOLDER=INBOX
+   ```
+4. **If the scraper runs in Docker** (`docker-compose up`), Bridge runs on the host but the scraper container can't reach `127.0.0.1`. Two options:
+   - Add to the `scraper` service in `docker-compose.yml`:
+     ```yaml
+     extra_hosts:
+       - "host.docker.internal:host-gateway"
+     ```
+     Then set `ACHILLES_MAILBOX_HOST=host.docker.internal`.
+   - Or use `network_mode: host` on the scraper service (Linux only).
+
+**Self-signed cert handling**: when the IMAP host is a loopback address (`127.0.0.1`, `::1`, `localhost`) the scraper relaxes certificate verification because Bridge ships a self-signed cert that's never on a public CA. For any non-loopback host the standard system CA bundle is used — no security regression.
 
 ## Architecture
 
