@@ -1,5 +1,15 @@
 # Achilles's Wines — Progress Log
 
+## 2026-05-22 — Sprint 10 (robustness)
+
+### Hector (Architect)
+- [Hector] APScheduler: BackgroundScheduler wired into JobRunner, cron per source via ACHILLES_SCHEDULE_<SOURCE> env vars, duplicate-check before enqueue (`_should_enqueue()`), clean shutdown on KeyboardInterrupt/SystemExit, 14 tests. · files: scraper/achilles_scraper/job_runner.py, scraper/tests/test_scheduler.py, .env.example
+
+### Patroclus (Backend)
+- [Patroclus] Parallel scraping: ThreadPoolExecutor(max_workers=ACHILLES_JOB_WORKERS, default 4), per-thread SQLite connections, up-to-N job claim per tick, future reaping + exception safety net, 9 tests. · files: scraper/achilles_scraper/job_runner.py, scraper/tests/test_parallel_runner.py
+- [Patroclus] buildId cache: persist to data/millesima_build_id.json on success, fallback on homepage-down, 18 tests. · files: scraper/achilles_scraper/scrapers/millesima.py, scraper/tests/test_millesima_build_id.py
+- [Patroclus] Retry + backoff: `RetryConfig` dataclass + `with_retry()` wrapper wired into `BaseScraper._fetch()`, 3 attempts 30s→300s→1800s cap, immediate re-raise on `AuthError`/non-retryable 4xx. Circular-import resolved by extracting `AuthError`/`AuthMissingError` into new leaf module `errors.py` (re-exported from `auth.py` for backward compat). Millesima scraper's `client.get()` calls now go through `self._fetch()` via a local `_get()` lambda; `_fetch_build_id()` accepts an optional `fetch_fn` injection. 17 tests in `scraper/tests/test_retry.py` (all pass), full suite 79/79 passing. · files: scraper/achilles_scraper/retry.py, scraper/achilles_scraper/errors.py, scraper/achilles_scraper/scrapers/base.py, scraper/achilles_scraper/scrapers/millesima.py, scraper/tests/test_retry.py
+
 ## 2026-05-22 — Sprint 4 (UI core)
 
 ### Odysseus (Frontend)
@@ -102,6 +112,11 @@
 ### Odysseus (Frontend)
 - [Odysseus] Sprint 4 item 1: Best Value page built (ranked list + ScatterPlot, i18n 6 langs, DB cleanup removed burgundy-manager price rows) · files: app/[locale]/best-value/page.tsx, components/BestValueScatter.tsx, messages/{en,fr,nl,de,es,it}.json
 - [Odysseus] Sprint 4 item 2: Vintages heatmap built — CSS grid heatmap (region × year), coral intensity = wine count / score, Recharts BarChart in detail panel (selected region vintage distribution), click-to-fetch wine list via /api/vintages/wines, i18n 6 langs, 0 TS errors, 0 console warnings · files: components/VintageHeatmap.tsx, app/[locale]/vintages/page.tsx, app/api/vintages/wines/route.ts, messages/{en,fr,nl,de,es,it}.json
+
+## 2026-05-22 — Sprint 5 (data import Stage 3)
+
+### Patroclus (Backend)
+- [Patroclus] Stage 3 cuvées import: extended `scripts/import-from-burgundy-manager.ts` with Stage 3 — builds lookup maps from dim_producer + dim_appellation, maps BM color codes (R/W/S/P → red/white/sparkling/rosé), deduplicates by wine_key within batch, inserts 3 650 dim_wine rows as NV (BM has no vintage column), batch-inserts in chunks of 500. dim_wine grew from 1 seed row → 3 650 canonical wine entries. /vintages heatmap now has data. 2 148 of 5 798 BM cuvées skipped due to appellation name mismatch (normText on BM appellation_name doesn't hit an existing dim_appellation row). npx tsc --noEmit clean · files: scripts/import-from-burgundy-manager.ts
 
 ## 2026-05-22 — Sprint 2 & 3 ✓
 

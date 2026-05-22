@@ -147,7 +147,7 @@ export function JobsTable() {
             <label className="text-xs text-[color:var(--color-fg-muted)]">Source</label>
             <select
               ref={sourceRef}
-              className="rounded-lg border border-[color:var(--color-border)] bg-[rgba(255,255,255,0.05)] px-3 py-2 text-sm text-[color:var(--color-fg)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] min-w-[16rem]"
+              className="rounded-lg border border-[color:var(--color-border)] bg-[rgba(255,255,255,0.05)] px-3 py-2 text-sm text-[color:var(--color-fg)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] min-w-[16rem] [&>option]:bg-white [&>option]:text-gray-900"
               disabled={sources.length === 0}
             >
               <option value="">

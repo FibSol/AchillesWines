@@ -1,11 +1,14 @@
 /**
- * One-shot import: burgundy-manager → achilles-wines dim_producer + dim_appellation.
+ * One-shot import: burgundy-manager → achilles-wines dim_producer + dim_appellation + dim_wine.
  * Run: npx tsx scripts/import-from-burgundy-manager.ts
+ * Stage 1: dim_appellation   (~200 AOC rows)
+ * Stage 2: dim_producer      (~8 700 domaines)
+ * Stage 3: dim_wine          (~5 800 cuvées, imported as NV — no vintage in BM source)
  */
 import BetterSqlite3 from "better-sqlite3";
 import { db } from "../db/index";
-import { dimProducer, dimAppellation } from "../db/schema";
-import { normText, expandProducerPrefix } from "../lib/identity";
+import { dimProducer, dimAppellation, dimWine } from "../db/schema";
+import { normText, expandProducerPrefix, cleanCuveeTails, computeWineKey } from "../lib/identity";
 
 const BM_DB = "C:\\Users\\Nicolas\\Bourgogne\\burgundy-manager\\data\\burgundy.db";
 
@@ -121,6 +124,91 @@ async function main() {
     if (i % 500 === 0) process.stdout.write(`  ${i}/${bmDomaines.length}\r`);
   }
   console.log(`\n  ✓ Producers: ${prodInserted} inserted, ${prodSkipped} skipped`);
+
+  // --- Stage 3: Import cuvées → dim_wine (as NV — BM has no vintage column) ---
+  console.log("\n→ Stage 3: importing cuvées → dim_wine…");
+
+  // Build lookup: producerNorm → producerKey (from freshly imported dim_producer)
+  const producerLookup = new Map<string, number>();
+  const allProducers = await db.select({ producerKey: dimProducer.producerKey, producerNorm: dimProducer.producerNorm }).from(dimProducer);
+  for (const row of allProducers) {
+    producerLookup.set(row.producerNorm, row.producerKey);
+  }
+  console.log(`  loaded ${producerLookup.size} producers`);
+
+  // Build lookup: appellationNorm → appellationKey
+  const appellationLookup = new Map<string, number>();
+  const allAppellations = await db.select({ appellationKey: dimAppellation.appellationKey, appellationNorm: dimAppellation.appellationNorm }).from(dimAppellation);
+  for (const row of allAppellations) {
+    appellationLookup.set(row.appellationNorm, row.appellationKey);
+  }
+  console.log(`  loaded ${appellationLookup.size} appellations`);
+
+  function mapColor(bmColor: string): "red" | "white" | "rosé" | "sparkling" | "sweet" | "fortified" | "orange" {
+    switch (bmColor) {
+      case "R": return "red";
+      case "W": return "white";
+      case "S": return "sparkling";
+      case "P": return "rosé";
+      default:  return "red";
+    }
+  }
+
+  const bmCuvees = bm.prepare(`
+    SELECT c.id, c.domaine_id, c.name, c.appellation_name, c.color,
+           d.name as producer_name
+    FROM cuvees c
+    JOIN domaines d ON c.domaine_id = d.id
+  `).all() as any[];
+
+  let wineSkipped = 0;
+  type WineRow = typeof dimWine.$inferInsert;
+  const wineRows: WineRow[] = [];
+  const seenKeys = new Set<string>();
+
+  for (const c of bmCuvees as any[]) {
+    const producerNorm = normalizeProducer(c.producer_name);
+    const producerKey = producerLookup.get(producerNorm);
+    if (!producerKey) { wineSkipped++; continue; }
+
+    const appellationNorm = normText(c.appellation_name ?? "");
+    const appellationKey = appellationLookup.get(appellationNorm);
+    if (!appellationKey) { wineSkipped++; continue; }
+
+    const cuveeName = c.name as string;
+    const cuveeNorm = cleanCuveeTails(normText(cuveeName));
+    if (!cuveeNorm) { wineSkipped++; continue; }
+
+    const wineKey = computeWineKey({ producerNorm, cuveeNorm, vintage: null, appellationNorm });
+    if (seenKeys.has(wineKey)) continue; // dedup within batch
+    seenKeys.add(wineKey);
+
+    wineRows.push({
+      wineKey,
+      producerKey,
+      appellationKey,
+      cuveeName,
+      cuveeNorm,
+      color: mapColor(c.color),
+      vintage: null,
+      isNonVintage: true,
+      bottleMl: 750,
+      canonicalName: `${c.producer_name} ${cuveeName}`,
+    });
+  }
+
+  // Insert in batches of 500 (SQLite variable limit)
+  const BATCH = 500;
+  let wineInserted = 0;
+  for (let i = 0; i < wineRows.length; i += BATCH) {
+    const batch = wineRows.slice(i, i + BATCH);
+    try {
+      await db.insert(dimWine).values(batch).onConflictDoNothing();
+      wineInserted += batch.length;
+    } catch { wineSkipped += batch.length; }
+    process.stdout.write(`  ${Math.min(i + BATCH, wineRows.length)}/${wineRows.length}\r`);
+  }
+  console.log(`\n  ✓ Wines: ${wineInserted} inserted, ${wineSkipped} skipped (${bmCuvees.length} raw cuvées)`);
 
   bm.close();
   console.log("✓ Import complete");

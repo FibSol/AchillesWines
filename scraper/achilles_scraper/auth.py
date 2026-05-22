@@ -26,17 +26,10 @@ except ImportError:
     httpx = None  # type: ignore[assignment]
 
 from .scrapers.base import BaseScraper
+from .errors import AuthError, AuthMissingError
 
-
-class AuthError(Exception):
-    """Login attempted but the target rejected our credentials, or the dance broke."""
-
-
-class AuthMissingError(AuthError):
-    """Required ACHILLES_AUTH_* env vars are absent — the scraper should
-    not even try to log in. Scraper runner converts this to a DLQ row with
-    errorClass="auth_error" and skips the batch.
-    """
+# Re-export so existing imports from achilles_scraper.auth continue to work.
+__all__ = ["AuthError", "AuthMissingError", "Credentials", "has_credentials", "get_credentials", "AuthenticatedScraper"]
 
 
 @dataclass(frozen=True)

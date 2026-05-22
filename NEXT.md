@@ -49,7 +49,7 @@ Voir [PROGRESS.md](PROGRESS.md) pour le détail.
 
 ## Sprint 5 — Ingestion ramp-up
 
-- [ ] **P2 · 0.5h** [Patroclus] Extend `scripts/import-from-burgundy-manager.ts` with a Stage 3 that imports every `cuvees` row from `C:\Users\Nicolas\Bourgogne\burgundy-manager\data\burgundy.db` into `dim_wine` (look up `producer_key` + `appellation_key` already imported in Stages 1-2; compute `wine_key` via `lib/identity`). Closes the gap that makes /vintages heatmap effectively empty on this DB. (Discovered 2026-05-22: `dim_wine` has only the 1 demo wine from seed.ts.)
+- [x] **P2 · 0.5h** [Patroclus] Extend `scripts/import-from-burgundy-manager.ts` with a Stage 3 that imports every `cuvees` row from `C:\Users\Nicolas\Bourgogne\burgundy-manager\data\burgundy.db` into `dim_wine` (look up `producer_key` + `appellation_key` already imported in Stages 1-2; compute `wine_key` via `lib/identity`). Closes the gap that makes /vintages heatmap effectively empty on this DB. (Discovered 2026-05-22: `dim_wine` has only the 1 demo wine from seed.ts.) ✓ 2026-05-22 (3 650 wines inserted as NV, 2 148 skipped on appellation mismatch)
 - [ ] **P2 · 4h** [Patroclus] Scrapers iDealwine + Cavissima + Lavinia + Vinatis
 - [ ] **P2 · 3h** [Patroclus] Scrapers Belgique : WDC + Cinoco + Wijnhuis
 - [ ] **P2 · 3h** [Patroclus] Vintage ratings : Decanter Guide + Wine Spectator vintage charts
@@ -104,6 +104,13 @@ Wine press (E_press_critic → write to fact_rating):
 - [x] **P2 · 3h** [Patroclus + Odysseus + Cassandra] Auth system: `auth.py` + `AuthenticatedScraper` base + `/admin/auth` UI + test_login JobRunner flow + 16 unit tests + docs/AUTH.md ✓ 2026-05-22 (ADR-010)
 - [ ] **P2 · 0.5h** [Cassandra] Marquer `requires_auth=1` sur dim_source pour les sources concrètes (idealwine, lavinia, vinatis, rvf) au moment où chaque scraper landed
 - [ ] **P3 · 2h** [Patroclus] Persister les sessions dans `ops_auth_sessions` (cookie_jar JSON + expires_at) si le re-login chaque batch devient un problème (rate-limit, latence). Pour l'instant la décision ADR-010 est re-login à chaque fois.
+
+## Sprint 10 — Robustesse & orchestration scraper
+
+- [x] **P2 · 2h** [Patroclus] Retry + backoff sur site down : si `_fetch_build_id()` échoue (site down ou timeout), retenter automatiquement avec backoff exponentiel (ex. 3 tentatives : 30 s → 5 min → 30 min) avant d'abandonner et écrire en DLQ. Le scraper doit être 100 % autonome. ✓ 2026-05-22
+- [x] **P2 · 1h** [Patroclus] Cache du buildId Next.js : persister le dernier buildId connu dans `ops_batch_log` ou un fichier `.millesima_build_id` pour pouvoir continuer à scraper même si la homepage est down (le buildId ne change qu'au redéploiement). ✓ 2026-05-22
+- [x] **P2 · 2h** [Hector] Scheduler APScheduler dans le job runner Python : lancer automatiquement les scrapers web (millesima, idealwine…) sur un cron configurable (ex. 1×/jour à 3h00) sans intervention manuelle. ✓ 2026-05-22
+- [x] **P2 · 1h** [Patroclus] Scraper email + scraper web en parallèle : lancer `millesima` (web) + `millesima_email` / `idealwine_email` / `lavinia_email` (IMAP) simultanément via `concurrent.futures.ThreadPoolExecutor` dans le job runner, chaque source restant isolée avec son propre batch_id. ✓ 2026-05-22
 
 ## Idées différées (P3 backlog)
 

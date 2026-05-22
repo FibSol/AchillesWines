@@ -117,16 +117,17 @@ export default async function DashboardPage({
 
       {/* Stats grid */}
       <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        <StatCard label={t("stats.bottles")} value={fmt.format(stats.bottles)} icon={Warehouse} />
-        <StatCard label={t("stats.uniqueWines")} value={fmt.format(stats.uniqueWines)} icon={Wine} />
-        <StatCard label={t("stats.value")} value={fmtEur.format(stats.cellarValue)} icon={TrendingDown} />
-        <StatCard label={t("stats.domaines")} value={fmt.format(stats.producers)} icon={Map} />
-        <StatCard label={t("stats.ratings")} value={fmt.format(stats.ratings)} icon={Sparkles} />
+        <StatCard label={t("stats.bottles")} value={fmt.format(stats.bottles)} icon={Warehouse} href="/cellar" />
+        <StatCard label={t("stats.uniqueWines")} value={fmt.format(stats.uniqueWines)} icon={Wine} href="/domaines" />
+        <StatCard label={t("stats.value")} value={fmtEur.format(stats.cellarValue)} icon={TrendingDown} href="/cellar" />
+        <StatCard label={t("stats.domaines")} value={fmt.format(stats.producers)} icon={Map} href="/domaines" />
+        <StatCard label={t("stats.ratings")} value={fmt.format(stats.ratings)} icon={Sparkles} href="/best-value" />
         <StatCard
           label="DLQ ouverts"
           value={fmt.format(stats.dlqOpen)}
           icon={AlertTriangle}
           tone={stats.dlqOpen > 0 ? "warning" : "default"}
+          href="/qualite"
         />
       </section>
 
@@ -172,14 +173,16 @@ function StatCard({
   value,
   icon: Icon,
   tone = "default",
+  href,
 }: {
   label: string;
   value: string;
   icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
   tone?: "default" | "warning";
+  href?: string;
 }) {
-  return (
-    <div className="stat-card">
+  const inner = (
+    <>
       <div className="flex items-start justify-between">
         <Icon
           className={
@@ -189,11 +192,23 @@ function StatCard({
           }
           strokeWidth={2}
         />
+        {href && (
+          <span className="text-xs text-[color:var(--color-fg-subtle)] opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+        )}
       </div>
       <div className="mt-3 stat-card-value">{value}</div>
       <div className="stat-card-label">{label}</div>
-    </div>
+    </>
   );
+
+  if (href) {
+    return (
+      <Link href={href as "/cellar"} className="stat-card group block hover:border-[color:var(--color-primary)] transition-colors">
+        {inner}
+      </Link>
+    );
+  }
+  return <div className="stat-card">{inner}</div>;
 }
 
 function QuickCard({
