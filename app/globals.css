@@ -122,6 +122,28 @@
     color: var(--color-aubergine-900);
   }
 
+  /* Native <select> dropdown: the panel that drops down is OS-rendered, so
+   * we can only style it via the <option> element. Without this, the panel
+   * uses system default white background while the <option> text inherits
+   * the dark-theme ivory color from the page → unreadable white-on-white.
+   * (Firefox/Chrome honor this; Safari mostly ignores option styling.) */
+  select {
+    color-scheme: dark;
+  }
+  select option,
+  select optgroup {
+    background: var(--color-aubergine-900);
+    color: var(--color-fg);
+  }
+  select option:checked,
+  select option:hover {
+    background: var(--color-aubergine-700);
+    color: var(--color-fg);
+  }
+  select option:disabled {
+    color: var(--color-fg-subtle);
+  }
+
   /* Scrollbars */
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track { background: var(--color-aubergine-950); }
