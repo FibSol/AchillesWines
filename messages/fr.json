@@ -99,7 +99,19 @@
     "subtitle": "Liste filtrable. Importer/exporter en CSV.",
     "exportCsv": "Exporter CSV",
     "importCsv": "Importer CSV",
-    "downloadTemplate": "Télécharger modèle"
+    "downloadTemplate": "Télécharger modèle",
+    "csv": {
+      "importTitle": "Importer des producteurs",
+      "importing": "Import…",
+      "close": "Fermer",
+      "accepted": "lignes acceptées",
+      "inserted": "Insérés",
+      "updated": "Mis à jour",
+      "rejected": "Rejetés",
+      "details": "Détails des rejets",
+      "done": "Import terminé",
+      "uploadError": "Erreur d'import"
+    }
   },
   "domaine": {
     "backToList": "Retour aux domaines",

@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { dimProducer } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { PageShell } from "@/components/page-shell";
+import { CsvActions, type CsvLabels } from "@/components/CsvActions";
 import { MapPin, Globe } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -21,12 +22,33 @@ export default async function DomainesPage({ params }: { params: Promise<{ local
     .orderBy(desc(dimProducer.tier), dimProducer.producerName)
     .limit(100);
 
+  const csvLabels: CsvLabels = {
+    importBtn: t("importCsv"),
+    exportBtn: t("exportCsv"),
+    templateBtn: t("downloadTemplate"),
+    importTitle: t("csv.importTitle"),
+    importing: t("csv.importing"),
+    close: t("csv.close"),
+    resultAccepted: t("csv.accepted"),
+    resultInserted: t("csv.inserted"),
+    resultMerged: t("csv.updated"),
+    resultRejected: t("csv.rejected"),
+    resultDetails: t("csv.details"),
+    resultDone: t("csv.done"),
+    uploadError: t("csv.uploadError"),
+  };
+
   return (
     <PageShell title={t("title")} subtitle={t("subtitle")} badge={`${producers.length} ${tCommon("producer").toLowerCase()}s`}>
-      <div className="flex items-center gap-3 mb-6">
-        <button className="btn btn-ghost text-xs">{t("exportCsv")}</button>
-        <button className="btn btn-ghost text-xs">{t("importCsv")}</button>
-        <button className="btn btn-ghost text-xs">{t("downloadTemplate")}</button>
+      <div className="mb-6">
+        <CsvActions
+          endpoints={{
+            export: "/api/producers/export",
+            template: "/api/producers/template",
+            import: "/api/producers/import",
+          }}
+          labels={csvLabels}
+        />
       </div>
 
       {producers.length === 0 ? (

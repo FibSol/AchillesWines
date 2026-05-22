@@ -99,7 +99,19 @@
     "subtitle": "Lista filtrable. Importar/exportar CSV.",
     "exportCsv": "Exportar CSV",
     "importCsv": "Importar CSV",
-    "downloadTemplate": "Descargar plantilla"
+    "downloadTemplate": "Descargar plantilla",
+    "csv": {
+      "importTitle": "Importar bodegas",
+      "importing": "Importando…",
+      "close": "Cerrar",
+      "accepted": "filas aceptadas",
+      "inserted": "Insertadas",
+      "updated": "Actualizadas",
+      "rejected": "Rechazadas",
+      "details": "Detalle de rechazos",
+      "done": "Importación finalizada",
+      "uploadError": "Error de importación"
+    }
   },
   "domaine": {
     "backToList": "Volver a bodegas",

@@ -99,7 +99,19 @@
     "subtitle": "Filterbare Liste. CSV Import/Export.",
     "exportCsv": "CSV exportieren",
     "importCsv": "CSV importieren",
-    "downloadTemplate": "Vorlage herunterladen"
+    "downloadTemplate": "Vorlage herunterladen",
+    "csv": {
+      "importTitle": "Weingüter importieren",
+      "importing": "Importiere…",
+      "close": "Schließen",
+      "accepted": "Zeilen akzeptiert",
+      "inserted": "Eingefügt",
+      "updated": "Aktualisiert",
+      "rejected": "Abgelehnt",
+      "details": "Ablehnungsdetails",
+      "done": "Import abgeschlossen",
+      "uploadError": "Importfehler"
+    }
   },
   "domaine": {
     "backToList": "Zurück zu den Weingütern",

@@ -99,7 +99,19 @@
     "subtitle": "Lista filtrabile. Import/export CSV.",
     "exportCsv": "Esporta CSV",
     "importCsv": "Importa CSV",
-    "downloadTemplate": "Scarica template"
+    "downloadTemplate": "Scarica template",
+    "csv": {
+      "importTitle": "Importa cantine",
+      "importing": "Importazione…",
+      "close": "Chiudi",
+      "accepted": "righe accettate",
+      "inserted": "Inserite",
+      "updated": "Aggiornate",
+      "rejected": "Rifiutate",
+      "details": "Dettaglio rifiuti",
+      "done": "Importazione completata",
+      "uploadError": "Errore di importazione"
+    }
   },
   "domaine": {
     "backToList": "Torna alle cantine",

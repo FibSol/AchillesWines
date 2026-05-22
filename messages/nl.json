@@ -99,7 +99,19 @@
     "subtitle": "Filterbare lijst. CSV import/export.",
     "exportCsv": "CSV exporteren",
     "importCsv": "CSV importeren",
-    "downloadTemplate": "Sjabloon downloaden"
+    "downloadTemplate": "Sjabloon downloaden",
+    "csv": {
+      "importTitle": "Wijnhuizen importeren",
+      "importing": "Importeren…",
+      "close": "Sluiten",
+      "accepted": "regels geaccepteerd",
+      "inserted": "Ingevoegd",
+      "updated": "Bijgewerkt",
+      "rejected": "Geweigerd",
+      "details": "Details van afwijzingen",
+      "done": "Import voltooid",
+      "uploadError": "Importfout"
+    }
   },
   "domaine": {
     "backToList": "Terug naar wijnhuizen",

@@ -99,7 +99,19 @@
     "subtitle": "Filterable list. CSV import/export.",
     "exportCsv": "Export CSV",
     "importCsv": "Import CSV",
-    "downloadTemplate": "Download template"
+    "downloadTemplate": "Download template",
+    "csv": {
+      "importTitle": "Import producers",
+      "importing": "Importing…",
+      "close": "Close",
+      "accepted": "rows accepted",
+      "inserted": "Inserted",
+      "updated": "Updated",
+      "rejected": "Rejected",
+      "details": "Rejection details",
+      "done": "Import done",
+      "uploadError": "Import error"
+    }
   },
   "domaine": {
     "backToList": "Back to producers",
