@@ -31,3 +31,49 @@ jobs:
 
       - name: Vitest
         run: npx vitest run --reporter=default
+
+  docker-lint:
+    name: Hadolint (Dockerfile)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          # DL3008 (pin apt versions) and DL3013 (pin pip versions) are too
+          # noisy for a personal-project base image — skip.
+          ignore: DL3008,DL3013
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: scraper/Dockerfile
+          ignore: DL3008,DL3013
+
+  docker-build:
+    name: Docker build (web + scraper)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [typecheck-and-test]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: false
+          load: false
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,scope=web,mode=max
+          tags: achilles-web:ci
+      - name: Build scraper image
+        uses: docker/build-push-action@v6
+        with:
+          context: scraper
+          file: scraper/Dockerfile
+          push: false
+          load: false
+          cache-from: type=gha,scope=scraper
+          cache-to: type=gha,scope=scraper,mode=max
+          tags: achilles-scraper:ci

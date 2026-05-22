@@ -51,6 +51,19 @@
   - (c) Job queue externe (Redis, BullMQ) → over-engineering pour un RPi mono-utilisateur.
 - **Reasoning:** SQLite est déjà le bus de données partagé entre web et scraper containers. Une table `ops_job_queue` donne : (1) persistence à travers redémarrages, (2) state visible directement dans `/admin/jobs` sans appel cross-container, (3) atomicité native via UPDATE…RETURNING, (4) zéro dépendance supplémentaire. Polling 5 s est largement acceptable vu la cadence mensuelle des jobs réels.
 
+## ADR-007 — Dockerfiles : Next.js standalone (web) + Python wheel cache (scraper)
+- **Date:** 2026-05-22
+- **Status:** accepted
+- **Decision:** Deux Dockerfiles distincts (un par container ADR-004).
+  - **Web** (`Dockerfile` à la racine) : 3 stages `deps → builder → runner` sur `node:20-bookworm-slim`. `deps` installe `python3/make/g++` pour le compile natif de `better-sqlite3`. `builder` produit `.next/standalone` via `next.config.ts` (output:"standalone"). `runner` copie uniquement `standalone/`, `static/`, `public/`, `db/` (migrations) — pas de `node_modules` complet. Tini en PID 1, user non-root `achilles:1001`, EXPOSE 3000, HEALTHCHECK via fetch sur `/`.
+  - **Scraper** (`scraper/Dockerfile`) : 2 stages `builder → runner` sur `python:3.12-slim-bookworm`. Le builder produit les wheels (`pip wheel --wheel-dir /wheels .`), le runner les installe sans toolchain. Tini, user non-root, HEALTHCHECK via `sqlite3 SELECT 1` sur le DB partagé.
+  - **CI** : nouveau job `docker-build` (Buildx + GHA cache) construit les deux images sur chaque push. Job `docker-lint` (hadolint) sur les deux Dockerfiles.
+- **Alternatives considered:**
+  - (a) Image unique multi-process (web + scraper dans le même container, supervisord). Rejeté par ADR-004 (isolation crash).
+  - (b) Alpine base. Rejeté : musl pose des problèmes connus avec `better-sqlite3` et selectolax (Cython).
+  - (c) Distroless final stage. Tentant mais pas de shell pour le HEALTHCHECK et debug RPi compliqué.
+- **Reasoning:** `node:20-bookworm-slim` + multi-stage `standalone` donne une image runner ~150 MB sans toolchain de compilation. Le wheel-cache du scraper évite de réinstaller `selectolax`/`httpx[http2]` à chaque déploiement (compilation lente sur arm64). Tini en PID 1 est essentiel pour le `docker stop` propre (sinon SIGTERM ne se propage pas à `node server.js`). Le HEALTHCHECK Node utilise `fetch()` natif (Node ≥ 18) — pas de `curl` à installer.
+
 ## ADR-005 — wine_key = sha1 composite hash, pas LWIN
 - **Date:** 2026-05-21
 - **Status:** accepted

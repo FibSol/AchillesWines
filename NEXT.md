@@ -63,7 +63,7 @@ Voir [PROGRESS.md](PROGRESS.md) pour le détail.
 
 ## Sprint 7 — Déploiement RPi
 
-- [ ] **P3 · 3h** [Hector] Dockerfile multi-stage Next + sidecar
+- [x] **P3 · 3h** [Hector] Dockerfile multi-stage Next + sidecar ✓ 2026-05-22 (closes #6, ADR-007)
 - [ ] **P3 · 2h** [Hector] docker-compose.yml + nginx reverse proxy
 - [ ] **P3 · 2h** [Hector] PWA manifest + service worker (next-pwa)
 - [ ] **P3 · 1h** [Hector] Backup script SQLite GPG vers NAS
