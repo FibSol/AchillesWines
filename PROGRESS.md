@@ -1,5 +1,13 @@
 # Achilles's Wines — Progress Log
 
+## 2026-05-22 — Sprint 5/8/9 scraper ramp-up complete
+
+### Patroclus (Backend)
+- [Patroclus] FR retail scrapers: idealwine (auth), lavinia (auth), vinatis, cavissima, ventealapropriete (auth), comptoir_des_millesimes, vinsbrunin · files: scrapers/idealwine.py, lavinia.py, vinatis.py, cavissima.py, ventealapropriete.py, comptoir_des_millesimes.py, vinsbrunin.py
+- [Patroclus] BE retail scrapers: wdc, cinoco, wijnhuis, millesima_be (Next.js clone), topwijnen_be, wijnendeclerck_be, belgiumwinewatchers, cavissima_be (auth), hachette_vins_shop · files: scrapers/wdc.py, cinoco.py, wijnhuis.py, millesima_be.py, topwijnen_be.py, wijnendeclerck_be.py, belgiumwinewatchers.py, cavissima_be.py, hachette_vins_shop.py
+- [Patroclus] Press/critic scrapers (→ fact_rating): rvf (RVF/20), decanter_ratings (Decanter/100), james_suckling (JS/100), hachette_vins_guide (Hachette/stars→/100), figaro_vin (RVF map), terredevins (RVF map), vintage_ratings (WS+Decanter → fact_vintage_rating) · files: scrapers/rvf.py, decanter_ratings.py, james_suckling.py, hachette_vins_guide.py, figaro_vin.py, terredevins.py, vintage_ratings.py
+- [Patroclus+Hector] CLI wired: all 27 scrapers registered in cli.py (17 retail + 3 email + 7 press). Migration 0005: james_suckling dim_source + requires_auth=1 for idealwine/lavinia/vinatis/rvf. 124/124 Python + 66/66 Vitest. First scrape: millesima dedup ✓, decanter 2 ratings parsed · files: scraper/achilles_scraper/cli.py, db/migrations/0005_james_suckling_and_auth_flags.sql
+
 ## 2026-05-22 — Sprint 7 (deployment completion)
 
 ### Hector (Solution Architect)

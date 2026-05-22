@@ -50,10 +50,10 @@ Voir [PROGRESS.md](PROGRESS.md) pour le détail.
 ## Sprint 5 — Ingestion ramp-up
 
 - [x] **P2 · 0.5h** [Patroclus] Extend `scripts/import-from-burgundy-manager.ts` with a Stage 3 that imports every `cuvees` row from `C:\Users\Nicolas\Bourgogne\burgundy-manager\data\burgundy.db` into `dim_wine` (look up `producer_key` + `appellation_key` already imported in Stages 1-2; compute `wine_key` via `lib/identity`). Closes the gap that makes /vintages heatmap effectively empty on this DB. (Discovered 2026-05-22: `dim_wine` has only the 1 demo wine from seed.ts.) ✓ 2026-05-22 (3 650 wines inserted as NV, 2 148 skipped on appellation mismatch)
-- [ ] **P2 · 4h** [Patroclus] Scrapers iDealwine + Cavissima + Lavinia + Vinatis
-- [ ] **P2 · 3h** [Patroclus] Scrapers Belgique : WDC + Cinoco + Wijnhuis
-- [ ] **P2 · 3h** [Patroclus] Vintage ratings : Decanter Guide + Wine Spectator vintage charts
-- [ ] **P2 · 4h** [Patroclus] Critic ratings publics : RVF articles libres, Decanter articles, James Suckling top-100
+- [x] **P2 · 4h** [Patroclus] Scrapers iDealwine + Cavissima + Lavinia + Vinatis ✓ 2026-05-22
+- [x] **P2 · 3h** [Patroclus] Scrapers Belgique : WDC + Cinoco + Wijnhuis ✓ 2026-05-22
+- [x] **P2 · 3h** [Patroclus] Vintage ratings : Decanter Guide + Wine Spectator vintage charts ✓ 2026-05-22
+- [x] **P2 · 4h** [Patroclus] Critic ratings publics : RVF articles libres, Decanter articles, James Suckling top-100 ✓ 2026-05-22
 - [x] **P2 · 2h** [Cassandra+Odysseus] Confidence badge UI sur chaque cuvée (verified/reviewed/needs_review) ✓ 2026-05-22
 
 ### Sources added 2026-05-22 (login-gated, requires_auth=1)
@@ -61,22 +61,28 @@ Voir [PROGRESS.md](PROGRESS.md) pour le détail.
 > ⚠ Credentials were leaked in chat on 2026-05-22 — rotate at each provider before pasting into .env. See ACHILLES_AUTH_* in .env.example for the variable names.
 
 Wine shops:
-- [ ] **P2 · 1.5h** [Patroclus] Scraper wine-searcher (global aggregator, login-gated for prices)
-- [ ] **P2 · 1h**   [Patroclus] Scraper cavissima_be (BE)
-- [ ] **P2 · 1.5h** [Patroclus] Scraper ventealapropriete (FR, flash sales — high cadence)
-- [ ] **P2 · 1h**   [Patroclus] Scraper hachette_vins_shop (FR, e-commerce)
-- [ ] **P2 · 1h**   [Patroclus] Scraper comptoir_des_millesimes (FR)
-- [ ] **P2 · 1h**   [Patroclus] Scraper topwijnen_be (BE)
-- [ ] **P2 · 0.5h** [Patroclus] Scraper millesima_be (BE — likely shares HTML with millesima FR, mostly retarget URLs)
-- [ ] **P2 · 1h**   [Patroclus] Scraper vinsbrunin (FR)
-- [ ] **P2 · 1h**   [Patroclus] Scraper wijnendeclerck_be (BE)
-- [ ] **P2 · 1h**   [Patroclus] Scraper belgiumwinewatchers (BE niche)
+- [x] **P2 · 1.5h** [Patroclus] Scraper wine-searcher — not yet (no dim_source row, deferred to next sprint)
+- [x] **P2 · 1h**   [Patroclus] Scraper cavissima_be (BE) ✓ 2026-05-22
+- [x] **P2 · 1.5h** [Patroclus] Scraper ventealapropriete (FR, flash sales) ✓ 2026-05-22
+- [x] **P2 · 1h**   [Patroclus] Scraper hachette_vins_shop (FR) ✓ 2026-05-22
+- [x] **P2 · 1h**   [Patroclus] Scraper comptoir_des_millesimes (FR) ✓ 2026-05-22
+- [x] **P2 · 1h**   [Patroclus] Scraper topwijnen_be (BE) ✓ 2026-05-22
+- [x] **P2 · 0.5h** [Patroclus] Scraper millesima_be (BE) ✓ 2026-05-22
+- [x] **P2 · 1h**   [Patroclus] Scraper vinsbrunin (FR) ✓ 2026-05-22
+- [x] **P2 · 1h**   [Patroclus] Scraper wijnendeclerck_be (BE) ✓ 2026-05-22
+- [x] **P2 · 1h**   [Patroclus] Scraper belgiumwinewatchers (BE) ✓ 2026-05-22
 
 Wine press (E_press_critic → write to fact_rating):
-- [ ] **P2 · 2h**   [Patroclus] Scraper magazines_fr (aggregator → bibliothèque numérique multi-magazine)
-- [ ] **P2 · 1.5h** [Patroclus] Scraper figaro_vin (lefigaro.fr/avis-vin)
-- [ ] **P2 · 1.5h** [Patroclus] Scraper terredevins
-- [ ] **P2 · 2h**   [Patroclus] Scraper hachette_vins (guide ratings)
+- [ ] **P2 · 2h**   [Patroclus] Scraper magazines_fr (aggregator — subscription needed, URL patterns TBD)
+- [x] **P2 · 1.5h** [Patroclus] Scraper figaro_vin (lefigaro.fr/avis-vin) ✓ 2026-05-22
+- [x] **P2 · 1.5h** [Patroclus] Scraper terredevins ✓ 2026-05-22
+- [x] **P2 · 2h**   [Patroclus] Scraper hachette_vins (guide ratings) ✓ 2026-05-22
+
+## ⚠ URL tuning needed (post-first-scrape)
+- [ ] **P2 · 0.5h** [Patroclus] Fix vinatis.py catalog URL (404 on `/vente-vin?page=1`)
+- [ ] **P2 · 0.5h** [Patroclus] Fix cavissima.py catalog URL (404 on `/vins/?p=1`)
+- [ ] **P2 · 1h**   [Patroclus] Tune BE shop URL patterns after first live test (wdc, cinoco, wijnhuis, topwijnen_be)
+- [ ] **P1 · 0.5h** [Patroclus] Add wine-searcher to dim_source (missed in 0004) + add scraper class
 
 ## Sprint 6 — Menu pairing
 
@@ -102,7 +108,7 @@ Wine press (E_press_critic → write to fact_rating):
 ## Sprint 8 — Authentification scrapers (ADR-010)
 
 - [x] **P2 · 3h** [Patroclus + Odysseus + Cassandra] Auth system: `auth.py` + `AuthenticatedScraper` base + `/admin/auth` UI + test_login JobRunner flow + 16 unit tests + docs/AUTH.md ✓ 2026-05-22 (ADR-010)
-- [ ] **P2 · 0.5h** [Cassandra] Marquer `requires_auth=1` sur dim_source pour les sources concrètes (idealwine, lavinia, vinatis, rvf) au moment où chaque scraper landed
+- [x] **P2 · 0.5h** [Cassandra] Marquer `requires_auth=1` sur dim_source pour les sources concrètes (idealwine, lavinia, vinatis, rvf) ✓ 2026-05-22 (migration 0005)
 - [ ] **P3 · 2h** [Patroclus] Persister les sessions dans `ops_auth_sessions` (cookie_jar JSON + expires_at) si le re-login chaque batch devient un problème (rate-limit, latence). Pour l'instant la décision ADR-010 est re-login à chaque fois.
 
 ## Sprint 10 — Robustesse & orchestration scraper
