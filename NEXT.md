@@ -49,6 +49,7 @@ Voir [PROGRESS.md](PROGRESS.md) pour le détail.
 
 ## Sprint 5 — Ingestion ramp-up
 
+- [ ] **P2 · 0.5h** [Patroclus] Extend `scripts/import-from-burgundy-manager.ts` with a Stage 3 that imports every `cuvees` row from `C:\Users\Nicolas\Bourgogne\burgundy-manager\data\burgundy.db` into `dim_wine` (look up `producer_key` + `appellation_key` already imported in Stages 1-2; compute `wine_key` via `lib/identity`). Closes the gap that makes /vintages heatmap effectively empty on this DB. (Discovered 2026-05-22: `dim_wine` has only the 1 demo wine from seed.ts.)
 - [ ] **P2 · 4h** [Patroclus] Scrapers iDealwine + Cavissima + Lavinia + Vinatis
 - [ ] **P2 · 3h** [Patroclus] Scrapers Belgique : WDC + Cinoco + Wijnhuis
 - [ ] **P2 · 3h** [Patroclus] Vintage ratings : Decanter Guide + Wine Spectator vintage charts
