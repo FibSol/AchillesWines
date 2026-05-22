@@ -69,6 +69,13 @@ Voir [PROGRESS.md](PROGRESS.md) pour le détail.
 - [x] **P3 · 1h** [Hector] Backup script SQLite GPG vers NAS ✓ 2026-05-22 (closes #9, ADR-009)
 - [ ] **P3 · 3h** [Hector] Home Assistant addon config + integration
 
+## Sprint 9 — Email newsletter ingestion (ADR-011)
+
+- [x] **P2 · 4h** [Patroclus + Cassandra] Email newsletter scraper: IMAP mailbox client + generic HTML parser + EmailNewsletterScraper base + .eml replay + 40 unit tests + docs/EMAIL.md ✓ 2026-05-22 (ADR-011)
+- [ ] **P2 · 1h** [Patroclus] Set `from_email` to the real subscriber address for each `*_email` row in dim_source after the user subscribes the mailbox
+- [ ] **P3 · 2h** [Patroclus] Per-vendor `_parse_html()` overrides as the generic heuristic shows holes per source
+- [ ] **P3 · 3h** [Patroclus] Optional LLM fallback parser (Claude API) for emails the heuristic can't handle — gated behind a per-source `use_llm_fallback` flag to keep API costs predictable
+
 ## Sprint 8 — Authentification scrapers (ADR-010)
 
 - [x] **P2 · 3h** [Patroclus + Odysseus + Cassandra] Auth system: `auth.py` + `AuthenticatedScraper` base + `/admin/auth` UI + test_login JobRunner flow + 16 unit tests + docs/AUTH.md ✓ 2026-05-22 (ADR-010)

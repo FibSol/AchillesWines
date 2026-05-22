@@ -51,6 +51,24 @@
   - (c) Job queue externe (Redis, BullMQ) → over-engineering pour un RPi mono-utilisateur.
 - **Reasoning:** SQLite est déjà le bus de données partagé entre web et scraper containers. Une table `ops_job_queue` donne : (1) persistence à travers redémarrages, (2) state visible directement dans `/admin/jobs` sans appel cross-container, (3) atomicité native via UPDATE…RETURNING, (4) zéro dépendance supplémentaire. Polling 5 s est largement acceptable vu la cadence mensuelle des jobs réels.
 
+## ADR-011 — Email newsletter ingestion : IMAP dédié + parser HTML générique + .eml replay
+- **Date:** 2026-05-22
+- **Status:** accepted
+- **Decision:**
+  - **Protocol** : IMAP via stdlib `imaplib` + `email.message`. Pas de POP3 (destructif), pas d'OAuth (Gmail accepte les App Passwords pour IMAP depuis 2022).
+  - **Mailbox** : un seul compte Gmail dédié. Credentials en env vars `ACHILLES_MAILBOX_HOST/PORT/USERNAME/PASSWORD/SSL/FOLDER`. Jamais en DB. Le `MailboxConfig.__repr__` redacte le password.
+  - **Modèle** : un row `dim_source` par expéditeur (e.g. `millesima_email`, `idealwine_email`). Le scraper pour ce source filtre `SEARCH UNSEEN FROM "<addr>"`. Mailbox creds partagées entre tous les `*_email` sources — pas en ACHILLES_AUTH_* (ADR-010 ne s'applique pas ici, c'est un mailbox, pas une auth de site).
+  - **Parser** : `EmailNewsletterScraper(BaseScraper)` base avec hook `_parse_html()`. Default = heuristique générique (selectolax) qui extrait anchors `[href]` qui pointent vers un produit + prix le plus proche en montant dans le DOM avec `text(separator=" ")` pour éviter de coller les textes voisins. Subclasses peuvent override pour des layouts exotiques.
+  - **Lifecycle** : .eml sauvé dans `raw/email/<batch_id>/<uid>.eml` AVANT toute écriture DB → on a un artéfact pour replay même si le crash arrive après. Succès → message marqué `\Seen` (option choisie par l'utilisateur). Échec parse → DLQ avec `raw_object_path` → message reste UNSEEN pour qu'un parser amélioré puisse retenter plus tard.
+  - **wine_key** : appellation laissée vide dans la pipeline email (les newsletters ne nomment pas l'AOC explicitement). Conséquence : ne collide pas avec le `wine_key` du scraper HTML correspondant. Trade-off accepté pour V1 ; le row staging reste `needs_review=1` jusqu'à résolution manuelle.
+- **Alternatives considered:**
+  - (a) Webhook inbound (Postmark, SendGrid Inbound Parse) : push au lieu de poll. Élégant mais ajoute un service externe payant et une URL publique à exposer depuis le RPi — overkill.
+  - (b) LLM (Claude/OpenAI) pour extraire les offres sans parser HTML : marche sur n'importe quelle disposition mais coûte ~$0.01 par newsletter et introduit une dépendance réseau. Reporté en fallback ; peut être ajouté plus tard via `_parse_html()` override.
+  - (c) Stocker mailbox creds dans `dim_source` plutôt qu'env vars. Rejeté : partage de creds entre N sources `*_email`, et secrets en DB violent le principe d'ADR-010.
+  - (d) Supprimer le message après parse au lieu de `\Seen`. Rejeté par l'utilisateur (réversibilité utile, inspection dans Gmail UI).
+  - (e) Pas de `.eml` sauvé. Rejeté : le replay-without-refetch est essentiel quand on améliore un parser.
+- **Reasoning:** Un mailbox IMAP dédié transforme tous les retailers en un seul protocole (IMAP) et déplace la complexité de "scraper N sites avec N anti-bots" vers "parser N layouts HTML d'emails dans un seul flux". Le scraper Python existant a déjà selectolax + httpx + DLQ + ops_content_hashes — on réutilise 100% de l'infrastructure. La sauvegarde du .eml en premier garantit qu'un crash ne perde jamais l'input. `\Seen` est doublement utile : (1) idempotence du poll, (2) inspectabilité dans Gmail UI.
+
 ## ADR-010 — Authentification scrapers : env-vars only + form login + re-login chaque batch
 - **Date:** 2026-05-22
 - **Status:** accepted

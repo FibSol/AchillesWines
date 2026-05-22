@@ -22,6 +22,13 @@
       "when": 1779800000000,
       "tag": "0002_source_requires_auth",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1779900000000,
+      "tag": "0003_email_newsletter_sources",
+      "breakpoints": true
     }
   ]
 }

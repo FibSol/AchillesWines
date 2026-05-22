@@ -8,7 +8,15 @@ SCRAPERS: dict[str, type] = {}
 
 def _load_scrapers():
     from .scrapers.millesima import MillesimaScraper
+    from .scrapers.email_samples import (
+        MillesimaEmailScraper,
+        IDealwineEmailScraper,
+        LaviniaEmailScraper,
+    )
     SCRAPERS["millesima"] = MillesimaScraper
+    SCRAPERS["millesima_email"] = MillesimaEmailScraper
+    SCRAPERS["idealwine_email"] = IDealwineEmailScraper
+    SCRAPERS["lavinia_email"] = LaviniaEmailScraper
 
 @click.group()
 def cli():
@@ -16,7 +24,11 @@ def cli():
     _load_scrapers()
 
 @cli.command()
-@click.option("--source", required=True, type=click.Choice(["millesima"]), help="Source to scrape")
+@click.option(
+    "--source", required=True,
+    type=click.Choice(["millesima", "millesima_email", "idealwine_email", "lavinia_email"]),
+    help="Source to scrape",
+)
 @click.option("--limit", default=None, type=int, help="Max rows to fetch")
 def run(source: str, limit):
     """Run a scraper immediately."""
