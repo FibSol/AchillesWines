@@ -69,6 +69,12 @@ Voir [PROGRESS.md](PROGRESS.md) pour le détail.
 - [x] **P3 · 1h** [Hector] Backup script SQLite GPG vers NAS ✓ 2026-05-22 (closes #9, ADR-009)
 - [ ] **P3 · 3h** [Hector] Home Assistant addon config + integration
 
+## Sprint 8 — Authentification scrapers (ADR-010)
+
+- [x] **P2 · 3h** [Patroclus + Odysseus + Cassandra] Auth system: `auth.py` + `AuthenticatedScraper` base + `/admin/auth` UI + test_login JobRunner flow + 16 unit tests + docs/AUTH.md ✓ 2026-05-22 (ADR-010)
+- [ ] **P2 · 0.5h** [Cassandra] Marquer `requires_auth=1` sur dim_source pour les sources concrètes (idealwine, lavinia, vinatis, rvf) au moment où chaque scraper landed
+- [ ] **P3 · 2h** [Patroclus] Persister les sessions dans `ops_auth_sessions` (cookie_jar JSON + expires_at) si le re-login chaque batch devient un problème (rate-limit, latence). Pour l'instant la décision ADR-010 est re-login à chaque fois.
+
 ## Idées différées (P3 backlog)
 
 - [ ] OCR étiquette via Claude Vision (photo → ajout cellar)

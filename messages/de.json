@@ -13,7 +13,8 @@
     "menu": "Wein-Speise-Kombination",
     "quality": "Datenqualität",
     "quarantine": "Quarantäne",
-    "adminJobs": "Überwachung"
+    "adminJobs": "Überwachung",
+    "adminAuth": "Authentifizierung"
   },
   "common": {
     "search": "Suchen",
@@ -206,6 +207,23 @@
     "verified": "Verifiziert ({count} Quellen)",
     "reviewed": "Einzelquelle",
     "needs_review": "Überprüfung"
+  },
+  "adminAuth": {
+    "title": "Scraper-Authentifizierung",
+    "subtitle": "Quellen, die einen Login (Formularbasiert) brauchen. Zugangsdaten kommen aus Umgebungsvariablen und werden nicht in der DB gespeichert.",
+    "sources": "Quellen",
+    "source": "Quelle",
+    "status": "Status",
+    "envVars": "Umgebungsvariablen",
+    "credsPresent": "Zugangsdaten vorhanden",
+    "credsMissing": "Zugangsdaten fehlen",
+    "testLogin": "Login testen",
+    "testing": "Teste…",
+    "empty": "Aktuell benötigt keine Quelle eine Authentifizierung.",
+    "jobQueued": "Test-Job in Warteschlange",
+    "viewJob": "In /admin/jobs ansehen",
+    "docsHint": "Trag deine Zugangsdaten in die .env-Datei (nie committen).",
+    "docsLink": "Doku"
   },
   "adminJobs": {
     "title": "Scraper-Überwachung",

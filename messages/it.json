@@ -13,7 +13,8 @@
     "menu": "Abbinamento",
     "quality": "Qualità dati",
     "quarantine": "Quarantena",
-    "adminJobs": "Supervisione"
+    "adminJobs": "Supervisione",
+    "adminAuth": "Autenticazione"
   },
   "common": {
     "search": "Cerca",
@@ -206,6 +207,23 @@
     "verified": "Verificato ({count} sorgenti)",
     "reviewed": "Sorgente unica",
     "needs_review": "In revisione"
+  },
+  "adminAuth": {
+    "title": "Autenticazione scraper",
+    "subtitle": "Sorgenti che richiedono un login (form). Le credenziali vivono in variabili d'ambiente e non toccano mai il DB.",
+    "sources": "Sorgenti",
+    "source": "Sorgente",
+    "status": "Stato",
+    "envVars": "Variabili d'ambiente",
+    "credsPresent": "Credenziali presenti",
+    "credsMissing": "Credenziali mancanti",
+    "testLogin": "Prova il login",
+    "testing": "Test…",
+    "empty": "Nessuna sorgente richiede autenticazione al momento.",
+    "jobQueued": "Job di test in coda",
+    "viewJob": "Vedi in /admin/jobs",
+    "docsHint": "Metti le credenziali nel file .env (mai committato).",
+    "docsLink": "Vedi documentazione"
   },
   "adminJobs": {
     "title": "Supervisione scraper",

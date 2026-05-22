@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   AlertTriangle,
   Settings2,
+  KeyRound,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -31,6 +32,7 @@ const ADMIN_ITEMS = [
   { href: "/qualite", key: "quality", icon: ShieldCheck },
   { href: "/quarantaine", key: "quarantine", icon: AlertTriangle },
   { href: "/admin/jobs", key: "adminJobs", icon: Settings2 },
+  { href: "/admin/auth", key: "adminAuth", icon: KeyRound },
 ] as const;
 
 export function SiteNav() {

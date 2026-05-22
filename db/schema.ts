@@ -50,6 +50,11 @@ export const dimSource = sqliteTable(
       enum: ["one_shot", "weekly", "monthly", "annual", "on_demand"],
     }).notNull(),
     enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+    /** True when scraping this source requires authenticated session
+     * (form login). Credentials come from ACHILLES_AUTH_<source>_USERNAME /
+     * _PASSWORD env vars — see scraper/achilles_scraper/auth.py and ADR-010.
+     */
+    requiresAuth: integer("requires_auth", { mode: "boolean" }).notNull().default(false),
     lastSuccessAt: integer("last_success_at", { mode: "timestamp" }),
     notes: text("notes"),
   },

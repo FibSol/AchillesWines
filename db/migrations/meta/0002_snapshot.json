@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "d169897e-4e8c-4905-9ada-a22d9d498348",
-  "prevId": "4b031c10-5d1b-408b-9a52-dc45f9126bd3",
+  "id": "e5f9b6e6-44d1-4964-a6a7-d0431ae99b31",
+  "prevId": "d169897e-4e8c-4905-9ada-a22d9d498348",
   "tables": {
     "bridge_wine_variety": {
       "name": "bridge_wine_variety",
@@ -683,6 +683,14 @@
           "notNull": true,
           "autoincrement": false,
           "default": true
+        },
+        "requires_auth": {
+          "name": "requires_auth",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
         },
         "last_success_at": {
           "name": "last_success_at",

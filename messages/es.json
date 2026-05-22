@@ -13,7 +13,8 @@
     "menu": "Maridaje",
     "quality": "Calidad datos",
     "quarantine": "Cuarentena",
-    "adminJobs": "Supervisión"
+    "adminJobs": "Supervisión",
+    "adminAuth": "Autenticación"
   },
   "common": {
     "search": "Buscar",
@@ -206,6 +207,23 @@
     "verified": "Verificado ({count} fuentes)",
     "reviewed": "Fuente única",
     "needs_review": "En revisión"
+  },
+  "adminAuth": {
+    "title": "Autenticación de scrapers",
+    "subtitle": "Fuentes que requieren login (basado en formulario). Las credenciales se leen de variables de entorno y nunca tocan la BD.",
+    "sources": "Fuentes",
+    "source": "Fuente",
+    "status": "Estado",
+    "envVars": "Variables de entorno",
+    "credsPresent": "Credenciales presentes",
+    "credsMissing": "Credenciales ausentes",
+    "testLogin": "Probar login",
+    "testing": "Probando…",
+    "empty": "Ninguna fuente requiere autenticación actualmente.",
+    "jobQueued": "Trabajo de prueba en cola",
+    "viewJob": "Ver en /admin/jobs",
+    "docsHint": "Pon tus credenciales en el archivo .env (nunca commiteado).",
+    "docsLink": "Ver documentación"
   },
   "adminJobs": {
     "title": "Supervisión de scrapers",

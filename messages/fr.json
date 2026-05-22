@@ -13,7 +13,8 @@
     "menu": "Accord mets-vins",
     "quality": "Qualité données",
     "quarantine": "Quarantaine",
-    "adminJobs": "Supervision"
+    "adminJobs": "Supervision",
+    "adminAuth": "Authentification"
   },
   "common": {
     "search": "Rechercher",
@@ -206,6 +207,23 @@
     "verified": "Vérifié ({count} sources)",
     "reviewed": "Source unique",
     "needs_review": "En revue"
+  },
+  "adminAuth": {
+    "title": "Authentification des scrapers",
+    "subtitle": "Sources nécessitant un login (form-based). Les identifiants sont lus depuis des variables d'environnement et jamais stockés.",
+    "sources": "Sources",
+    "source": "Source",
+    "status": "État",
+    "envVars": "Variables d'environnement",
+    "credsPresent": "Identifiants présents",
+    "credsMissing": "Identifiants manquants",
+    "testLogin": "Tester le login",
+    "testing": "Test…",
+    "empty": "Aucune source ne nécessite d'authentification pour l'instant.",
+    "jobQueued": "Job de test mis en file",
+    "viewJob": "Voir dans /admin/jobs",
+    "docsHint": "Mettez vos identifiants dans le fichier .env (jamais commité).",
+    "docsLink": "Voir la doc"
   },
   "adminJobs": {
     "title": "Supervision des scrapers",

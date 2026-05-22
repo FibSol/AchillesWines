@@ -51,6 +51,22 @@
   - (c) Job queue externe (Redis, BullMQ) → over-engineering pour un RPi mono-utilisateur.
 - **Reasoning:** SQLite est déjà le bus de données partagé entre web et scraper containers. Une table `ops_job_queue` donne : (1) persistence à travers redémarrages, (2) state visible directement dans `/admin/jobs` sans appel cross-container, (3) atomicité native via UPDATE…RETURNING, (4) zéro dépendance supplémentaire. Polling 5 s est largement acceptable vu la cadence mensuelle des jobs réels.
 
+## ADR-010 — Authentification scrapers : env-vars only + form login + re-login chaque batch
+- **Date:** 2026-05-22
+- **Status:** accepted
+- **Decision:**
+  - **Stockage des credentials** : env vars exclusivement, pattern `ACHILLES_AUTH_<SOURCE>_USERNAME` / `_PASSWORD`. Jamais en base, jamais en log. `Credentials.__repr__` redacte le password.
+  - **Flow** : form login (username + password) uniquement pour le V1. Pas d'OAuth, pas de cookies pasted-from-browser, pas de captcha-bypass.
+  - **Session** : pas de cache. Chaque batch se reconnecte. Quand ça devient un problème (rate-limiting target, latence), on ajoutera une table `ops_auth_sessions(source_key, cookie_jar JSON, expires_at, …)`.
+  - **Drapeau de découverte** : nouvelle colonne `dim_source.requires_auth` (boolean default false). `/admin/auth` liste les sources avec ce flag = 1, montre la présence des env vars et offre un bouton "Test login" qui enqueue un job avec `params.test_auth=true`.
+  - **Erreurs** : `AuthMissingError` (env vars absentes) et `AuthError` (login rejeté ou rompu) dans `scraper/achilles_scraper/auth.py`. Le JobRunner les capture et marque le job `failed` avec le message d'erreur. DLQ `errorClass="auth_error"` (déjà dans l'enum) pour les 401 ligne-par-ligne pendant un scrape.
+- **Alternatives considered:**
+  - (a) Cache de session en DB. Plus performant et plus poli vis-à-vis du target. Reporté — re-login coûte ~1 s, on a une marge.
+  - (b) Cookies pastés depuis le browser (workaround captcha/2FA). Utile mais le UX est mauvais (cookie expire → silently 403 → DLQ). À reconsidérer si Decanter Premium ou WS Pro entrent en jeu.
+  - (c) Tokens API uniquement. Trop limité — Wine-Searcher est payant et la plupart des cibles n'exposent pas d'API.
+  - (d) Vault / OS keyring. Over-engineering pour un déploiement maison mono-utilisateur.
+- **Reasoning:** Env vars + form-login couvre le 80% des sources qu'on vise (iDealwine, Lavinia, Vinatis, RVF, peut-être Decanter free-tier). Re-login par batch garde la code-surface minimale et rend chaque run idempotent. La table `requires_auth` est un boolean simple — pas de structure d'auth en DB tant qu'on n'a pas un besoin clair. `/admin/auth` réutilise complètement la pipeline existante : c'est juste un job avec un flag.
+
 ## ADR-009 — Backups : SQLite online-backup → GPG symmetric → NAS, retention 7d + 4w
 - **Date:** 2026-05-22
 - **Status:** accepted

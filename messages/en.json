@@ -13,7 +13,8 @@
     "menu": "Wine pairing",
     "quality": "Data quality",
     "quarantine": "Quarantine",
-    "adminJobs": "Supervision"
+    "adminJobs": "Supervision",
+    "adminAuth": "Authentication"
   },
   "common": {
     "search": "Search",
@@ -206,6 +207,23 @@
     "verified": "Verified ({count} sources)",
     "reviewed": "Single source",
     "needs_review": "In review"
+  },
+  "adminAuth": {
+    "title": "Scraper authentication",
+    "subtitle": "Sources requiring a login (form-based). Credentials live in environment variables and never touch the DB.",
+    "sources": "Sources",
+    "source": "Source",
+    "status": "Status",
+    "envVars": "Environment variables",
+    "credsPresent": "Credentials present",
+    "credsMissing": "Credentials missing",
+    "testLogin": "Test login",
+    "testing": "Testing…",
+    "empty": "No source currently requires authentication.",
+    "jobQueued": "Test job queued",
+    "viewJob": "View in /admin/jobs",
+    "docsHint": "Put your credentials in the .env file (never committed).",
+    "docsLink": "See docs"
   },
   "adminJobs": {
     "title": "Scraper supervision",

@@ -140,6 +140,55 @@ class JobRunner:
             except Exception:
                 pass
 
+    def _run_auth_test_with_logs(
+        self, scraper_cls, batch_id: str, source_code: str,
+    ) -> ScrapeResult:
+        """Special path for `params.test_auth=true` jobs from /admin/auth.
+        Calls scraper.test_login() — no scraping, just a login dance — and
+        encodes the (ok, message) outcome as a ScrapeResult.
+        """
+        LOG_DIR.mkdir(parents=True, exist_ok=True)
+        log_path = LOG_DIR / f"{batch_id}.log"
+
+        log_file = open(log_path, "w", encoding="utf-8", buffering=1)
+        orig_stdout, orig_stderr = sys.stdout, sys.stderr
+        sys.stdout = _TeeWriter(orig_stdout, log_file)
+        sys.stderr = _TeeWriter(orig_stderr, log_file)
+        console.file = sys.stdout
+
+        try:
+            print(f"[batch {batch_id}] test_login for {source_code}")
+            scraper = scraper_cls(self.conn)
+            scraper.batch_id = batch_id
+
+            test_login = getattr(scraper, "test_login", None)
+            if not callable(test_login):
+                msg = (
+                    f"scraper {source_code} does not support test_login "
+                    "(not an AuthenticatedScraper subclass)"
+                )
+                print(msg)
+                return ScrapeResult(error=msg, batch_id=batch_id)
+
+            try:
+                ok, message = test_login()
+            except Exception as e:
+                ok, message = False, f"unexpected: {e}"
+
+            print(f"test_login result: ok={ok} message={message}")
+            if ok:
+                return ScrapeResult(batch_id=batch_id, error=None)
+            return ScrapeResult(batch_id=batch_id, error=message)
+        finally:
+            sys.stdout = orig_stdout
+            sys.stderr = orig_stderr
+            console.file = orig_stdout
+            try:
+                log_file.flush()
+                log_file.close()
+            except Exception:
+                pass
+
     def run_loop(self):
         console.print("[bold green]Job runner started.[/bold green] Polling every 5 s…")
         while True:
@@ -149,12 +198,22 @@ class JobRunner:
                 if source_code and source_code in self.scrapers:
                     console.print(f"[cyan]Job {job['job_id'][:8]}… source={source_code}[/cyan]")
                     params = job.get("params") or {}
-                    limit = int(params["limit"]) if isinstance(params, dict) and params.get("limit") else None
+                    if not isinstance(params, dict):
+                        params = {}
+                    limit = int(params["limit"]) if params.get("limit") else None
+                    test_auth = bool(params.get("test_auth"))
 
                     batch_id = _make_batch_id(source_code)
                     self._set_batch_id(job["job_id"], batch_id)
 
-                    result = self._run_scraper_with_logs(self.scrapers[source_code], batch_id, limit)
+                    if test_auth:
+                        result = self._run_auth_test_with_logs(
+                            self.scrapers[source_code], batch_id, source_code,
+                        )
+                    else:
+                        result = self._run_scraper_with_logs(
+                            self.scrapers[source_code], batch_id, limit,
+                        )
                     self._finish_job(job["job_id"], result)
                     icon = "[red]✗[/red]" if result.error else "[green]✓[/green]"
                     console.print(

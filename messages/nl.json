@@ -13,7 +13,8 @@
     "menu": "Wijn-spijscombinatie",
     "quality": "Datakwaliteit",
     "quarantine": "Quarantaine",
-    "adminJobs": "Bewaking"
+    "adminJobs": "Bewaking",
+    "adminAuth": "Authenticatie"
   },
   "common": {
     "search": "Zoeken",
@@ -206,6 +207,23 @@
     "verified": "Geverifieerd ({count} bronnen)",
     "reviewed": "Eén bron",
     "needs_review": "In nakijken"
+  },
+  "adminAuth": {
+    "title": "Scraper-authenticatie",
+    "subtitle": "Bronnen die een login vereisen (form-based). Inloggegevens komen uit env-variabelen en raken de DB niet.",
+    "sources": "Bronnen",
+    "source": "Bron",
+    "status": "Status",
+    "envVars": "Omgevingsvariabelen",
+    "credsPresent": "Inloggegevens aanwezig",
+    "credsMissing": "Inloggegevens ontbreken",
+    "testLogin": "Login testen",
+    "testing": "Testen…",
+    "empty": "Geen enkele bron vereist op dit moment authenticatie.",
+    "jobQueued": "Testjob in wachtrij",
+    "viewJob": "Bekijk in /admin/jobs",
+    "docsHint": "Zet je inloggegevens in het .env-bestand (nooit gecommit).",
+    "docsLink": "Documentatie"
   },
   "adminJobs": {
     "title": "Scraper bewaking",

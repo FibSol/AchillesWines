@@ -15,6 +15,13 @@
       "when": 1779477600000,
       "tag": "0001_ops_job_queue",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1779800000000,
+      "tag": "0002_source_requires_auth",
+      "breakpoints": true
     }
   ]
 }
