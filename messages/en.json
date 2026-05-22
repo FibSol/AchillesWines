@@ -100,6 +100,17 @@
     "exportCsv": "Export CSV",
     "importCsv": "Import CSV",
     "downloadTemplate": "Download template",
+    "filters": {
+      "searchPlaceholder": "Search a producer, a name…",
+      "allCountries": "All countries",
+      "allRegions": "All regions",
+      "tier": "Tier",
+      "allTiers": "All",
+      "clear": "Clear",
+      "showing": "Showing",
+      "matchingOf": "of",
+      "noMatches": "No producer matches the filters."
+    },
     "csv": {
       "importTitle": "Import producers",
       "importing": "Importing…",

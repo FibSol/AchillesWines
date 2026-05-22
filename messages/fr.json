@@ -100,6 +100,17 @@
     "exportCsv": "Exporter CSV",
     "importCsv": "Importer CSV",
     "downloadTemplate": "Télécharger modèle",
+    "filters": {
+      "searchPlaceholder": "Chercher un domaine, un nom…",
+      "allCountries": "Tous les pays",
+      "allRegions": "Toutes les régions",
+      "tier": "Tier",
+      "allTiers": "Tous",
+      "clear": "Effacer",
+      "showing": "Affichés",
+      "matchingOf": "sur",
+      "noMatches": "Aucun domaine ne correspond aux filtres."
+    },
     "csv": {
       "importTitle": "Importer des producteurs",
       "importing": "Import…",

@@ -100,6 +100,17 @@
     "exportCsv": "CSV exporteren",
     "importCsv": "CSV importeren",
     "downloadTemplate": "Sjabloon downloaden",
+    "filters": {
+      "searchPlaceholder": "Zoek een wijnhuis, een naam…",
+      "allCountries": "Alle landen",
+      "allRegions": "Alle regio's",
+      "tier": "Tier",
+      "allTiers": "Alle",
+      "clear": "Wissen",
+      "showing": "Getoond",
+      "matchingOf": "van",
+      "noMatches": "Geen wijnhuis komt overeen met de filters."
+    },
     "csv": {
       "importTitle": "Wijnhuizen importeren",
       "importing": "Importeren…",

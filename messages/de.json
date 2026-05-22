@@ -100,6 +100,17 @@
     "exportCsv": "CSV exportieren",
     "importCsv": "CSV importieren",
     "downloadTemplate": "Vorlage herunterladen",
+    "filters": {
+      "searchPlaceholder": "Weingut suchen, Name…",
+      "allCountries": "Alle Länder",
+      "allRegions": "Alle Regionen",
+      "tier": "Tier",
+      "allTiers": "Alle",
+      "clear": "Leeren",
+      "showing": "Angezeigt",
+      "matchingOf": "von",
+      "noMatches": "Kein Weingut entspricht den Filtern."
+    },
     "csv": {
       "importTitle": "Weingüter importieren",
       "importing": "Importiere…",

@@ -2,25 +2,95 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import Link from "next/link";
 import { db } from "@/db";
 import { dimProducer } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, like, or, and, sql, asc, isNotNull, type SQL } from "drizzle-orm";
 import { PageShell } from "@/components/page-shell";
 import { CsvActions, type CsvLabels } from "@/components/CsvActions";
+import { DomainesFilters, type CountryRegion, type DomainesFiltersLabels } from "@/components/DomainesFilters";
 import { MapPin, Globe } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-export default async function DomainesPage({ params }: { params: Promise<{ locale: string }> }) {
+const PAGE_SIZE = 100;
+
+interface SearchParams {
+  q?: string;
+  country?: string;
+  region?: string;
+  tier?: string;
+}
+
+export default async function DomainesPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<SearchParams>;
+}) {
   const { locale } = await params;
+  const sp = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations("domaines");
   const tCommon = await getTranslations("common");
 
-  const producers = await db
-    .select()
-    .from(dimProducer)
-    .where(eq(dimProducer.status, "active"))
-    .orderBy(desc(dimProducer.tier), dimProducer.producerName)
-    .limit(100);
+  // Always restrict to active producers (Cassandra's region gate already
+  // moves bad rows to pending_review).
+  const conditions: SQL[] = [eq(dimProducer.status, "active")];
+
+  if (sp.q && sp.q.trim()) {
+    const needle = `%${sp.q.trim().toLowerCase()}%`;
+    const orClause = or(
+      like(sql<string>`lower(${dimProducer.producerName})`, needle),
+      like(sql<string>`lower(${dimProducer.producerNorm})`, needle),
+    );
+    if (orClause) conditions.push(orClause);
+  }
+  if (sp.country) {
+    conditions.push(eq(dimProducer.countryCode, sp.country));
+  }
+  if (sp.region) {
+    conditions.push(eq(dimProducer.region, sp.region));
+  }
+  const tierNum = sp.tier ? Number.parseInt(sp.tier, 10) : NaN;
+  if (Number.isFinite(tierNum)) {
+    conditions.push(eq(dimProducer.tier, tierNum));
+  }
+
+  const whereExpr = conditions.length === 1 ? conditions[0] : and(...conditions);
+
+  const [producers, [countRow], countryRegionRows, tierRows] = await Promise.all([
+    db
+      .select()
+      .from(dimProducer)
+      .where(whereExpr)
+      .orderBy(desc(dimProducer.tier), dimProducer.producerName)
+      .limit(PAGE_SIZE),
+    db
+      .select({ total: sql<number>`count(*)` })
+      .from(dimProducer)
+      .where(whereExpr),
+    db
+      .selectDistinct({
+        country: dimProducer.countryCode,
+        region: dimProducer.region,
+      })
+      .from(dimProducer)
+      .where(eq(dimProducer.status, "active"))
+      .orderBy(asc(dimProducer.countryCode), asc(dimProducer.region)),
+    db
+      .selectDistinct({ tier: dimProducer.tier })
+      .from(dimProducer)
+      .where(and(eq(dimProducer.status, "active"), isNotNull(dimProducer.tier)))
+      .orderBy(asc(dimProducer.tier)),
+  ]);
+
+  const totalMatching = Number(countRow?.total ?? 0);
+  const countryRegions: CountryRegion[] = countryRegionRows.map((r) => ({
+    country: r.country,
+    region: r.region,
+  }));
+  const tiers = tierRows
+    .map((r) => r.tier)
+    .filter((t): t is number => t !== null);
 
   const csvLabels: CsvLabels = {
     importBtn: t("importCsv"),
@@ -38,9 +108,25 @@ export default async function DomainesPage({ params }: { params: Promise<{ local
     uploadError: t("csv.uploadError"),
   };
 
+  const filterLabels: DomainesFiltersLabels = {
+    searchPlaceholder: t("filters.searchPlaceholder"),
+    allCountries: t("filters.allCountries"),
+    allRegions: t("filters.allRegions"),
+    tier: t("filters.tier"),
+    allTiers: t("filters.allTiers"),
+    clear: t("filters.clear"),
+    showing: t("filters.showing"),
+    matchingOf: t("filters.matchingOf"),
+    noMatches: t("filters.noMatches"),
+  };
+
   return (
-    <PageShell title={t("title")} subtitle={t("subtitle")} badge={`${producers.length} ${tCommon("producer").toLowerCase()}s`}>
-      <div className="mb-6">
+    <PageShell
+      title={t("title")}
+      subtitle={t("subtitle")}
+      badge={`${totalMatching} ${tCommon("producer").toLowerCase()}s`}
+    >
+      <div className="space-y-6 mb-6">
         <CsvActions
           endpoints={{
             export: "/api/producers/export",
@@ -49,12 +135,19 @@ export default async function DomainesPage({ params }: { params: Promise<{ local
           }}
           labels={csvLabels}
         />
+        <DomainesFilters
+          countryRegions={countryRegions}
+          tiers={tiers}
+          labels={filterLabels}
+          totalShown={producers.length}
+          totalMatching={totalMatching}
+        />
       </div>
 
       {producers.length === 0 ? (
         <div className="glass-card p-12 text-center">
           <p className="text-[color:var(--color-fg-muted)]">
-            {tCommon("empty")} — import du registry burgundy-manager à venir.
+            {totalMatching === 0 ? t("filters.noMatches") : tCommon("empty")}
           </p>
         </div>
       ) : (

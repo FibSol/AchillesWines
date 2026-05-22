@@ -100,6 +100,17 @@
     "exportCsv": "Esporta CSV",
     "importCsv": "Importa CSV",
     "downloadTemplate": "Scarica template",
+    "filters": {
+      "searchPlaceholder": "Cerca una cantina, un nome…",
+      "allCountries": "Tutti i paesi",
+      "allRegions": "Tutte le regioni",
+      "tier": "Tier",
+      "allTiers": "Tutti",
+      "clear": "Cancella",
+      "showing": "Mostrate",
+      "matchingOf": "di",
+      "noMatches": "Nessuna cantina corrisponde ai filtri."
+    },
     "csv": {
       "importTitle": "Importa cantine",
       "importing": "Importazione…",
