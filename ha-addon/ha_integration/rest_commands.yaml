@@ -1,0 +1,7 @@
+# Add to configuration.yaml: rest_command: !include ha_integration/rest_commands.yaml
+achilles_enqueue_scraper:
+  url: "http://localhost:3000/api/jobs"
+  method: POST
+  headers:
+    Content-Type: "application/json"
+  payload: '{"sourceCode": "{{ source }}", "requestedBy": "home_assistant"}'

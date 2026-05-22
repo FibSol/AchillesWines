@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" fill="#1A0B2E" rx="80"/>
+  <!-- Wine glass stem + bowl -->
+  <ellipse cx="256" cy="180" rx="110" ry="120" fill="#FF5C8A" opacity="0.9"/>
+  <rect x="248" y="300" width="16" height="110" fill="#FF5C8A" opacity="0.9"/>
+  <rect x="196" y="400" width="120" height="14" rx="7" fill="#FF5C8A" opacity="0.9"/>
+  <!-- Highlight -->
+  <ellipse cx="226" cy="148" rx="28" ry="42" fill="#FAF7F5" opacity="0.18" transform="rotate(-18 226 148)"/>
+</svg>

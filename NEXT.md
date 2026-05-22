@@ -88,9 +88,9 @@ Wine press (E_press_critic → write to fact_rating):
 
 - [x] **P3 · 3h** [Hector] Dockerfile multi-stage Next + sidecar ✓ 2026-05-22 (closes #6, ADR-007)
 - [x] **P3 · 2h** [Hector] docker-compose.yml + nginx reverse proxy ✓ 2026-05-22 (closes #7, ADR-008)
-- [ ] **P3 · 2h** [Hector] PWA manifest + service worker (next-pwa)
+- [x] **P3 · 2h** [Hector] PWA manifest + service worker (next-pwa) ✓ 2026-05-22
 - [x] **P3 · 1h** [Hector] Backup script SQLite GPG vers NAS ✓ 2026-05-22 (closes #9, ADR-009)
-- [ ] **P3 · 3h** [Hector] Home Assistant addon config + integration
+- [x] **P3 · 3h** [Hector] Home Assistant addon config + integration ✓ 2026-05-22
 
 ## Sprint 9 — Email newsletter ingestion (ADR-011)
 

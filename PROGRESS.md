@@ -1,5 +1,11 @@
 # Achilles's Wines — Progress Log
 
+## 2026-05-22 — Sprint 7 (deployment completion)
+
+### Hector (Solution Architect)
+- [Hector] PWA: @ducanh2912/next-pwa installed, manifest.json, next.config.ts wrapped, metadata updated, icon placeholders + gen-icons.sh · files: next.config.ts, public/manifest.json, public/icons/icon.svg, scripts/gen-icons.sh, app/layout.tsx
+- [Hector] HA addon: config.yaml + Dockerfile + run.sh + DOCS.md + automations.yaml + rest_commands.yaml · files: ha-addon/config.yaml, ha-addon/Dockerfile, ha-addon/run.sh, ha-addon/DOCS.md, ha-addon/ha_integration/automations.yaml, ha-addon/ha_integration/rest_commands.yaml
+
 ## 2026-05-22 — Sprint 10 (robustness)
 
 ### Hector (Architect)

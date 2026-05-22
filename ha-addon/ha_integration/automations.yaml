@@ -1,0 +1,42 @@
+# Achilles's Wines — sample HA automations
+# Add to your configuration.yaml: automation: !include_dir_list automations/
+
+- alias: "Achilles — Daily backup"
+  description: "Trigger encrypted SQLite backup at 04:00"
+  trigger:
+    - platform: time
+      at: "04:00:00"
+  action:
+    - service: hassio.addon_stdin
+      data:
+        addon: local_achilles_wines
+        input: "backup"
+
+- alias: "Achilles — Nightly scraper run"
+  description: "Queue all enabled scrapers at 03:00 via the job queue"
+  trigger:
+    - platform: time
+      at: "03:00:00"
+  action:
+    - service: rest_command.achilles_enqueue_scraper
+      data:
+        source: "millesima"
+    - service: rest_command.achilles_enqueue_scraper
+      data:
+        source: "idealwine"
+    # ... add more sources as needed
+
+- alias: "Achilles — DLQ alert"
+  description: "Notify when DLQ count spikes (more than 50 new errors)"
+  trigger:
+    - platform: time_pattern
+      hours: "/6"
+  condition:
+    - condition: template
+      value_template: >
+        {{ states('sensor.achilles_dlq_count') | int > 50 }}
+  action:
+    - service: notify.mobile_app
+      data:
+        title: "Achilles DLQ Alert"
+        message: "{{ states('sensor.achilles_dlq_count') }} records in DLQ need review."
