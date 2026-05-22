@@ -1,0 +1,229 @@
+{
+  "meta": {
+    "appName": "Achilles's Wines",
+    "tagline": "La tua cantina di casa, senza compromessi."
+  },
+  "nav": {
+    "dashboard": "Cruscotto",
+    "domaines": "Cantine",
+    "bestValue": "Miglior Q/P",
+    "vintages": "Annate",
+    "map": "Mappa",
+    "cellar": "La mia cantina",
+    "menu": "Abbinamento",
+    "quality": "Qualità dati",
+    "quarantine": "Quarantena",
+    "adminJobs": "Supervisione"
+  },
+  "common": {
+    "search": "Cerca",
+    "filter": "Filtra",
+    "clear": "Cancella",
+    "save": "Salva",
+    "cancel": "Annulla",
+    "loading": "Caricamento…",
+    "empty": "Nessun risultato",
+    "viewAll": "Vedi tutto",
+    "language": "Lingua",
+    "vintage": "Annata",
+    "price": "Prezzo",
+    "rating": "Punteggio",
+    "color": "Colore",
+    "region": "Regione",
+    "producer": "Produttore",
+    "appellation": "Denominazione"
+  },
+  "colors": {
+    "red": "Rosso",
+    "white": "Bianco",
+    "rosé": "Rosato",
+    "sparkling": "Spumante",
+    "sweet": "Dolce",
+    "fortified": "Liquoroso",
+    "orange": "Arancione"
+  },
+  "dashboard": {
+    "title": "Cruscotto",
+    "subtitle": "La tua cantina a colpo d'occhio",
+    "stats": {
+      "bottles": "Bottiglie in cantina",
+      "uniqueWines": "Vini unici",
+      "value": "Valore cantina",
+      "domaines": "Produttori seguiti",
+      "ratings": "Punteggi raccolti",
+      "lastIngest": "Ultima ingestione"
+    },
+    "quick": {
+      "title": "Accesso rapido",
+      "bestValueShort": "Miglior Q/P",
+      "drinkNow": "Da bere ora",
+      "promosNow": "Promo",
+      "addToCellar": "Aggiungi bottiglia"
+    }
+  },
+  "bestValue": {
+    "title": "Miglior rapporto qualità-prezzo",
+    "subtitle": "Ordina per Q/P, filtra per prezzo, regione, annata.",
+    "score": "Punteggio",
+    "rank": "Posizione",
+    "noData": "Nessun vino con dati di prezzo e valutazione. Avvia uno scraper.",
+    "price": "Prezzo",
+    "rating": "Valutazione",
+    "confidence": {
+      "verified": "Verificato ({count} fonti)",
+      "reviewed": "Fonte singola",
+      "needs_review": "In revisione"
+    }
+  },
+  "vintages": {
+    "title": "Annate per regione",
+    "subtitle": "Clicca una cella per vedere i vini disponibili.",
+    "noData": "Nessun vino con dati sull'annata nel registro. Avvia uno scraper.",
+    "scoreLabel": "Punteggio annata",
+    "clickToExplore": "Clicca una cella per esplorare i vini disponibili.",
+    "loadingWines": "Caricamento…",
+    "noWines": "Nessun vino trovato per questa selezione.",
+    "chartTitle": "Vini nel registro per annata"
+  },
+  "map": {
+    "title": "Mappa cantine",
+    "subtitle": "Marker cliccabili · overlay regionali.",
+    "noData": "Nessuna cantina con coordinate GPS ancora. Importa un registro per popolare la mappa.",
+    "legendProducers": "Cantine",
+    "legendAppellations": "Denominazioni",
+    "legendRegions": "Regioni"
+  },
+  "domaines": {
+    "title": "Cantine",
+    "subtitle": "Lista filtrabile. Import/export CSV.",
+    "exportCsv": "Esporta CSV",
+    "importCsv": "Importa CSV",
+    "downloadTemplate": "Scarica template"
+  },
+  "domaine": {
+    "backToList": "Torna alle cantine",
+    "cuvees": "Cuvée",
+    "noCuvees": "Nessuna cuvée registrata per questa cantina.",
+    "cuvee": "Cuvée",
+    "bestRating": "Miglior punteggio",
+    "priceRange": "Fascia di prezzo",
+    "sources": "Fonti",
+    "priceOverTime": "Andamento prezzo",
+    "ratingsByCritic": "Punteggi per critico",
+    "noPriceData": "Nessun dato di prezzo per questa cantina.",
+    "noRatingData": "Nessun punteggio per questa cantina.",
+    "priceAxis": "Prezzo (€)",
+    "ratingAxis": "Punteggio /100",
+    "drinkingWindow": "Finestra di consumo",
+    "aliases": "Conosciuta anche come",
+    "allowedAppellations": "Denominazioni consentite"
+  },
+  "cellar": {
+    "title": "La mia cantina",
+    "subtitle": "36 postazioni · 120 bottiglie ciascuna.",
+    "locations": "Postazioni",
+    "history": "Storico",
+    "consume": "Consuma",
+    "import": "Importa inventario CSV",
+    "exportCsv": "Esporta CSV",
+    "downloadTemplate": "Template CSV",
+    "capacityUsed": "{used} / {capacity}",
+    "addBottle": "Aggiungi bottiglia",
+    "move": "Sposta",
+    "qty": "Quantità",
+    "wine": "Vino",
+    "location": "Postazione",
+    "searchPlaceholder": "Cerca un vino…",
+    "noResults": "Nessun vino trovato",
+    "cancel": "Annulla",
+    "save": "Salva",
+    "capacityFull": "Pieno",
+    "capacityExceeded": "Capacità superata",
+    "personalScore": "Punteggio personale",
+    "occasion": "Occasione",
+    "tastingNote": "Nota di degustazione",
+    "consumed": "Consumata",
+    "moved": "Spostata",
+    "emptyLocation": "Vuoto",
+    "dragHint": "Trascina le bottiglie tra le postazioni. Clicca una bottiglia per consumarla o spostarla.",
+    "csv": {
+      "importTitle": "Importa inventario",
+      "importHint": "Carica un CSV con colonne: wine_key (o producer_name + cuvee_name + vintage), location_id, qty, e opzionalmente purchase_price_eur, purchase_source, notes, purchase_date.",
+      "importPick": "Scegli file CSV",
+      "importing": "Importazione…",
+      "close": "Chiudi",
+      "accepted": "righe accettate",
+      "inserted": "Inserite",
+      "merged": "Unite",
+      "rejected": "Rifiutate",
+      "details": "Dettaglio rifiuti",
+      "done": "Importazione completata",
+      "uploadError": "Errore di importazione"
+    }
+  },
+  "menu": {
+    "title": "Abbinamento cibo-vino",
+    "subtitle": "Componi il menu, budget e ospiti. L'app suggerisce vini dalla tua cantina.",
+    "courses": "Portate",
+    "budget": "Budget totale",
+    "guests": "Ospiti",
+    "addCourse": "Aggiungi portata",
+    "propose": "Proponi abbinamenti",
+    "proposing": "Ricerca…",
+    "dishPlaceholder": "Descrivi il piatto — es. petto d'anatra con porcini",
+    "remove": "Rimuovi",
+    "noPicks": "Nessun vino in cantina abbinabile a questa portata. Modifica la descrizione o aggiungi bottiglie.",
+    "noPoolBottlesYet": "Nessuna bottiglia in cantina. Aggiungi vini per suggerimenti personalizzati.",
+    "scoreLabel": "pt",
+    "poolSize": "Vini valutati",
+    "budgetPerGuest": "Budget / ospite / portata",
+    "fromCellar": "dalla cantina",
+    "fromRegistry": "registro",
+    "courseTypes": {
+      "aperitif": "Aperitivo",
+      "entree": "Antipasto",
+      "plat": "Primo/Secondo",
+      "fromage": "Formaggi",
+      "dessert": "Dessert",
+      "other": "Altro"
+    }
+  },
+  "quality": {
+    "title": "Qualità dei dati",
+    "subtitle": "Copertura sorgenti, multi-source ratio, DLQ.",
+    "verifiedCount": "Verificati ≥ 3 sorgenti",
+    "reviewedCount": "Vini sorgente unica",
+    "needsReviewCount": "In quarantena"
+  },
+  "quarantine": {
+    "title": "Quarantena",
+    "subtitle": "Record rifiutati dalle gate di Cassandra. Revisione manuale.",
+    "approve": "Approva",
+    "blacklist": "Blacklist",
+    "ignore": "Ignora"
+  },
+  "confidence": {
+    "verified": "Verificato ({count} sorgenti)",
+    "reviewed": "Sorgente unica",
+    "needs_review": "In revisione"
+  },
+  "adminJobs": {
+    "title": "Supervisione scraper",
+    "subtitle": "Coda lavori e cronologia degli ultimi 50",
+    "launchTitle": "Avvia uno scraper",
+    "sourcePlaceholder": "Seleziona sorgente",
+    "limitLabel": "Limite",
+    "launchBtn": "Avvia",
+    "cancelBtn": "Annulla",
+    "noJobs": "Nessun lavoro",
+    "colId": "ID",
+    "colSource": "Sorgente",
+    "colStatus": "Stato",
+    "colRequested": "Richiesto",
+    "colDuration": "Durata",
+    "colFetched": "Recuperati",
+    "colInserted": "Inseriti",
+    "colDlq": "DLQ",
+    "colActions": "Azioni"
+  }
+}

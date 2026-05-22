@@ -1,0 +1,229 @@
+{
+  "meta": {
+    "appName": "Achilles's Wines",
+    "tagline": "Jouw thuiskelder, zonder compromis."
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "domaines": "Wijnhuizen",
+    "bestValue": "Beste prijs-kwaliteit",
+    "vintages": "Jaargangen",
+    "map": "Kaart",
+    "cellar": "Mijn kelder",
+    "menu": "Wijn-spijscombinatie",
+    "quality": "Datakwaliteit",
+    "quarantine": "Quarantaine",
+    "adminJobs": "Bewaking"
+  },
+  "common": {
+    "search": "Zoeken",
+    "filter": "Filter",
+    "clear": "Wissen",
+    "save": "Opslaan",
+    "cancel": "Annuleren",
+    "loading": "Laden…",
+    "empty": "Geen resultaten",
+    "viewAll": "Alles bekijken",
+    "language": "Taal",
+    "vintage": "Jaargang",
+    "price": "Prijs",
+    "rating": "Beoordeling",
+    "color": "Kleur",
+    "region": "Regio",
+    "producer": "Wijnhuis",
+    "appellation": "Appellatie"
+  },
+  "colors": {
+    "red": "Rood",
+    "white": "Wit",
+    "rosé": "Rosé",
+    "sparkling": "Mousserend",
+    "sweet": "Zoet",
+    "fortified": "Versterkt",
+    "orange": "Oranje"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Je kelder in één oogopslag",
+    "stats": {
+      "bottles": "Flessen in kelder",
+      "uniqueWines": "Unieke wijnen",
+      "value": "Kelderwaarde",
+      "domaines": "Gevolgde wijnhuizen",
+      "ratings": "Beoordelingen",
+      "lastIngest": "Laatste import"
+    },
+    "quick": {
+      "title": "Snel openen",
+      "bestValueShort": "Beste P/K",
+      "drinkNow": "Nu drinken",
+      "promosNow": "Promoties",
+      "addToCellar": "Fles toevoegen"
+    }
+  },
+  "bestValue": {
+    "title": "Beste prijs-kwaliteit",
+    "subtitle": "Sorteer op P/K-verhouding, filter op prijs, regio, jaargang.",
+    "score": "Score",
+    "rank": "Rang",
+    "noData": "Nog geen wijnen met prijs- én beoordelingsgegevens. Start een scraper om de database te vullen.",
+    "price": "Prijs",
+    "rating": "Beoordeling",
+    "confidence": {
+      "verified": "Geverifieerd ({count} bronnen)",
+      "reviewed": "Één bron",
+      "needs_review": "In review"
+    }
+  },
+  "vintages": {
+    "title": "Jaargangen per regio",
+    "subtitle": "Klik een cel om de beschikbare wijnen te zien.",
+    "noData": "Geen wijnen met jaarganginformatie in het register. Start een scraper.",
+    "scoreLabel": "Jaargangsscore",
+    "clickToExplore": "Klik op een cel om de beschikbare wijnen te bekijken.",
+    "loadingWines": "Laden…",
+    "noWines": "Geen wijnen gevonden voor deze selectie.",
+    "chartTitle": "Wijnen in register per jaargang"
+  },
+  "map": {
+    "title": "Kaart wijnhuizen",
+    "subtitle": "Klikbare markers · regio-overlays.",
+    "noData": "Nog geen wijnhuizen met GPS-coördinaten. Importeer een register om de kaart te vullen.",
+    "legendProducers": "Wijnhuizen",
+    "legendAppellations": "Appellaties",
+    "legendRegions": "Regio's"
+  },
+  "domaines": {
+    "title": "Wijnhuizen",
+    "subtitle": "Filterbare lijst. CSV import/export.",
+    "exportCsv": "CSV exporteren",
+    "importCsv": "CSV importeren",
+    "downloadTemplate": "Sjabloon downloaden"
+  },
+  "domaine": {
+    "backToList": "Terug naar wijnhuizen",
+    "cuvees": "Cuvées",
+    "noCuvees": "Geen cuvées geregistreerd voor dit wijnhuis.",
+    "cuvee": "Cuvée",
+    "bestRating": "Beste score",
+    "priceRange": "Prijsbereik",
+    "sources": "Bronnen",
+    "priceOverTime": "Prijsverloop",
+    "ratingsByCritic": "Scores per criticus",
+    "noPriceData": "Geen prijsgegevens voor dit wijnhuis.",
+    "noRatingData": "Geen scores verzameld voor dit wijnhuis.",
+    "priceAxis": "Prijs (€)",
+    "ratingAxis": "Score /100",
+    "drinkingWindow": "Drinkvenster",
+    "aliases": "Ook bekend als",
+    "allowedAppellations": "Toegelaten appellaties"
+  },
+  "cellar": {
+    "title": "Mijn kelder",
+    "subtitle": "36 locaties · 120 flessen elk.",
+    "locations": "Locaties",
+    "history": "Geschiedenis",
+    "consume": "Drinken",
+    "import": "Voorraad CSV importeren",
+    "exportCsv": "CSV exporteren",
+    "downloadTemplate": "CSV sjabloon",
+    "capacityUsed": "{used} / {capacity}",
+    "addBottle": "Fles toevoegen",
+    "move": "Verplaatsen",
+    "qty": "Aantal",
+    "wine": "Wijn",
+    "location": "Locatie",
+    "searchPlaceholder": "Wijn zoeken…",
+    "noResults": "Geen wijn gevonden",
+    "cancel": "Annuleren",
+    "save": "Opslaan",
+    "capacityFull": "Vol",
+    "capacityExceeded": "Capaciteit overschreden",
+    "personalScore": "Persoonlijke score",
+    "occasion": "Gelegenheid",
+    "tastingNote": "Proefnotitie",
+    "consumed": "Gedronken",
+    "moved": "Verplaatst",
+    "emptyLocation": "Leeg",
+    "dragHint": "Sleep flessen tussen locaties. Klik op een fles om te drinken of te verplaatsen.",
+    "csv": {
+      "importTitle": "Voorraad importeren",
+      "importHint": "Upload een CSV met kolommen: wine_key (of producer_name + cuvee_name + vintage), location_id, qty, en optioneel purchase_price_eur, purchase_source, notes, purchase_date.",
+      "importPick": "CSV-bestand kiezen",
+      "importing": "Importeren…",
+      "close": "Sluiten",
+      "accepted": "regels geaccepteerd",
+      "inserted": "Ingevoegd",
+      "merged": "Samengevoegd",
+      "rejected": "Geweigerd",
+      "details": "Details van afwijzingen",
+      "done": "Import voltooid",
+      "uploadError": "Importfout"
+    }
+  },
+  "menu": {
+    "title": "Wijn-spijscombinatie",
+    "subtitle": "Stel je menu samen, budget en aantal gasten. App stelt wijnen uit je kelder voor.",
+    "courses": "Gangen",
+    "budget": "Totaal budget",
+    "guests": "Gasten",
+    "addCourse": "Gang toevoegen",
+    "propose": "Combinaties voorstellen",
+    "proposing": "Zoeken…",
+    "dishPlaceholder": "Beschrijf het gerecht — bv. eendenborst met eekhoorntjesbrood",
+    "remove": "Verwijderen",
+    "noPicks": "Geen wijn in je kelder past bij deze gang. Pas de beschrijving aan of voeg flessen toe.",
+    "noPoolBottlesYet": "Nog geen flessen in de kelder. Voeg wijnen toe voor persoonlijke suggesties.",
+    "scoreLabel": "pt",
+    "poolSize": "Wijnen beoordeeld",
+    "budgetPerGuest": "Budget / gast / gang",
+    "fromCellar": "uit je kelder",
+    "fromRegistry": "register",
+    "courseTypes": {
+      "aperitif": "Aperitief",
+      "entree": "Voorgerecht",
+      "plat": "Hoofdgerecht",
+      "fromage": "Kaas",
+      "dessert": "Dessert",
+      "other": "Anders"
+    }
+  },
+  "quality": {
+    "title": "Datakwaliteit",
+    "subtitle": "Bronnen, multi-source ratio, DLQ.",
+    "verifiedCount": "Geverifieerd ≥ 3 bronnen",
+    "reviewedCount": "Eén-bron wijnen",
+    "needsReviewCount": "In quarantaine"
+  },
+  "quarantine": {
+    "title": "Quarantaine",
+    "subtitle": "Records geweigerd door Cassandra's gates. Manueel nakijken.",
+    "approve": "Goedkeuren",
+    "blacklist": "Blacklisten",
+    "ignore": "Negeren"
+  },
+  "confidence": {
+    "verified": "Geverifieerd ({count} bronnen)",
+    "reviewed": "Eén bron",
+    "needs_review": "In nakijken"
+  },
+  "adminJobs": {
+    "title": "Scraper bewaking",
+    "subtitle": "Jobwachtrij en geschiedenis van de laatste 50 runs",
+    "launchTitle": "Scraper starten",
+    "sourcePlaceholder": "Bron kiezen",
+    "limitLabel": "Limiet",
+    "launchBtn": "Starten",
+    "cancelBtn": "Annuleren",
+    "noJobs": "Geen jobs",
+    "colId": "ID",
+    "colSource": "Bron",
+    "colStatus": "Status",
+    "colRequested": "Aangevraagd",
+    "colDuration": "Duur",
+    "colFetched": "Opgehaald",
+    "colInserted": "Ingevoegd",
+    "colDlq": "DLQ",
+    "colActions": "Acties"
+  }
+}

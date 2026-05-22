@@ -1,0 +1,229 @@
+{
+  "meta": {
+    "appName": "Achilles's Wines",
+    "tagline": "Dein Heimkeller, ohne Kompromisse."
+  },
+  "nav": {
+    "dashboard": "Übersicht",
+    "domaines": "Weingüter",
+    "bestValue": "Bestes P/L",
+    "vintages": "Jahrgänge",
+    "map": "Karte",
+    "cellar": "Mein Keller",
+    "menu": "Wein-Speise-Kombination",
+    "quality": "Datenqualität",
+    "quarantine": "Quarantäne",
+    "adminJobs": "Überwachung"
+  },
+  "common": {
+    "search": "Suchen",
+    "filter": "Filtern",
+    "clear": "Leeren",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "loading": "Lädt…",
+    "empty": "Keine Ergebnisse",
+    "viewAll": "Alle anzeigen",
+    "language": "Sprache",
+    "vintage": "Jahrgang",
+    "price": "Preis",
+    "rating": "Bewertung",
+    "color": "Farbe",
+    "region": "Region",
+    "producer": "Weingut",
+    "appellation": "Appellation"
+  },
+  "colors": {
+    "red": "Rot",
+    "white": "Weiß",
+    "rosé": "Rosé",
+    "sparkling": "Schaumwein",
+    "sweet": "Süßwein",
+    "fortified": "Likörwein",
+    "orange": "Orange"
+  },
+  "dashboard": {
+    "title": "Übersicht",
+    "subtitle": "Dein Keller im Blick",
+    "stats": {
+      "bottles": "Flaschen im Keller",
+      "uniqueWines": "Unique Weine",
+      "value": "Kellerwert",
+      "domaines": "Getrackte Weingüter",
+      "ratings": "Bewertungen",
+      "lastIngest": "Letzter Import"
+    },
+    "quick": {
+      "title": "Schnellzugriff",
+      "bestValueShort": "Bestes P/L",
+      "drinkNow": "Jetzt trinken",
+      "promosNow": "Aktionen",
+      "addToCellar": "Flasche hinzufügen"
+    }
+  },
+  "bestValue": {
+    "title": "Bestes Preis-Leistungs-Verhältnis",
+    "subtitle": "Nach P/L sortieren, nach Preis, Region, Jahrgang filtern.",
+    "score": "Bewertung",
+    "rank": "Rang",
+    "noData": "Noch keine Weine mit Preis- und Bewertungsdaten. Starte einen Scraper.",
+    "price": "Preis",
+    "rating": "Bewertung",
+    "confidence": {
+      "verified": "Verifiziert ({count} Quellen)",
+      "reviewed": "Einzelquelle",
+      "needs_review": "In Prüfung"
+    }
+  },
+  "vintages": {
+    "title": "Jahrgänge nach Region",
+    "subtitle": "Klick eine Zelle, um die verfügbaren Weine zu sehen.",
+    "noData": "Keine Weine mit Jahrgangsangaben im Register. Starte einen Scraper.",
+    "scoreLabel": "Jahrgangs-Score",
+    "clickToExplore": "Klicke eine Zelle, um die verfügbaren Weine zu erkunden.",
+    "loadingWines": "Laden…",
+    "noWines": "Keine Weine für diese Auswahl gefunden.",
+    "chartTitle": "Weine im Register nach Jahrgang"
+  },
+  "map": {
+    "title": "Karte der Weingüter",
+    "subtitle": "Klickbare Marker · Regions-Overlays.",
+    "noData": "Noch keine Weingüter mit GPS-Koordinaten. Importieren Sie ein Register, um die Karte zu befüllen.",
+    "legendProducers": "Weingüter",
+    "legendAppellations": "Appellationen",
+    "legendRegions": "Regionen"
+  },
+  "domaines": {
+    "title": "Weingüter",
+    "subtitle": "Filterbare Liste. CSV Import/Export.",
+    "exportCsv": "CSV exportieren",
+    "importCsv": "CSV importieren",
+    "downloadTemplate": "Vorlage herunterladen"
+  },
+  "domaine": {
+    "backToList": "Zurück zu den Weingütern",
+    "cuvees": "Cuvées",
+    "noCuvees": "Keine Cuvées für dieses Weingut.",
+    "cuvee": "Cuvée",
+    "bestRating": "Beste Bewertung",
+    "priceRange": "Preisspanne",
+    "sources": "Quellen",
+    "priceOverTime": "Preisverlauf",
+    "ratingsByCritic": "Bewertungen nach Kritiker",
+    "noPriceData": "Keine Preisdaten für dieses Weingut.",
+    "noRatingData": "Keine Bewertungen für dieses Weingut.",
+    "priceAxis": "Preis (€)",
+    "ratingAxis": "Bewertung /100",
+    "drinkingWindow": "Trinkfenster",
+    "aliases": "Auch bekannt als",
+    "allowedAppellations": "Erlaubte Appellationen"
+  },
+  "cellar": {
+    "title": "Mein Keller",
+    "subtitle": "36 Standorte · 120 Flaschen je Standort.",
+    "locations": "Standorte",
+    "history": "Verlauf",
+    "consume": "Trinken",
+    "import": "Inventar CSV importieren",
+    "exportCsv": "CSV exportieren",
+    "downloadTemplate": "CSV-Vorlage",
+    "capacityUsed": "{used} / {capacity}",
+    "addBottle": "Flasche hinzufügen",
+    "move": "Verschieben",
+    "qty": "Menge",
+    "wine": "Wein",
+    "location": "Standort",
+    "searchPlaceholder": "Wein suchen…",
+    "noResults": "Kein Wein gefunden",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "capacityFull": "Voll",
+    "capacityExceeded": "Kapazität überschritten",
+    "personalScore": "Persönliche Bewertung",
+    "occasion": "Anlass",
+    "tastingNote": "Verkostungsnotiz",
+    "consumed": "Getrunken",
+    "moved": "Verschoben",
+    "emptyLocation": "Leer",
+    "dragHint": "Ziehe Flaschen zwischen Standorten. Klicke eine Flasche zum Trinken oder Verschieben.",
+    "csv": {
+      "importTitle": "Inventar importieren",
+      "importHint": "Lade eine CSV mit Spalten hoch: wine_key (oder producer_name + cuvee_name + vintage), location_id, qty, optional purchase_price_eur, purchase_source, notes, purchase_date.",
+      "importPick": "CSV-Datei wählen",
+      "importing": "Importiere…",
+      "close": "Schließen",
+      "accepted": "Zeilen akzeptiert",
+      "inserted": "Eingefügt",
+      "merged": "Zusammengeführt",
+      "rejected": "Abgelehnt",
+      "details": "Ablehnungsdetails",
+      "done": "Import abgeschlossen",
+      "uploadError": "Importfehler"
+    }
+  },
+  "menu": {
+    "title": "Wein-Speise-Kombination",
+    "subtitle": "Menü, Budget und Personenzahl. App schlägt Weine aus deinem Keller vor.",
+    "courses": "Gänge",
+    "budget": "Gesamtbudget",
+    "guests": "Gäste",
+    "addCourse": "Gang hinzufügen",
+    "propose": "Kombinationen vorschlagen",
+    "proposing": "Suche…",
+    "dishPlaceholder": "Beschreibe das Gericht — z. B. Entenbrust mit Steinpilzen",
+    "remove": "Entfernen",
+    "noPicks": "Kein Wein im Keller passt zu diesem Gang. Beschreibung anpassen oder Flaschen hinzufügen.",
+    "noPoolBottlesYet": "Noch keine Flaschen im Keller. Wein hinzufügen für persönliche Vorschläge.",
+    "scoreLabel": "Pkt",
+    "poolSize": "Bewertete Weine",
+    "budgetPerGuest": "Budget / Gast / Gang",
+    "fromCellar": "aus deinem Keller",
+    "fromRegistry": "Register",
+    "courseTypes": {
+      "aperitif": "Aperitif",
+      "entree": "Vorspeise",
+      "plat": "Hauptgang",
+      "fromage": "Käse",
+      "dessert": "Dessert",
+      "other": "Sonstiges"
+    }
+  },
+  "quality": {
+    "title": "Datenqualität",
+    "subtitle": "Quellenabdeckung, Multi-Source-Ratio, DLQ.",
+    "verifiedCount": "Verifiziert ≥ 3 Quellen",
+    "reviewedCount": "Einzelquelle Weine",
+    "needsReviewCount": "In Quarantäne"
+  },
+  "quarantine": {
+    "title": "Quarantäne",
+    "subtitle": "Records von Cassandras Gates abgelehnt. Manuelle Überprüfung.",
+    "approve": "Annehmen",
+    "blacklist": "Blacklisten",
+    "ignore": "Ignorieren"
+  },
+  "confidence": {
+    "verified": "Verifiziert ({count} Quellen)",
+    "reviewed": "Einzelquelle",
+    "needs_review": "Überprüfung"
+  },
+  "adminJobs": {
+    "title": "Scraper-Überwachung",
+    "subtitle": "Job-Warteschlange und letzte 50 Läufe",
+    "launchTitle": "Scraper starten",
+    "sourcePlaceholder": "Quelle auswählen",
+    "limitLabel": "Limit",
+    "launchBtn": "Starten",
+    "cancelBtn": "Abbrechen",
+    "noJobs": "Keine Jobs",
+    "colId": "ID",
+    "colSource": "Quelle",
+    "colStatus": "Status",
+    "colRequested": "Angefordert",
+    "colDuration": "Dauer",
+    "colFetched": "Abgerufen",
+    "colInserted": "Eingefügt",
+    "colDlq": "DLQ",
+    "colActions": "Aktionen"
+  }
+}

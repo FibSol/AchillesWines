@@ -1,0 +1,229 @@
+{
+  "meta": {
+    "appName": "Achilles's Wines",
+    "tagline": "Your home cellar, no compromise."
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "domaines": "Producers",
+    "bestValue": "Best Value",
+    "vintages": "Vintages",
+    "map": "Map",
+    "cellar": "My Cellar",
+    "menu": "Wine pairing",
+    "quality": "Data quality",
+    "quarantine": "Quarantine",
+    "adminJobs": "Supervision"
+  },
+  "common": {
+    "search": "Search",
+    "filter": "Filter",
+    "clear": "Clear",
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading…",
+    "empty": "No results",
+    "viewAll": "View all",
+    "language": "Language",
+    "vintage": "Vintage",
+    "price": "Price",
+    "rating": "Rating",
+    "color": "Color",
+    "region": "Region",
+    "producer": "Producer",
+    "appellation": "Appellation"
+  },
+  "colors": {
+    "red": "Red",
+    "white": "White",
+    "rosé": "Rosé",
+    "sparkling": "Sparkling",
+    "sweet": "Sweet",
+    "fortified": "Fortified",
+    "orange": "Orange"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Your cellar at a glance",
+    "stats": {
+      "bottles": "Bottles in cellar",
+      "uniqueWines": "Unique wines",
+      "value": "Cellar value",
+      "domaines": "Producers tracked",
+      "ratings": "Ratings collected",
+      "lastIngest": "Last ingestion"
+    },
+    "quick": {
+      "title": "Quick access",
+      "bestValueShort": "Best Value",
+      "drinkNow": "Drink now",
+      "promosNow": "Promos",
+      "addToCellar": "Add bottle"
+    }
+  },
+  "bestValue": {
+    "title": "Best Value Wines",
+    "subtitle": "Sort by quality/price ratio, filter by price, region, vintage.",
+    "score": "Score",
+    "rank": "Rank",
+    "noData": "No wines with both price and rating data yet. Run a scraper to populate.",
+    "price": "Price",
+    "rating": "Rating",
+    "confidence": {
+      "verified": "Verified ({count} sources)",
+      "reviewed": "Single source",
+      "needs_review": "In review"
+    }
+  },
+  "vintages": {
+    "title": "Vintages by region",
+    "subtitle": "Click a cell to see the wines available.",
+    "noData": "No wines with vintage data in the registry. Run a scraper.",
+    "scoreLabel": "Vintage score",
+    "clickToExplore": "Click a cell to explore available wines.",
+    "loadingWines": "Loading…",
+    "noWines": "No wines found for this selection.",
+    "chartTitle": "Wines in registry by vintage"
+  },
+  "map": {
+    "title": "Producer map",
+    "subtitle": "Clickable markers · region overlays.",
+    "noData": "No producers with GPS coordinates yet. Import a registry to populate the map.",
+    "legendProducers": "Producers",
+    "legendAppellations": "Appellations",
+    "legendRegions": "Regions"
+  },
+  "domaines": {
+    "title": "Producers",
+    "subtitle": "Filterable list. CSV import/export.",
+    "exportCsv": "Export CSV",
+    "importCsv": "Import CSV",
+    "downloadTemplate": "Download template"
+  },
+  "domaine": {
+    "backToList": "Back to producers",
+    "cuvees": "Cuvées",
+    "noCuvees": "No cuvées referenced for this producer.",
+    "cuvee": "Cuvée",
+    "bestRating": "Best rating",
+    "priceRange": "Price range",
+    "sources": "Sources",
+    "priceOverTime": "Price over time",
+    "ratingsByCritic": "Ratings by critic",
+    "noPriceData": "No price data for this producer.",
+    "noRatingData": "No ratings collected for this producer.",
+    "priceAxis": "Price (€)",
+    "ratingAxis": "Score /100",
+    "drinkingWindow": "Drinking window",
+    "aliases": "Also known as",
+    "allowedAppellations": "Allowed appellations"
+  },
+  "cellar": {
+    "title": "My Cellar",
+    "subtitle": "36 locations · 120 bottles each.",
+    "locations": "Locations",
+    "history": "History",
+    "consume": "Consume",
+    "import": "Import inventory CSV",
+    "exportCsv": "Export CSV",
+    "downloadTemplate": "CSV template",
+    "capacityUsed": "{used} / {capacity}",
+    "addBottle": "Add a bottle",
+    "move": "Move",
+    "qty": "Quantity",
+    "wine": "Wine",
+    "location": "Location",
+    "searchPlaceholder": "Search a wine…",
+    "noResults": "No wine found",
+    "cancel": "Cancel",
+    "save": "Save",
+    "capacityFull": "Full",
+    "capacityExceeded": "Capacity exceeded",
+    "personalScore": "Personal score",
+    "occasion": "Occasion",
+    "tastingNote": "Tasting note",
+    "consumed": "Consumed",
+    "moved": "Moved",
+    "emptyLocation": "Empty",
+    "dragHint": "Drag bottles between locations. Click a bottle to consume or move.",
+    "csv": {
+      "importTitle": "Import inventory",
+      "importHint": "Upload a CSV with columns: wine_key (or producer_name + cuvee_name + vintage), location_id, qty, and optionally purchase_price_eur, purchase_source, notes, purchase_date.",
+      "importPick": "Choose CSV file",
+      "importing": "Importing…",
+      "close": "Close",
+      "accepted": "rows accepted",
+      "inserted": "Inserted",
+      "merged": "Merged",
+      "rejected": "Rejected",
+      "details": "Rejection details",
+      "done": "Import done",
+      "uploadError": "Import error"
+    }
+  },
+  "menu": {
+    "title": "Wine pairing",
+    "subtitle": "Compose your menu, budget and number of guests. App suggests wines from your cellar.",
+    "courses": "Courses",
+    "budget": "Total budget",
+    "guests": "Guests",
+    "addCourse": "Add course",
+    "propose": "Propose pairings",
+    "proposing": "Searching…",
+    "dishPlaceholder": "Describe the dish — e.g. duck breast with porcini",
+    "remove": "Remove",
+    "noPicks": "No wine from your cellar matches this course. Adjust the description or add bottles.",
+    "noPoolBottlesYet": "No bottles in cellar yet. Add wines for personalized suggestions.",
+    "scoreLabel": "pts",
+    "poolSize": "Wines scored",
+    "budgetPerGuest": "Budget / guest / course",
+    "fromCellar": "from cellar",
+    "fromRegistry": "registry",
+    "courseTypes": {
+      "aperitif": "Aperitif",
+      "entree": "Starter",
+      "plat": "Main",
+      "fromage": "Cheese",
+      "dessert": "Dessert",
+      "other": "Other"
+    }
+  },
+  "quality": {
+    "title": "Data quality",
+    "subtitle": "Source coverage, multi-source ratio, DLQ.",
+    "verifiedCount": "Verified ≥ 3 sources",
+    "reviewedCount": "Single-source wines",
+    "needsReviewCount": "In quarantine"
+  },
+  "quarantine": {
+    "title": "Quarantine",
+    "subtitle": "Records rejected by Cassandra's gates. Manual review.",
+    "approve": "Approve",
+    "blacklist": "Blacklist",
+    "ignore": "Ignore"
+  },
+  "confidence": {
+    "verified": "Verified ({count} sources)",
+    "reviewed": "Single source",
+    "needs_review": "In review"
+  },
+  "adminJobs": {
+    "title": "Scraper supervision",
+    "subtitle": "Job queue and last 50 runs history",
+    "launchTitle": "Launch a scraper",
+    "sourcePlaceholder": "Select source",
+    "limitLabel": "Limit",
+    "launchBtn": "Launch",
+    "cancelBtn": "Cancel",
+    "noJobs": "No jobs",
+    "colId": "ID",
+    "colSource": "Source",
+    "colStatus": "Status",
+    "colRequested": "Requested at",
+    "colDuration": "Duration",
+    "colFetched": "Fetched",
+    "colInserted": "Inserted",
+    "colDlq": "DLQ",
+    "colActions": "Actions"
+  }
+}

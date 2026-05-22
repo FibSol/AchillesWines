@@ -1,0 +1,2058 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "d169897e-4e8c-4905-9ada-a22d9d498348",
+  "prevId": "4b031c10-5d1b-408b-9a52-dc45f9126bd3",
+  "tables": {
+    "bridge_wine_variety": {
+      "name": "bridge_wine_variety",
+      "columns": {
+        "wine_key": {
+          "name": "wine_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "variety_key": {
+          "name": "variety_key",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "share_pct": {
+          "name": "share_pct",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "source_confidence": {
+          "name": "source_confidence",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "bridge_wine_variety_wine_key_dim_wine_wine_key_fk": {
+          "name": "bridge_wine_variety_wine_key_dim_wine_wine_key_fk",
+          "tableFrom": "bridge_wine_variety",
+          "tableTo": "dim_wine",
+          "columnsFrom": [
+            "wine_key"
+          ],
+          "columnsTo": [
+            "wine_key"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "bridge_wine_variety_variety_key_dim_variety_variety_key_fk": {
+          "name": "bridge_wine_variety_variety_key_dim_variety_variety_key_fk",
+          "tableFrom": "bridge_wine_variety",
+          "tableTo": "dim_variety",
+          "columnsFrom": [
+            "variety_key"
+          ],
+          "columnsTo": [
+            "variety_key"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "bridge_wine_variety_wine_key_variety_key_pk": {
+          "columns": [
+            "wine_key",
+            "variety_key"
+          ],
+          "name": "bridge_wine_variety_wine_key_variety_key_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "cellar_consumption": {
+      "name": "cellar_consumption",
+      "columns": {
+        "consumption_id": {
+          "name": "consumption_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "wine_key": {
+          "name": "wine_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "location_id": {
+          "name": "location_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "consumed_at": {
+          "name": "consumed_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "qty": {
+          "name": "qty",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        },
+        "personal_score": {
+          "name": "personal_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "occasion": {
+          "name": "occasion",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "tasting_note": {
+          "name": "tasting_note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "idx_consumption_date": {
+          "name": "idx_consumption_date",
+          "columns": [
+            "consumed_at"
+          ],
+          "isUnique": false
+        },
+        "idx_consumption_wine": {
+          "name": "idx_consumption_wine",
+          "columns": [
+            "wine_key"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "cellar_consumption_wine_key_dim_wine_wine_key_fk": {
+          "name": "cellar_consumption_wine_key_dim_wine_wine_key_fk",
+          "tableFrom": "cellar_consumption",
+          "tableTo": "dim_wine",
+          "columnsFrom": [
+            "wine_key"
+          ],
+          "columnsTo": [
+            "wine_key"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "cellar_consumption_location_id_cellar_locations_location_id_fk": {
+          "name": "cellar_consumption_location_id_cellar_locations_location_id_fk",
+          "tableFrom": "cellar_consumption",
+          "tableTo": "cellar_locations",
+          "columnsFrom": [
+            "location_id"
+          ],
+          "columnsTo": [
+            "location_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "chk_consumption_score_range": {
+          "name": "chk_consumption_score_range",
+          "value": "\"cellar_consumption\".\"personal_score\" IS NULL OR (\"cellar_consumption\".\"personal_score\" BETWEEN 0 AND 100)"
+        }
+      }
+    },
+    "cellar_inventory": {
+      "name": "cellar_inventory",
+      "columns": {
+        "inventory_id": {
+          "name": "inventory_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "wine_key": {
+          "name": "wine_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "location_id": {
+          "name": "location_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "qty": {
+          "name": "qty",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "purchase_price_eur": {
+          "name": "purchase_price_eur",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "purchase_date": {
+          "name": "purchase_date",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "purchase_source": {
+          "name": "purchase_source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "added_at": {
+          "name": "added_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        }
+      },
+      "indexes": {
+        "idx_inventory_wine_location": {
+          "name": "idx_inventory_wine_location",
+          "columns": [
+            "wine_key",
+            "location_id"
+          ],
+          "isUnique": true
+        },
+        "idx_inventory_location": {
+          "name": "idx_inventory_location",
+          "columns": [
+            "location_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "cellar_inventory_wine_key_dim_wine_wine_key_fk": {
+          "name": "cellar_inventory_wine_key_dim_wine_wine_key_fk",
+          "tableFrom": "cellar_inventory",
+          "tableTo": "dim_wine",
+          "columnsFrom": [
+            "wine_key"
+          ],
+          "columnsTo": [
+            "wine_key"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "cellar_inventory_location_id_cellar_locations_location_id_fk": {
+          "name": "cellar_inventory_location_id_cellar_locations_location_id_fk",
+          "tableFrom": "cellar_inventory",
+          "tableTo": "cellar_locations",
+          "columnsFrom": [
+            "location_id"
+          ],
+          "columnsTo": [
+            "location_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "chk_inventory_qty_positive": {
+          "name": "chk_inventory_qty_positive",
+          "value": "\"cellar_inventory\".\"qty\" >= 0"
+        }
+      }
+    },
+    "cellar_locations": {
+      "name": "cellar_locations",
+      "columns": {
+        "location_id": {
+          "name": "location_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "capacity": {
+          "name": "capacity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 120
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "temperature_zone": {
+          "name": "temperature_zone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'cellar'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "dim_appellation": {
+      "name": "dim_appellation",
+      "columns": {
+        "appellation_key": {
+          "name": "appellation_key",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "country_code": {
+          "name": "country_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "region": {
+          "name": "region",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "subregion": {
+          "name": "subregion",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "appellation_name": {
+          "name": "appellation_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "appellation_norm": {
+          "name": "appellation_norm",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "level": {
+          "name": "level",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "inao_code": {
+          "name": "inao_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "geo_polygon": {
+          "name": "geo_polygon",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "latitude": {
+          "name": "latitude",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "longitude": {
+          "name": "longitude",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "idx_appellation_norm": {
+          "name": "idx_appellation_norm",
+          "columns": [
+            "country_code",
+            "appellation_norm"
+          ],
+          "isUnique": true
+        },
+        "idx_appellation_region": {
+          "name": "idx_appellation_region",
+          "columns": [
+            "country_code",
+            "region"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "dim_producer": {
+      "name": "dim_producer",
+      "columns": {
+        "producer_key": {
+          "name": "producer_key",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "producer_name": {
+          "name": "producer_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "producer_norm": {
+          "name": "producer_norm",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "country_code": {
+          "name": "country_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "region": {
+          "name": "region",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "subregion": {
+          "name": "subregion",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "allowed_appellations": {
+          "name": "allowed_appellations",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'[]'"
+        },
+        "aliases": {
+          "name": "aliases",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'[]'"
+        },
+        "website": {
+          "name": "website",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "latitude": {
+          "name": "latitude",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "longitude": {
+          "name": "longitude",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "tier": {
+          "name": "tier",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'active'"
+        },
+        "first_seen_at": {
+          "name": "first_seen_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "last_seen_at": {
+          "name": "last_seen_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "idx_producer_norm": {
+          "name": "idx_producer_norm",
+          "columns": [
+            "producer_norm",
+            "country_code"
+          ],
+          "isUnique": true
+        },
+        "idx_producer_country_region": {
+          "name": "idx_producer_country_region",
+          "columns": [
+            "country_code",
+            "region"
+          ],
+          "isUnique": false
+        },
+        "idx_producer_status": {
+          "name": "idx_producer_status",
+          "columns": [
+            "status"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "dim_source": {
+      "name": "dim_source",
+      "columns": {
+        "source_key": {
+          "name": "source_key",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "source_code": {
+          "name": "source_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_name": {
+          "name": "source_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_tier": {
+          "name": "source_tier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "country_code": {
+          "name": "country_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "base_url": {
+          "name": "base_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "license_class": {
+          "name": "license_class",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'public_check_terms'"
+        },
+        "cadence": {
+          "name": "cadence",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "enabled": {
+          "name": "enabled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": true
+        },
+        "last_success_at": {
+          "name": "last_success_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "dim_source_source_code_unique": {
+          "name": "dim_source_source_code_unique",
+          "columns": [
+            "source_code"
+          ],
+          "isUnique": true
+        },
+        "idx_source_tier": {
+          "name": "idx_source_tier",
+          "columns": [
+            "source_tier"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "dim_variety": {
+      "name": "dim_variety",
+      "columns": {
+        "variety_key": {
+          "name": "variety_key",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "variety_name": {
+          "name": "variety_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "variety_norm": {
+          "name": "variety_norm",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "color_family": {
+          "name": "color_family",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "dim_variety_variety_norm_unique": {
+          "name": "dim_variety_variety_norm_unique",
+          "columns": [
+            "variety_norm"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "dim_wine": {
+      "name": "dim_wine",
+      "columns": {
+        "wine_key": {
+          "name": "wine_key",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "producer_key": {
+          "name": "producer_key",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "appellation_key": {
+          "name": "appellation_key",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "cuvee_name": {
+          "name": "cuvee_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "cuvee_norm": {
+          "name": "cuvee_norm",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "color": {
+          "name": "color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "vintage": {
+          "name": "vintage",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "is_non_vintage": {
+          "name": "is_non_vintage",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "bottle_ml": {
+          "name": "bottle_ml",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 750
+        },
+        "alcohol_pct": {
+          "name": "alcohol_pct",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "classification": {
+          "name": "classification",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "canonical_name": {
+          "name": "canonical_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "first_seen_at": {
+          "name": "first_seen_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "last_seen_at": {
+          "name": "last_seen_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        }
+      },
+      "indexes": {
+        "idx_wine_producer": {
+          "name": "idx_wine_producer",
+          "columns": [
+            "producer_key"
+          ],
+          "isUnique": false
+        },
+        "idx_wine_appellation": {
+          "name": "idx_wine_appellation",
+          "columns": [
+            "appellation_key"
+          ],
+          "isUnique": false
+        },
+        "idx_wine_vintage": {
+          "name": "idx_wine_vintage",
+          "columns": [
+            "vintage"
+          ],
+          "isUnique": false
+        },
+        "idx_wine_color": {
+          "name": "idx_wine_color",
+          "columns": [
+            "color"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "dim_wine_producer_key_dim_producer_producer_key_fk": {
+          "name": "dim_wine_producer_key_dim_producer_producer_key_fk",
+          "tableFrom": "dim_wine",
+          "tableTo": "dim_producer",
+          "columnsFrom": [
+            "producer_key"
+          ],
+          "columnsTo": [
+            "producer_key"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "dim_wine_appellation_key_dim_appellation_appellation_key_fk": {
+          "name": "dim_wine_appellation_key_dim_appellation_appellation_key_fk",
+          "tableFrom": "dim_wine",
+          "tableTo": "dim_appellation",
+          "columnsFrom": [
+            "appellation_key"
+          ],
+          "columnsTo": [
+            "appellation_key"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "chk_wine_vintage_or_nv": {
+          "name": "chk_wine_vintage_or_nv",
+          "value": "(\"dim_wine\".\"is_non_vintage\" = 1 AND \"dim_wine\".\"vintage\" IS NULL) OR (\"dim_wine\".\"is_non_vintage\" = 0 AND \"dim_wine\".\"vintage\" IS NOT NULL)"
+        }
+      }
+    },
+    "fact_price": {
+      "name": "fact_price",
+      "columns": {
+        "price_event_key": {
+          "name": "price_event_key",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "wine_key": {
+          "name": "wine_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_key": {
+          "name": "source_key",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "retailer": {
+          "name": "retailer",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "recorded_at": {
+          "name": "recorded_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "price_kind": {
+          "name": "price_kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "currency_code": {
+          "name": "currency_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'EUR'"
+        },
+        "amount_local": {
+          "name": "amount_local",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "fx_to_eur": {
+          "name": "fx_to_eur",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "amount_eur": {
+          "name": "amount_eur",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "in_stock": {
+          "name": "in_stock",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "promo_flag": {
+          "name": "promo_flag",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "promo_delta_pct": {
+          "name": "promo_delta_pct",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "source_url": {
+          "name": "source_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "content_hash": {
+          "name": "content_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "batch_id": {
+          "name": "batch_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "idx_price_wine": {
+          "name": "idx_price_wine",
+          "columns": [
+            "wine_key"
+          ],
+          "isUnique": false
+        },
+        "idx_price_recorded": {
+          "name": "idx_price_recorded",
+          "columns": [
+            "recorded_at"
+          ],
+          "isUnique": false
+        },
+        "idx_price_wine_retailer": {
+          "name": "idx_price_wine_retailer",
+          "columns": [
+            "wine_key",
+            "retailer"
+          ],
+          "isUnique": false
+        },
+        "idx_price_promo": {
+          "name": "idx_price_promo",
+          "columns": [
+            "promo_flag",
+            "recorded_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "fact_price_wine_key_dim_wine_wine_key_fk": {
+          "name": "fact_price_wine_key_dim_wine_wine_key_fk",
+          "tableFrom": "fact_price",
+          "tableTo": "dim_wine",
+          "columnsFrom": [
+            "wine_key"
+          ],
+          "columnsTo": [
+            "wine_key"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "fact_price_source_key_dim_source_source_key_fk": {
+          "name": "fact_price_source_key_dim_source_source_key_fk",
+          "tableFrom": "fact_price",
+          "tableTo": "dim_source",
+          "columnsFrom": [
+            "source_key"
+          ],
+          "columnsTo": [
+            "source_key"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "chk_price_positive": {
+          "name": "chk_price_positive",
+          "value": "\"fact_price\".\"amount_local\" > 0"
+        }
+      }
+    },
+    "fact_rating": {
+      "name": "fact_rating",
+      "columns": {
+        "rating_event_key": {
+          "name": "rating_event_key",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "wine_key": {
+          "name": "wine_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_key": {
+          "name": "source_key",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "critic_code": {
+          "name": "critic_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reviewer_type": {
+          "name": "reviewer_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "score": {
+          "name": "score",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "scale": {
+          "name": "scale",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "score_normalized_100": {
+          "name": "score_normalized_100",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "rating_count": {
+          "name": "rating_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "recorded_at": {
+          "name": "recorded_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "source_url": {
+          "name": "source_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "content_hash": {
+          "name": "content_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "batch_id": {
+          "name": "batch_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "idx_rating_wine": {
+          "name": "idx_rating_wine",
+          "columns": [
+            "wine_key"
+          ],
+          "isUnique": false
+        },
+        "idx_rating_critic": {
+          "name": "idx_rating_critic",
+          "columns": [
+            "critic_code"
+          ],
+          "isUnique": false
+        },
+        "idx_rating_wine_critic": {
+          "name": "idx_rating_wine_critic",
+          "columns": [
+            "wine_key",
+            "critic_code"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "fact_rating_wine_key_dim_wine_wine_key_fk": {
+          "name": "fact_rating_wine_key_dim_wine_wine_key_fk",
+          "tableFrom": "fact_rating",
+          "tableTo": "dim_wine",
+          "columnsFrom": [
+            "wine_key"
+          ],
+          "columnsTo": [
+            "wine_key"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "fact_rating_source_key_dim_source_source_key_fk": {
+          "name": "fact_rating_source_key_dim_source_source_key_fk",
+          "tableFrom": "fact_rating",
+          "tableTo": "dim_source",
+          "columnsFrom": [
+            "source_key"
+          ],
+          "columnsTo": [
+            "source_key"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "chk_rating_normalized_range": {
+          "name": "chk_rating_normalized_range",
+          "value": "\"fact_rating\".\"score_normalized_100\" BETWEEN 0 AND 100"
+        }
+      }
+    },
+    "fact_vintage_rating": {
+      "name": "fact_vintage_rating",
+      "columns": {
+        "vintage_rating_key": {
+          "name": "vintage_rating_key",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "country_code": {
+          "name": "country_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "region": {
+          "name": "region",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "subregion": {
+          "name": "subregion",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "color": {
+          "name": "color",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "vintage": {
+          "name": "vintage",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_key": {
+          "name": "source_key",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "score": {
+          "name": "score",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "scale": {
+          "name": "scale",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "score_normalized_100": {
+          "name": "score_normalized_100",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "character_notes": {
+          "name": "character_notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "source_url": {
+          "name": "source_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "recorded_at": {
+          "name": "recorded_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        }
+      },
+      "indexes": {
+        "idx_vintage_region": {
+          "name": "idx_vintage_region",
+          "columns": [
+            "country_code",
+            "region",
+            "vintage"
+          ],
+          "isUnique": false
+        },
+        "idx_vintage_unique": {
+          "name": "idx_vintage_unique",
+          "columns": [
+            "country_code",
+            "region",
+            "subregion",
+            "color",
+            "vintage",
+            "source_key"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "fact_vintage_rating_source_key_dim_source_source_key_fk": {
+          "name": "fact_vintage_rating_source_key_dim_source_source_key_fk",
+          "tableFrom": "fact_vintage_rating",
+          "tableTo": "dim_source",
+          "columnsFrom": [
+            "source_key"
+          ],
+          "columnsTo": [
+            "source_key"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ops_batch_log": {
+      "name": "ops_batch_log",
+      "columns": {
+        "batch_id": {
+          "name": "batch_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_key": {
+          "name": "source_key",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "started_at": {
+          "name": "started_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "finished_at": {
+          "name": "finished_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'running'"
+        },
+        "rows_fetched": {
+          "name": "rows_fetched",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "rows_inserted": {
+          "name": "rows_inserted",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "rows_updated": {
+          "name": "rows_updated",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "rows_dlq": {
+          "name": "rows_dlq",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "rows_skipped_unchanged": {
+          "name": "rows_skipped_unchanged",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "idx_batch_source": {
+          "name": "idx_batch_source",
+          "columns": [
+            "source_key",
+            "started_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "ops_batch_log_source_key_dim_source_source_key_fk": {
+          "name": "ops_batch_log_source_key_dim_source_source_key_fk",
+          "tableFrom": "ops_batch_log",
+          "tableTo": "dim_source",
+          "columnsFrom": [
+            "source_key"
+          ],
+          "columnsTo": [
+            "source_key"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ops_content_hashes": {
+      "name": "ops_content_hashes",
+      "columns": {
+        "url": {
+          "name": "url",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_key": {
+          "name": "source_key",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "last_hash": {
+          "name": "last_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "last_etag": {
+          "name": "last_etag",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "last_modified_http": {
+          "name": "last_modified_http",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "last_fetched_at": {
+          "name": "last_fetched_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "last_changed_at": {
+          "name": "last_changed_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "fetch_count": {
+          "name": "fetch_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "ops_content_hashes_source_key_dim_source_source_key_fk": {
+          "name": "ops_content_hashes_source_key_dim_source_source_key_fk",
+          "tableFrom": "ops_content_hashes",
+          "tableTo": "dim_source",
+          "columnsFrom": [
+            "source_key"
+          ],
+          "columnsTo": [
+            "source_key"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ops_dead_letter": {
+      "name": "ops_dead_letter",
+      "columns": {
+        "dlq_id": {
+          "name": "dlq_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "source_key": {
+          "name": "source_key",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "batch_id": {
+          "name": "batch_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "error_class": {
+          "name": "error_class",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "error_message": {
+          "name": "error_message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_record_id": {
+          "name": "source_record_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "raw_record": {
+          "name": "raw_record",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "raw_object_path": {
+          "name": "raw_object_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "resolved_at": {
+          "name": "resolved_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "resolved_by": {
+          "name": "resolved_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "resolution": {
+          "name": "resolution",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'pending'"
+        }
+      },
+      "indexes": {
+        "idx_dlq_source": {
+          "name": "idx_dlq_source",
+          "columns": [
+            "source_key"
+          ],
+          "isUnique": false
+        },
+        "idx_dlq_class": {
+          "name": "idx_dlq_class",
+          "columns": [
+            "error_class"
+          ],
+          "isUnique": false
+        },
+        "idx_dlq_resolution": {
+          "name": "idx_dlq_resolution",
+          "columns": [
+            "resolution",
+            "created_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "ops_dead_letter_source_key_dim_source_source_key_fk": {
+          "name": "ops_dead_letter_source_key_dim_source_source_key_fk",
+          "tableFrom": "ops_dead_letter",
+          "tableTo": "dim_source",
+          "columnsFrom": [
+            "source_key"
+          ],
+          "columnsTo": [
+            "source_key"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ops_job_queue": {
+      "name": "ops_job_queue",
+      "columns": {
+        "job_id": {
+          "name": "job_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_key": {
+          "name": "source_key",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "requested_by": {
+          "name": "requested_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'ui'"
+        },
+        "requested_at": {
+          "name": "requested_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'queued'"
+        },
+        "started_at": {
+          "name": "started_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "finished_at": {
+          "name": "finished_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "rows_fetched": {
+          "name": "rows_fetched",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "rows_inserted": {
+          "name": "rows_inserted",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "rows_dlq": {
+          "name": "rows_dlq",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "error_message": {
+          "name": "error_message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "batch_id": {
+          "name": "batch_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "params": {
+          "name": "params",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "idx_job_status": {
+          "name": "idx_job_status",
+          "columns": [
+            "status",
+            "requested_at"
+          ],
+          "isUnique": false
+        },
+        "idx_job_source": {
+          "name": "idx_job_source",
+          "columns": [
+            "source_key"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "ops_job_queue_source_key_dim_source_source_key_fk": {
+          "name": "ops_job_queue_source_key_dim_source_source_key_fk",
+          "tableFrom": "ops_job_queue",
+          "tableTo": "dim_source",
+          "columnsFrom": [
+            "source_key"
+          ],
+          "columnsTo": [
+            "source_key"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "staging_price_candidates": {
+      "name": "staging_price_candidates",
+      "columns": {
+        "candidate_id": {
+          "name": "candidate_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "wine_key": {
+          "name": "wine_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_key": {
+          "name": "source_key",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "retailer": {
+          "name": "retailer",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "recorded_at": {
+          "name": "recorded_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "currency_code": {
+          "name": "currency_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'EUR'"
+        },
+        "amount_local": {
+          "name": "amount_local",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "amount_eur": {
+          "name": "amount_eur",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "source_url": {
+          "name": "source_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "content_hash": {
+          "name": "content_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "batch_id": {
+          "name": "batch_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "needs_review": {
+          "name": "needs_review",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": true
+        },
+        "promoted_to_fact_price_key": {
+          "name": "promoted_to_fact_price_key",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "promoted_at": {
+          "name": "promoted_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "idx_staging_price_wine": {
+          "name": "idx_staging_price_wine",
+          "columns": [
+            "wine_key"
+          ],
+          "isUnique": false
+        },
+        "idx_staging_price_review": {
+          "name": "idx_staging_price_review",
+          "columns": [
+            "needs_review",
+            "recorded_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "staging_price_candidates_wine_key_dim_wine_wine_key_fk": {
+          "name": "staging_price_candidates_wine_key_dim_wine_wine_key_fk",
+          "tableFrom": "staging_price_candidates",
+          "tableTo": "dim_wine",
+          "columnsFrom": [
+            "wine_key"
+          ],
+          "columnsTo": [
+            "wine_key"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "staging_price_candidates_source_key_dim_source_source_key_fk": {
+          "name": "staging_price_candidates_source_key_dim_source_source_key_fk",
+          "tableFrom": "staging_price_candidates",
+          "tableTo": "dim_source",
+          "columnsFrom": [
+            "source_key"
+          ],
+          "columnsTo": [
+            "source_key"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}

@@ -1,0 +1,39 @@
+node_modules
+.next
+.env
+.env.local
+.env*.local
+*.tsbuildinfo
+next-env.d.ts
+
+# Achilles data
+data/
+raw/
+dlq/
+logs/
+*.db
+*.db-wal
+*.db-shm
+*.jsonl
+backups/
+
+# Logs
+*.log
+dev-server.log
+npm-install.log
+
+# Claude Code transient state
+.claude/session-complete
+.claude/settings.local.json
+
+# Python sidecar
+scraper/.venv/
+scraper/__pycache__/
+scraper/**/__pycache__/
+scraper/*.egg-info/
+scraper/.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp

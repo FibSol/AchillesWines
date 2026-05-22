@@ -1,0 +1,229 @@
+{
+  "meta": {
+    "appName": "Achilles's Wines",
+    "tagline": "Tu bodega doméstica, sin concesiones."
+  },
+  "nav": {
+    "dashboard": "Panel",
+    "domaines": "Bodegas",
+    "bestValue": "Mejor C/P",
+    "vintages": "Añadas",
+    "map": "Mapa",
+    "cellar": "Mi bodega",
+    "menu": "Maridaje",
+    "quality": "Calidad datos",
+    "quarantine": "Cuarentena",
+    "adminJobs": "Supervisión"
+  },
+  "common": {
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "clear": "Limpiar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "loading": "Cargando…",
+    "empty": "Sin resultados",
+    "viewAll": "Ver todo",
+    "language": "Idioma",
+    "vintage": "Añada",
+    "price": "Precio",
+    "rating": "Puntuación",
+    "color": "Color",
+    "region": "Región",
+    "producer": "Bodega",
+    "appellation": "Denominación"
+  },
+  "colors": {
+    "red": "Tinto",
+    "white": "Blanco",
+    "rosé": "Rosado",
+    "sparkling": "Espumoso",
+    "sweet": "Dulce",
+    "fortified": "Generoso",
+    "orange": "Naranja"
+  },
+  "dashboard": {
+    "title": "Panel",
+    "subtitle": "Tu bodega de un vistazo",
+    "stats": {
+      "bottles": "Botellas en bodega",
+      "uniqueWines": "Vinos únicos",
+      "value": "Valor bodega",
+      "domaines": "Bodegas seguidas",
+      "ratings": "Puntuaciones",
+      "lastIngest": "Última ingesta"
+    },
+    "quick": {
+      "title": "Acceso rápido",
+      "bestValueShort": "Mejor C/P",
+      "drinkNow": "Beber ahora",
+      "promosNow": "Promociones",
+      "addToCellar": "Añadir botella"
+    }
+  },
+  "bestValue": {
+    "title": "Mejor relación calidad-precio",
+    "subtitle": "Ordena por C/P, filtra por precio, región, añada.",
+    "score": "Puntuación",
+    "rank": "Rango",
+    "noData": "Aún no hay vinos con datos de precio y puntuación. Ejecuta un scraper.",
+    "price": "Precio",
+    "rating": "Puntuación",
+    "confidence": {
+      "verified": "Verificado ({count} fuentes)",
+      "reviewed": "Fuente única",
+      "needs_review": "En revisión"
+    }
+  },
+  "vintages": {
+    "title": "Añadas por región",
+    "subtitle": "Haz clic en una celda para ver los vinos disponibles.",
+    "noData": "No hay vinos con datos de añada en el registro. Ejecuta un scraper.",
+    "scoreLabel": "Puntuación de añada",
+    "clickToExplore": "Haz clic en una celda para explorar los vinos disponibles.",
+    "loadingWines": "Cargando…",
+    "noWines": "No se encontraron vinos para esta selección.",
+    "chartTitle": "Vinos en el registro por añada"
+  },
+  "map": {
+    "title": "Mapa de bodegas",
+    "subtitle": "Marcadores clicables · superposiciones de región.",
+    "noData": "Aún no hay bodegas con coordenadas GPS. Importa un registro para llenar el mapa.",
+    "legendProducers": "Bodegas",
+    "legendAppellations": "Denominaciones",
+    "legendRegions": "Regiones"
+  },
+  "domaines": {
+    "title": "Bodegas",
+    "subtitle": "Lista filtrable. Importar/exportar CSV.",
+    "exportCsv": "Exportar CSV",
+    "importCsv": "Importar CSV",
+    "downloadTemplate": "Descargar plantilla"
+  },
+  "domaine": {
+    "backToList": "Volver a bodegas",
+    "cuvees": "Cuvées",
+    "noCuvees": "Sin cuvées registradas para esta bodega.",
+    "cuvee": "Cuvée",
+    "bestRating": "Mejor puntuación",
+    "priceRange": "Rango de precio",
+    "sources": "Fuentes",
+    "priceOverTime": "Evolución de precios",
+    "ratingsByCritic": "Puntuaciones por crítico",
+    "noPriceData": "Sin datos de precio para esta bodega.",
+    "noRatingData": "Sin puntuaciones para esta bodega.",
+    "priceAxis": "Precio (€)",
+    "ratingAxis": "Puntuación /100",
+    "drinkingWindow": "Ventana de consumo",
+    "aliases": "También conocida como",
+    "allowedAppellations": "Denominaciones permitidas"
+  },
+  "cellar": {
+    "title": "Mi bodega",
+    "subtitle": "36 ubicaciones · 120 botellas cada una.",
+    "locations": "Ubicaciones",
+    "history": "Historial",
+    "consume": "Consumir",
+    "import": "Importar inventario CSV",
+    "exportCsv": "Exportar CSV",
+    "downloadTemplate": "Plantilla CSV",
+    "capacityUsed": "{used} / {capacity}",
+    "addBottle": "Añadir botella",
+    "move": "Mover",
+    "qty": "Cantidad",
+    "wine": "Vino",
+    "location": "Ubicación",
+    "searchPlaceholder": "Buscar un vino…",
+    "noResults": "Sin resultados",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "capacityFull": "Lleno",
+    "capacityExceeded": "Capacidad excedida",
+    "personalScore": "Puntuación personal",
+    "occasion": "Ocasión",
+    "tastingNote": "Nota de cata",
+    "consumed": "Consumido",
+    "moved": "Movido",
+    "emptyLocation": "Vacío",
+    "dragHint": "Arrastra las botellas entre ubicaciones. Haz clic en una botella para consumirla o moverla.",
+    "csv": {
+      "importTitle": "Importar inventario",
+      "importHint": "Sube un CSV con columnas: wine_key (o producer_name + cuvee_name + vintage), location_id, qty, y opcionalmente purchase_price_eur, purchase_source, notes, purchase_date.",
+      "importPick": "Elegir archivo CSV",
+      "importing": "Importando…",
+      "close": "Cerrar",
+      "accepted": "filas aceptadas",
+      "inserted": "Insertadas",
+      "merged": "Fusionadas",
+      "rejected": "Rechazadas",
+      "details": "Detalle de rechazos",
+      "done": "Importación finalizada",
+      "uploadError": "Error de importación"
+    }
+  },
+  "menu": {
+    "title": "Maridaje",
+    "subtitle": "Compón tu menú, presupuesto y comensales. App propone vinos de tu bodega.",
+    "courses": "Platos",
+    "budget": "Presupuesto total",
+    "guests": "Comensales",
+    "addCourse": "Añadir plato",
+    "propose": "Proponer maridajes",
+    "proposing": "Buscando…",
+    "dishPlaceholder": "Describe el plato — p. ej. magret de pato con boletus",
+    "remove": "Eliminar",
+    "noPicks": "Ningún vino de tu bodega encaja con este plato. Ajusta la descripción o añade botellas.",
+    "noPoolBottlesYet": "Aún no hay botellas en bodega. Añade vinos para sugerencias personalizadas.",
+    "scoreLabel": "pts",
+    "poolSize": "Vinos puntuados",
+    "budgetPerGuest": "Presupuesto / comensal / plato",
+    "fromCellar": "de tu bodega",
+    "fromRegistry": "registro",
+    "courseTypes": {
+      "aperitif": "Aperitivo",
+      "entree": "Entrante",
+      "plat": "Principal",
+      "fromage": "Quesos",
+      "dessert": "Postre",
+      "other": "Otro"
+    }
+  },
+  "quality": {
+    "title": "Calidad de datos",
+    "subtitle": "Cobertura por fuente, ratio multi-fuente, DLQ.",
+    "verifiedCount": "Verificados ≥ 3 fuentes",
+    "reviewedCount": "Vinos fuente única",
+    "needsReviewCount": "En cuarentena"
+  },
+  "quarantine": {
+    "title": "Cuarentena",
+    "subtitle": "Registros rechazados por las gates de Cassandra. Revisión manual.",
+    "approve": "Aprobar",
+    "blacklist": "Lista negra",
+    "ignore": "Ignorar"
+  },
+  "confidence": {
+    "verified": "Verificado ({count} fuentes)",
+    "reviewed": "Fuente única",
+    "needs_review": "En revisión"
+  },
+  "adminJobs": {
+    "title": "Supervisión de scrapers",
+    "subtitle": "Cola de trabajos e historial de los últimos 50",
+    "launchTitle": "Lanzar un scraper",
+    "sourcePlaceholder": "Seleccionar fuente",
+    "limitLabel": "Límite",
+    "launchBtn": "Lanzar",
+    "cancelBtn": "Cancelar",
+    "noJobs": "Sin trabajos",
+    "colId": "ID",
+    "colSource": "Fuente",
+    "colStatus": "Estado",
+    "colRequested": "Solicitado",
+    "colDuration": "Duración",
+    "colFetched": "Obtenidos",
+    "colInserted": "Insertados",
+    "colDlq": "DLQ",
+    "colActions": "Acciones"
+  }
+}

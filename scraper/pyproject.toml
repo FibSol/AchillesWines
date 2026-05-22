@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "achilles-scraper"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "httpx[http2]>=0.27",
+    "selectolax>=0.3",
+    "playwright>=1.40",
+    "apscheduler>=3.10",
+    "rapidfuzz>=3.6",
+    "pydantic>=2.5",
+    "rich>=13.7",
+    "python-dateutil>=2.8",
+    "tenacity>=8.2",
+    "click>=8.1",
+]
+
+[project.scripts]
+achilles-scraper = "achilles_scraper.cli:cli"
+
+[tool.setuptools.packages.find]
+where = ["."]

@@ -1,0 +1,229 @@
+{
+  "meta": {
+    "appName": "Achilles's Wines",
+    "tagline": "Ta vinothèque, sans concession."
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "domaines": "Domaines",
+    "bestValue": "Meilleurs rapports Q/P",
+    "vintages": "Millésimes",
+    "map": "Carte",
+    "cellar": "Ma cave",
+    "menu": "Accord mets-vins",
+    "quality": "Qualité données",
+    "quarantine": "Quarantaine",
+    "adminJobs": "Supervision"
+  },
+  "common": {
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "clear": "Effacer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "loading": "Chargement…",
+    "empty": "Aucun résultat",
+    "viewAll": "Tout voir",
+    "language": "Langue",
+    "vintage": "Millésime",
+    "price": "Prix",
+    "rating": "Note",
+    "color": "Couleur",
+    "region": "Région",
+    "producer": "Producteur",
+    "appellation": "Appellation"
+  },
+  "colors": {
+    "red": "Rouge",
+    "white": "Blanc",
+    "rosé": "Rosé",
+    "sparkling": "Effervescent",
+    "sweet": "Liquoreux",
+    "fortified": "Muté",
+    "orange": "Orange"
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "subtitle": "Vue d'ensemble de ta vinothèque",
+    "stats": {
+      "bottles": "Bouteilles en cave",
+      "uniqueWines": "Vins uniques",
+      "value": "Valeur cave",
+      "domaines": "Domaines suivis",
+      "ratings": "Ratings collectés",
+      "lastIngest": "Dernière ingestion"
+    },
+    "quick": {
+      "title": "Accès rapide",
+      "bestValueShort": "Meilleurs Q/P",
+      "drinkNow": "À boire maintenant",
+      "promosNow": "Promos en cours",
+      "addToCellar": "Ajouter en cave"
+    }
+  },
+  "bestValue": {
+    "title": "Meilleurs rapports qualité-prix",
+    "subtitle": "Trie par score Q/P, filtre par prix, région, millésime, qualité du millésime.",
+    "score": "Score",
+    "rank": "Rang",
+    "noData": "Aucun vin avec données de prix et de note. Lance un scraper pour alimenter la base.",
+    "price": "Prix",
+    "rating": "Note",
+    "confidence": {
+      "verified": "Vérifié ({count} sources)",
+      "reviewed": "Source unique",
+      "needs_review": "En revue"
+    }
+  },
+  "vintages": {
+    "title": "Millésimes par région",
+    "subtitle": "Clique sur une cellule pour voir les vins disponibles.",
+    "noData": "Aucun vin avec millésime dans le registre. Lance un scraper.",
+    "scoreLabel": "Note millésime",
+    "clickToExplore": "Clique sur une cellule pour explorer les vins disponibles.",
+    "loadingWines": "Chargement…",
+    "noWines": "Aucun vin pour cette sélection.",
+    "chartTitle": "Vins dans le registre par millésime"
+  },
+  "map": {
+    "title": "Carte des domaines",
+    "subtitle": "Markers cliquables · régions colorées.",
+    "noData": "Aucun domaine avec coordonnées GPS pour l'instant. Importez un registre pour alimenter la carte.",
+    "legendProducers": "Domaines",
+    "legendAppellations": "Appellations",
+    "legendRegions": "Régions"
+  },
+  "domaines": {
+    "title": "Domaines",
+    "subtitle": "Liste filtrable. Importer/exporter en CSV.",
+    "exportCsv": "Exporter CSV",
+    "importCsv": "Importer CSV",
+    "downloadTemplate": "Télécharger modèle"
+  },
+  "domaine": {
+    "backToList": "Retour aux domaines",
+    "cuvees": "Cuvées",
+    "noCuvees": "Aucune cuvée référencée pour ce domaine.",
+    "cuvee": "Cuvée",
+    "bestRating": "Meilleure note",
+    "priceRange": "Fourchette de prix",
+    "sources": "Sources",
+    "priceOverTime": "Évolution des prix",
+    "ratingsByCritic": "Notes par critique",
+    "noPriceData": "Aucune donnée de prix pour ce domaine.",
+    "noRatingData": "Aucune note collectée pour ce domaine.",
+    "priceAxis": "Prix (€)",
+    "ratingAxis": "Note /100",
+    "drinkingWindow": "Fenêtre de dégustation",
+    "aliases": "Aussi connu sous",
+    "allowedAppellations": "Appellations autorisées"
+  },
+  "cellar": {
+    "title": "Ma cave",
+    "subtitle": "36 emplacements · 120 bouteilles maximum chacun.",
+    "locations": "Emplacements",
+    "history": "Historique",
+    "consume": "Consommer",
+    "import": "Importer inventaire CSV",
+    "exportCsv": "Exporter CSV",
+    "downloadTemplate": "Modèle CSV",
+    "capacityUsed": "{used} / {capacity}",
+    "addBottle": "Ajouter une bouteille",
+    "move": "Déplacer",
+    "qty": "Quantité",
+    "wine": "Vin",
+    "location": "Emplacement",
+    "searchPlaceholder": "Rechercher un vin…",
+    "noResults": "Aucun vin trouvé",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "capacityFull": "Plein",
+    "capacityExceeded": "Capacité dépassée",
+    "personalScore": "Note perso",
+    "occasion": "Occasion",
+    "tastingNote": "Note de dégustation",
+    "consumed": "Consommé",
+    "moved": "Déplacé",
+    "emptyLocation": "Vide",
+    "dragHint": "Glissez les bouteilles entre emplacements. Cliquez pour consommer ou déplacer.",
+    "csv": {
+      "importTitle": "Importer l'inventaire",
+      "importHint": "Charge un CSV avec les colonnes : wine_key (ou producer_name + cuvee_name + vintage), location_id, qty, et optionnellement purchase_price_eur, purchase_source, notes, purchase_date.",
+      "importPick": "Choisir un fichier CSV",
+      "importing": "Import…",
+      "close": "Fermer",
+      "accepted": "lignes acceptées",
+      "inserted": "Insérées",
+      "merged": "Fusionnées",
+      "rejected": "Rejetées",
+      "details": "Détails des rejets",
+      "done": "Import terminé",
+      "uploadError": "Erreur d'import"
+    }
+  },
+  "menu": {
+    "title": "Accord mets-vins",
+    "subtitle": "Compose ton menu, budget et nombre de personnes. L'app propose des vins depuis ta cave.",
+    "courses": "Services",
+    "budget": "Budget total",
+    "guests": "Convives",
+    "addCourse": "Ajouter un service",
+    "propose": "Proposer des accords",
+    "proposing": "Recherche…",
+    "dishPlaceholder": "Décris le plat — ex. magret de canard aux cèpes",
+    "remove": "Retirer",
+    "noPicks": "Aucun vin de ta cave ne correspond à ce service. Ajuste la description ou ajoute des bouteilles.",
+    "noPoolBottlesYet": "Aucune bouteille en cave. Ajoute des vins pour des suggestions personnalisées.",
+    "scoreLabel": "pts",
+    "poolSize": "Vins évalués",
+    "budgetPerGuest": "Budget / convive / service",
+    "fromCellar": "depuis ta cave",
+    "fromRegistry": "registre",
+    "courseTypes": {
+      "aperitif": "Apéritif",
+      "entree": "Entrée",
+      "plat": "Plat",
+      "fromage": "Fromage",
+      "dessert": "Dessert",
+      "other": "Autre"
+    }
+  },
+  "quality": {
+    "title": "Qualité des données",
+    "subtitle": "Coverage par source, multi-source ratio, DLQ.",
+    "verifiedCount": "Vins vérifiés ≥ 3 sources",
+    "reviewedCount": "Vins 1-2 sources",
+    "needsReviewCount": "Vins en quarantaine"
+  },
+  "quarantine": {
+    "title": "Quarantaine",
+    "subtitle": "Records rejetés par les gates Cassandra. Review manuelle.",
+    "approve": "Approuver",
+    "blacklist": "Blacklister",
+    "ignore": "Ignorer"
+  },
+  "confidence": {
+    "verified": "Vérifié ({count} sources)",
+    "reviewed": "Source unique",
+    "needs_review": "En revue"
+  },
+  "adminJobs": {
+    "title": "Supervision des scrapers",
+    "subtitle": "File de jobs et historique",
+    "launchTitle": "Lancer un scraper",
+    "sourcePlaceholder": "Sélectionner source",
+    "limitLabel": "Limite",
+    "launchBtn": "Lancer",
+    "cancelBtn": "Annuler",
+    "noJobs": "Aucun job",
+    "colId": "ID",
+    "colSource": "Source",
+    "colStatus": "Statut",
+    "colRequested": "Demandé à",
+    "colDuration": "Durée",
+    "colFetched": "Fetched",
+    "colInserted": "Inserted",
+    "colDlq": "DLQ",
+    "colActions": "Actions"
+  }
+}
