@@ -155,12 +155,14 @@ class MillesimaScraper(BaseScraper):
 
     def __init__(self, conn: sqlite3.Connection):
         self.conn = conn
+        # Optional: injected by JobRunner so logs/<batch_id>.log lines up with this run.
+        self.batch_id: Optional[str] = None
 
     def run(self, limit: Optional[int] = None) -> ScrapeResult:
         if not HAS_DEPS:
             return ScrapeResult(error="Missing dependencies: httpx or selectolax not installed")
 
-        batch_id = f"millesima-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:8]}"
+        batch_id = self.batch_id or f"millesima-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:8]}"
         result = ScrapeResult(batch_id=batch_id)
 
         headers = {

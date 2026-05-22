@@ -35,7 +35,7 @@ Voir [PROGRESS.md](PROGRESS.md) pour le détail.
 - [x] **P1 · 1h** [Odysseus] Bouton "✋ Cancel" sur job queued (UPDATE status='cancelled' si toujours queued)
 - [x] **P1 · 1h** [Cassandra] Lien depuis chaque job vers le DLQ filtré sur son `batch_id` (un job qui crée 12 DLQ rows → click "12" → liste filtrée)
 - [x] **P2 · 2h** [Odysseus] Logs streaming (tail des 100 dernières lignes de log/<batch_id>.log) dans un drawer si on clique sur un job running ✓ 2026-05-22
-- [ ] **P2 · 1h** [Patroclus] Make scraper runner write per-batch logs to `logs/<batch_id>.log` (stdout + stderr captured) so the new drawer at /admin/jobs has content to tail. Drawer already wired to read this path.
+- [x] **P2 · 1h** [Patroclus] Make scraper runner write per-batch logs to `logs/<batch_id>.log` (stdout + stderr captured) so the new drawer at /admin/jobs has content to tail. Drawer already wired to read this path. ✓ 2026-05-22 (closes #1)
 
 ## Sprint 4 — UI core en profondeur
 
