@@ -51,6 +51,21 @@
   - (c) Job queue externe (Redis, BullMQ) → over-engineering pour un RPi mono-utilisateur.
 - **Reasoning:** SQLite est déjà le bus de données partagé entre web et scraper containers. Une table `ops_job_queue` donne : (1) persistence à travers redémarrages, (2) state visible directement dans `/admin/jobs` sans appel cross-container, (3) atomicité native via UPDATE…RETURNING, (4) zéro dépendance supplémentaire. Polling 5 s est largement acceptable vu la cadence mensuelle des jobs réels.
 
+## ADR-008 — docker-compose orchestration : 3 services + named volumes
+- **Date:** 2026-05-22
+- **Status:** accepted
+- **Decision:**
+  - 3 services dans `docker-compose.yml` : `web` (Next.js), `scraper` (sidecar Python), `nginx` (reverse proxy alpine).
+  - 3 volumes nommés : `achilles-data` (SQLite WAL partagé sur `/data`), `achilles-logs` (logs nginx + scraper batch logs sur `/app/logs`), `achilles-raw` (HTML snapshots du scraper).
+  - Le port host est exposé **uniquement** par nginx (variable `ACHILLES_HTTP_PORT`, défaut 8080). `web` et `scraper` ne sont pas exposés en host — ils communiquent par le réseau bridge `achilles`.
+  - `scraper` et `nginx` dépendent du healthcheck de `web` (`depends_on: condition: service_healthy`).
+  - Logging json-file rotation `10m × 3` par service.
+- **Alternatives considered:**
+  - (a) Network `host` au lieu de bridge — plus simple mais expose les ports internes sur le LAN et casse la résolution DNS Docker.
+  - (b) Traefik au lieu de nginx — plus puissant (TLS auto, dashboard) mais overkill pour un déploiement mono-host sans WAN.
+  - (c) Volume bind `./data:/data` au lieu de named volume. Rejeté : permission chmod compliquée sur RPi (root vs achilles uid 1001).
+- **Reasoning:** Les named volumes survivent à `docker compose down`, et Docker gère le owner/permission automatiquement (chown au boot du container). nginx unique point d'entrée HTTP : on peut ajouter TLS plus tard (HA add-on ingress ou Caddy) sans toucher au compose. Les healthcheck en `condition: service_healthy` garantissent que `scraper` ne tente pas de polling avant que le schéma DB soit prêt (web démarre les migrations).
+
 ## ADR-007 — Dockerfiles : Next.js standalone (web) + Python wheel cache (scraper)
 - **Date:** 2026-05-22
 - **Status:** accepted

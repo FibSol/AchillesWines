@@ -49,6 +49,15 @@ jobs:
           dockerfile: scraper/Dockerfile
           ignore: DL3008,DL3013
 
+  compose-validate:
+    name: docker compose config
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate compose file
+        run: docker compose -f docker-compose.yml config --quiet
+
   docker-build:
     name: Docker build (web + scraper)
     runs-on: ubuntu-latest
