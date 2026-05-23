@@ -73,16 +73,18 @@ Wine shops:
 - [x] **P2 · 1h**   [Patroclus] Scraper belgiumwinewatchers (BE) ✓ 2026-05-22
 
 Wine press (E_press_critic → write to fact_rating):
-- [ ] **P2 · 2h**   [Patroclus] Scraper magazines_fr (aggregator — subscription needed, URL patterns TBD)
+- [ ] **P2 · 2h**   [Patroclus] Scraper magazines_fr (aggregator — subscription needed, URL patterns TBD) — [#18](https://github.com/FibSol/AchillesWines/issues/18)
 - [x] **P2 · 1.5h** [Patroclus] Scraper figaro_vin (lefigaro.fr/avis-vin) ✓ 2026-05-22
 - [x] **P2 · 1.5h** [Patroclus] Scraper terredevins ✓ 2026-05-22
 - [x] **P2 · 2h**   [Patroclus] Scraper hachette_vins (guide ratings) ✓ 2026-05-22
 
-## ⚠ URL tuning needed (post-first-scrape)
-- [ ] **P2 · 0.5h** [Patroclus] Fix vinatis.py catalog URL (404 on `/vente-vin?page=1`)
-- [ ] **P2 · 0.5h** [Patroclus] Fix cavissima.py catalog URL (404 on `/vins/?p=1`)
-- [ ] **P2 · 1h**   [Patroclus] Tune BE shop URL patterns after first live test (wdc, cinoco, wijnhuis, topwijnen_be)
-- [ ] **P1 · 0.5h** [Patroclus] Add wine-searcher to dim_source (missed in 0004) + add scraper class
+## Sprint 11 — Scraper URL fixes + design review
+
+- [ ] **P1 · 0.5h** [Patroclus] Fix vinatis.py catalog URL (404 on `/vente-vin?page=1`) — [#14](https://github.com/FibSol/AchillesWines/issues/14)
+- [ ] **P1 · 0.5h** [Patroclus] Fix cavissima.py catalog URL (404 on `/vins/?p=1`) — [#15](https://github.com/FibSol/AchillesWines/issues/15)
+- [ ] **P1 · 1h**   [Patroclus] Tune BE shop URL patterns after first live test (wdc, cinoco, wijnhuis, topwijnen_be) — [#16](https://github.com/FibSol/AchillesWines/issues/16)
+- [ ] **P1 · 0.5h** [Patroclus] Add wine-searcher to dim_source (missed in 0004) + add scraper class — [#17](https://github.com/FibSol/AchillesWines/issues/17)
+- [ ] **P1 · 3h**   [Odysseus] Design review: theme consistency, UX polish, empty/loading/error states, mobile — [#23](https://github.com/FibSol/AchillesWines/issues/23)
 
 ## Sprint 6 — Menu pairing
 
@@ -101,15 +103,15 @@ Wine press (E_press_critic → write to fact_rating):
 ## Sprint 9 — Email newsletter ingestion (ADR-011)
 
 - [x] **P2 · 4h** [Patroclus + Cassandra] Email newsletter scraper: IMAP mailbox client + generic HTML parser + EmailNewsletterScraper base + .eml replay + 40 unit tests + docs/EMAIL.md ✓ 2026-05-22 (ADR-011)
-- [ ] **P2 · 1h** [Patroclus] Set `from_email` to the real subscriber address for each `*_email` row in dim_source after the user subscribes the mailbox
-- [ ] **P3 · 2h** [Patroclus] Per-vendor `_parse_html()` overrides as the generic heuristic shows holes per source
-- [ ] **P3 · 3h** [Patroclus] Optional LLM fallback parser (Claude API) for emails the heuristic can't handle — gated behind a per-source `use_llm_fallback` flag to keep API costs predictable
+- [ ] **P2 · 1h** [Patroclus] Set `from_email` to the real subscriber address for each `*_email` row in dim_source after the user subscribes the mailbox — [#19](https://github.com/FibSol/AchillesWines/issues/19)
+- [ ] **P3 · 2h** [Patroclus] Per-vendor `_parse_html()` overrides as the generic heuristic shows holes per source — [#20](https://github.com/FibSol/AchillesWines/issues/20)
+- [ ] **P3 · 3h** [Patroclus] Optional LLM fallback parser (Claude API) for emails the heuristic can't handle — gated behind a per-source `use_llm_fallback` flag to keep API costs predictable — [#21](https://github.com/FibSol/AchillesWines/issues/21)
 
 ## Sprint 8 — Authentification scrapers (ADR-010)
 
 - [x] **P2 · 3h** [Patroclus + Odysseus + Cassandra] Auth system: `auth.py` + `AuthenticatedScraper` base + `/admin/auth` UI + test_login JobRunner flow + 16 unit tests + docs/AUTH.md ✓ 2026-05-22 (ADR-010)
 - [x] **P2 · 0.5h** [Cassandra] Marquer `requires_auth=1` sur dim_source pour les sources concrètes (idealwine, lavinia, vinatis, rvf) ✓ 2026-05-22 (migration 0005)
-- [ ] **P3 · 2h** [Patroclus] Persister les sessions dans `ops_auth_sessions` (cookie_jar JSON + expires_at) si le re-login chaque batch devient un problème (rate-limit, latence). Pour l'instant la décision ADR-010 est re-login à chaque fois.
+- [ ] **P3 · 2h** [Patroclus] Persister les sessions dans `ops_auth_sessions` (cookie_jar JSON + expires_at) si le re-login chaque batch devient un problème (rate-limit, latence). Pour l'instant la décision ADR-010 est re-login à chaque fois. — [#22](https://github.com/FibSol/AchillesWines/issues/22)
 
 ## Sprint 10 — Robustesse & orchestration scraper
 
@@ -120,9 +122,9 @@ Wine press (E_press_critic → write to fact_rating):
 
 ## Idées différées (P3 backlog)
 
-- [ ] OCR étiquette via Claude Vision (photo → ajout cellar)
-- [ ] Push notifications PWA pour promos
-- [ ] Algorithme de similarité vectorielle pour recommandations
+- [ ] OCR étiquette via Claude Vision (photo → ajout cellar) — [#24](https://github.com/FibSol/AchillesWines/issues/24)
+- [ ] Push notifications PWA pour promos — [#25](https://github.com/FibSol/AchillesWines/issues/25)
+- [ ] Algorithme de similarité vectorielle pour recommandations — [#26](https://github.com/FibSol/AchillesWines/issues/26)
 - [ ] LWIN integration si abonnement Liv-ex obtenu un jour
-- [ ] Recharts Vintage divergence heatmap (sources × année)
-- [ ] X-Wines + Mendeley soMLier snapshot import (crowd reviews)
+- [ ] Recharts Vintage divergence heatmap (sources × année) — [#27](https://github.com/FibSol/AchillesWines/issues/27)
+- [ ] X-Wines + Mendeley soMLier snapshot import (crowd reviews) — [#28](https://github.com/FibSol/AchillesWines/issues/28)

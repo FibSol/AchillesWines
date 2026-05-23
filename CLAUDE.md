@@ -23,6 +23,7 @@ Working dir: `C:\Claude\achilles-wines` (Windows 11, PowerShell).
 ## Rules (all agents must follow)
 
 - **Never invoke skills** — do NOT call the Skill tool. Do actual code work.
+- **GitHub Issues are the single source of truth for all tasks.** Every item in NEXT.md must have a corresponding GitHub issue on [FibSol/AchillesWines](https://github.com/FibSol/AchillesWines/issues). When starting a task, move the issue to "In Progress". When a task is completed: close the GitHub issue (`gh issue close <number>`) and tick the item in NEXT.md. Never mark a task done in NEXT.md without closing its GitHub issue.
 - TypeScript: strict, no `type: any` anywhere.
 - Run `npx tsc --noEmit` before finishing any frontend task.
 - Run `npx vitest run` before finishing any Cassandra task.
