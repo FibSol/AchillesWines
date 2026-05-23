@@ -74,7 +74,8 @@ Set-Location '$($projectRoot -replace "'", "''")'
 `$prompt = @'
 $($prompt -replace "(?<!')'(?!')", "''")
 '@
-& "C:\Users\Nicolas\AppData\Roaming\Claude\claude-code\2.1.146\claude.exe" --enable-auto-mode `$prompt
+$claudeExe = (Get-ChildItem "C:\Users\Nicolas\AppData\Roaming\Claude\claude-code" -Filter "claude.exe" -Recurse | Sort-Object FullName -Descending | Select-Object -First 1).FullName
+& $claudeExe --enable-auto-mode `$prompt
 "@ | Set-Content $launcherFile -Encoding UTF8
 
 Write-Host "[auto-session] $completedRole done. Launching next: [$role] $priority — $description"
