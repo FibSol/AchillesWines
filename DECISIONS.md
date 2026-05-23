@@ -29,6 +29,20 @@
   - Apollo (bordeaux/safran, Cormorant + DM Sans) — non réévalué.
 - **Reasoning:** L'utilisateur a prescrit la palette exacte. Athena était une option dès ADR-002 (déjà documentée comme alternative). La combinaison magenta vin + or champagne est un classique sommellerie (accord couleur/or intentionnel, pas accidentel). Les deux accents servent des rôles distincts : magenta = interactif (boutons, bordures, états actifs), champagne = décoratif/données (valeurs stat cards, badges, le "A." du footer). next/font garantit le chargement réel des fontes (l'ancienne implémentation utilisait des fallbacks CSS sans téléchargement).
 
+## ADR-014 — CellarTracker en tant que critic-aggregation hub (pas scraping global)
+- **Date:** 2026-05-23
+- **Status:** accepted
+- **Decision:** On consomme CellarTracker via son endpoint partenaire officiel `xlquery.asp` (source_code `cellartracker_xlquery`), pas par scraping des 6 M pages `wine.asp?iWine=N`. Pour chaque vin présent dans la cellule CT de l'utilisateur, on récupère en une requête les 30+ scores critiques pré-agrégés (WA, WS, AG/Vinous, JR, BH, DR, JS, JM, JH, WAL, WD, JG, GV, CT community avg, etc.).
+- **Alternatives considered:**
+  - (a) Scraper `wine.asp?iWine=N` de 1 à ~6 M — bloqué par Kasada (429 + JS challenge). Solver services chiffrés à 60-300 k€ pour le sweep complet. Rejeté.
+  - (b) Playwright + stealth opportuniste sur quelques centaines de vins — possible mais lent (~3-5 s/page), banissement de compte probable, et ne donne *pas* les scores critiques agrégés que CT a déjà compilés.
+  - (c) Scraper chaque critique séparément (Vinous, JR, Decanter, Burghound…) — duplique le travail que CT fait gratuitement, multiplie les abonnements payants requis.
+- **Reasoning:** CellarTracker se positionne comme un *hub d'agrégation critique* via sa page Partner Integrations (`getcontent.asp`). Les utilisateurs lient leurs abonnements (Vinous, Jancis Robinson, Decanter, Burghound, Halliday, Jeb Dunnuck, Inside Burgundy, Suckling, Wine Align, Wine Doctor…) une fois, et CT canalise les reviews dans leur vue cellule. `xlquery.asp` expose ces données agrégées en TSV/CSV/XML, sans Kasada. C'est l'usage prévu — pas un contournement.
+- **Implications produit:**
+  - Le flow utilisateur Achilles devient : ajouter un vin → ajouter aussi à CT (manuel UI, scan barcode mobile CT, ou bulk-add futur) → notre scraper pull les scores agrégés pour ce vin → écriture dans `fact_rating` avec le `critic_code` approprié.
+  - Couverture critique élargie *sans* écrire 15 scrapers individuels (un seul scraper xlquery suffit pour exposer la donnée de tous les critiques liés par l'utilisateur).
+  - Architecture-mirror à envisager pour Achilles : exposer nous-mêmes une page "Partner Integrations" où l'utilisateur lie ses comptes externes (Vinous OAuth, etc.) plutôt que de scraper. Différé en backlog, pas dans ce sprint.
+
 ## ADR-013 — Couverture France : skeleton-first, 60 % strict plutôt que 80 % bruité
 - **Date:** 2026-05-23
 - **Status:** accepted
