@@ -32,23 +32,31 @@ The site has no public terms-of-service block on personal/research scraping
 at low rates, but we keep concurrency at 1 and obey 429s with exponential
 backoff via the shared retry wrapper.
 
-⚠ KNOWN LIMITATION (2026-05-23 smoke test): CellarTracker is fronted by
-CloudFront with an aggressive edge ruleset that returns HTTP 403
-("Request blocked") for plain httpx clients — even the homepage. Real
-browser headers (Sec-CH-UA, HTTP/2, full Accept-Language) do not bypass it;
-the block is almost certainly TLS-fingerprint based (httpx ≠ Chrome JA3).
+⚠ HARD LIMITATION (verified 2026-05-23): wine.asp pages are protected by
+Kasada anti-bot (KP_UIDz cookie + x-kpsdk-* headers + ips.js JS challenge).
+- CloudFront TLS check is passable with curl_cffi (chrome124 impersonation).
+- Login flow itself is NOT Kasada-gated: POSTing {Referrer, szUser, szPassword,
+  UseCookie} to /password.asp via curl_cffi yields PWHash + User session
+  cookies just fine.
+- BUT every subsequent wine.asp?iWine=N request returns HTTP 429 with a
+  Kasada JS challenge body, even fully logged in.
 
-To make this scraper actually fetch pages we need one of:
-  (a) Playwright (real Chromium) — slow but reliable. See
-      scripts/playwright_ct_session.py for a starter once implemented.
-  (b) curl_cffi / tls-client to spoof Chrome's JA3 over plain HTTP.
-  (c) Routing through CellarTracker's own bulk-export endpoints
-      (xlquery.asp / Cellar.xml) — these bypass CloudFront-edge rules but
-      only expose the *logged-in user's own cellar*, not the global DB.
+Bypassing Kasada at the 6M-page scale is not economical:
+  Playwright+stealth → many months runtime, near-certain account ban.
+  Paid Kasada-solvers (ZenRows/Scrapfly) → €10-50 per 1k requests → €60-300k
+  for the full sweep.
+  Reverse-engineering Kasada → moving target, breaks every few weeks.
 
-Until one of the above is wired in, `.run()` will return ScrapeResult with
-network_error rows in the DLQ and rows_fetched=0. The module is still
-useful as scaffolding: dim_source registration, parse helpers, cursor file.
+The realistic path is CellarTracker's official data-export endpoint
+xlquery.asp (used by their mobile app + 3rd-party sync tools). It bypasses
+Kasada and returns CSV/XML, but only for the *logged-in user's own cellar*:
+Inventory, Notes, PendingDeliveries, Availability, Pro reviews aggregated
+to YOUR wines. See https://www.cellartracker.com/help.asp?iHelp=11.
+
+This module keeps the scaffolding (login, parse helpers, cursor, fact_rating
+write path) but `.run()` will currently return rows_dlq with
+"network_error: HTTP 429 (Kasada)" for every iWine until the export-endpoint
+variant is implemented as a sibling class.
 """
 from __future__ import annotations
 
@@ -407,16 +415,22 @@ class CellarTrackerScraper(AuthenticatedScraper):
         self.batch_id: Optional[str] = None
 
     def _login(self, client: "httpx.Client", creds: Credentials) -> bool:
-        # CT's classic ASP login: POST /password.asp with szLogin/szPassword.
-        # Successful login sets a session cookie ("CTSession" or similar) and
-        # redirects to the homepage. We just confirm we land on a non-login page.
+        # CT's classic ASP login form (name="login") on /password.asp:
+        #   <input name="Referrer" type="hidden">
+        #   <input name="szUser">
+        #   <input name="szPassword" type="password">
+        #   <input name="UseCookie" type="checkbox" value="true">
+        # On success the response sets PWHash + User cookies and a "Sign Out"
+        # link appears on /default.asp. Verified 2026-05-23.
+        # GET the form first so any anti-CSRF / warmup cookies get attached.
+        client.get(_LOGIN_URL, headers={"User-Agent": _USER_AGENT})
         resp = client.post(
             _LOGIN_URL,
             data={
-                "szLogin": creds.username,
+                "Referrer": "",
+                "szUser": creds.username,
                 "szPassword": creds.password,
-                "Remember": "True",
-                "Login": "Sign+In",
+                "UseCookie": "true",
             },
             headers={
                 "User-Agent": _USER_AGENT,
@@ -427,8 +441,7 @@ class CellarTrackerScraper(AuthenticatedScraper):
         )
         if resp.status_code >= 500:
             raise AuthError(f"CT login HTTP {resp.status_code}")
-        # Heuristic: a logged-in cookie is set, OR follow-up GET of /default.asp
-        # shows the username / "Sign out" link.
+        # Confirm by GETting /default.asp and looking for the logged-in chrome.
         probe = client.get(f"{_BASE}/default.asp", headers={"User-Agent": _USER_AGENT})
         if probe.status_code != 200:
             return False
