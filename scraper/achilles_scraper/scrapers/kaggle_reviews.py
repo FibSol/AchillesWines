@@ -48,12 +48,13 @@ from rich.console import Console
 
 from .base import BaseScraper, ScrapeResult
 from ..identity import normalize_producer, normalize_cuvee, compute_wine_key, norm_text
-from ..dlq import write_dlq
+from ..dlq import write_dlq, insert_staging_candidate
 
 console = Console()
 
-_DATASET_SLUG = "zynicide/wine-reviews"
-_CSV_FILENAME  = "winemag-data-130k-v2.csv"
+_DATASET_SLUG    = "zynicide/wine-reviews"
+_CSV_FILENAME    = "winemag-data-130k-v2.csv"
+_CSV_FILENAME_V1 = "winemag-data_first150k.csv"
 
 _CRITIC_CODE   = "WE"
 _REVIEWER_TYPE = "user_aggregate"
@@ -344,6 +345,168 @@ class KaggleReviewsScraper(BaseScraper):
         self.conn.commit()
         console.print(
             f"[green]kaggle_reviews[/] done — {result.rows_inserted} inserted, "
+            f"{result.rows_dlq} DLQ, {result.rows_skipped_unchanged} skipped"
+        )
+        return result
+
+
+class KaggleReviewsV1Scraper(BaseScraper):
+    """
+    Imports WineEnthusiast reviews from the older Kaggle v1 dataset (150k rows).
+
+    Schema differences vs v2:
+      - No ``title`` column → synthetic title = ``winery + designation or variety``
+      - No ``taster_name`` / ``taster_twitter_handle``
+      - No vintage extractable from structured fields (description mentions years
+        that are review years, not wine vintages) → all rows ingested as NV
+      - Has ``price`` (97% filled) → also written to staging_price_candidates
+
+    Source: winemag-data_first150k.csv (zynicide/wine-reviews, CC BY-NC-SA 4.0)
+    """
+
+    source_code = "kaggle_reviews_v1"
+
+    def __init__(self, conn: sqlite3.Connection):
+        self.conn = conn
+        self.batch_id: Optional[str] = None
+
+    def run(self, limit: Optional[int] = None) -> ScrapeResult:
+        source_key = _get_source_key(self.conn, self.source_code)
+        batch_id = self.batch_id or (
+            f"kaggle-v1-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
+            f"-{uuid.uuid4().hex[:8]}"
+        )
+        result = ScrapeResult(batch_id=batch_id)
+
+        # ── Download ─────────────────────────────────────────────────────────
+        local_path = os.environ.get("KAGGLE_REVIEWS_V1_LOCAL_PATH")
+        if local_path and os.path.exists(local_path):
+            console.print(f"[cyan]kaggle_reviews_v1[/] using local file: {local_path}")
+            with open(local_path, encoding="utf-8") as fh:
+                csv_text = fh.read()
+        else:
+            console.print("[cyan]kaggle_reviews_v1[/] downloading via Kaggle API…")
+            try:
+                csv_text = _download_via_kaggle_api(_DATASET_SLUG, _CSV_FILENAME_V1)
+            except RuntimeError as exc:
+                result.error = str(exc)
+                console.print(f"[red]kaggle_reviews_v1[/] {exc}")
+                return result
+
+        # ── Parse CSV ────────────────────────────────────────────────────────
+        reader = csv.DictReader(io.StringIO(csv_text))
+        rows = list(reader)
+        console.print(f"[cyan]kaggle_reviews_v1[/] {len(rows)} rows loaded")
+        result.rows_fetched = len(rows)
+
+        for row in rows:
+            if limit is not None and result.rows_inserted >= limit:
+                result.rows_skipped_unchanged += 1
+                continue
+
+            try:
+                points = int(row.get("points") or 0)
+            except ValueError:
+                continue
+            if points < 50 or points > 100:
+                continue
+
+            winery      = (row.get("winery") or "").strip()
+            designation = (row.get("designation") or "").strip()
+            variety     = (row.get("variety") or "").strip()
+            region      = (row.get("region_1") or row.get("province") or "").strip()
+            country     = (row.get("country") or "").strip()
+            country_code = _COUNTRY_MAP.get(country, "FR")
+
+            # Synthetic title: winery + designation (preferred) or variety (fallback)
+            cuvee_label = designation or variety
+            synthetic_title = f"{winery} {cuvee_label}".strip()
+
+            # No reliable vintage — all rows are NV
+            vintage: Optional[int] = None
+
+            producer_norm = normalize_producer(winery)
+            cuvee_norm    = normalize_cuvee(synthetic_title, strip_words=[producer_norm] if producer_norm else [])
+            app_norm      = norm_text(region)
+            if not producer_norm or not cuvee_norm:
+                continue
+
+            wine_key = compute_wine_key(producer_norm, cuvee_norm, vintage, app_norm)
+            _ensure_producer(self.conn, producer_norm, winery, country_code)
+
+            if not _ensure_wine(self.conn, wine_key, producer_norm, synthetic_title,
+                                cuvee_norm, region, country_code, vintage):
+                write_dlq(self.conn, source_key, batch_id, "unresolved_dim",
+                          f"Cannot resolve wine: {winery!r} / {synthetic_title!r}",
+                          {"winery": winery, "title": synthetic_title, "wine_key": wine_key})
+                result.rows_dlq += 1
+                continue
+
+            content_hash = hashlib.sha256(
+                json.dumps(
+                    {"winery": winery, "designation": designation, "points": points},
+                    sort_keys=True,
+                ).encode()
+            ).hexdigest()
+
+            # ── Write rating ─────────────────────────────────────────────────
+            try:
+                self.conn.execute(
+                    """INSERT OR IGNORE INTO fact_rating
+                       (wine_key, source_key, critic_code, reviewer_type,
+                        score, scale, score_normalized_100,
+                        recorded_at, content_hash, batch_id)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (
+                        wine_key, source_key, _CRITIC_CODE, _REVIEWER_TYPE,
+                        points, _SCALE, float(points),
+                        int(time.time()), content_hash, batch_id,
+                    ),
+                )
+                changed = self.conn.execute("SELECT changes()").fetchone()[0]
+                if changed:
+                    result.rows_inserted += 1
+                else:
+                    result.rows_skipped_unchanged += 1
+            except Exception as exc:
+                write_dlq(self.conn, source_key, batch_id, "validation_error",
+                          str(exc), {"wine_key": wine_key, "title": synthetic_title})
+                result.rows_dlq += 1
+                continue
+
+            # ── Write price to staging (editorial price context, 97% filled) ─
+            try:
+                price_str = (row.get("price") or "").strip()
+                price_eur = float(price_str) if price_str else None
+            except ValueError:
+                price_eur = None
+
+            if price_eur and price_eur > 0:
+                price_hash = hashlib.sha256(
+                    json.dumps(
+                        {"winery": winery, "designation": designation, "price": price_eur},
+                        sort_keys=True,
+                    ).encode()
+                ).hexdigest()
+                try:
+                    insert_staging_candidate(
+                        self.conn,
+                        wine_key=wine_key,
+                        source_key=source_key,
+                        retailer=self.source_code,
+                        recorded_at=int(time.time()),
+                        amount_local=price_eur,
+                        amount_eur=price_eur,  # prices in USD in dataset, treated as-is
+                        source_url=f"https://www.winemag.com/?s={winery.replace(' ', '+')}",
+                        content_hash=price_hash,
+                        batch_id=batch_id,
+                    )
+                except Exception:
+                    pass  # price is bonus; never let it fail the rating insert
+
+        self.conn.commit()
+        console.print(
+            f"[green]kaggle_reviews_v1[/] done — {result.rows_inserted} ratings inserted, "
             f"{result.rows_dlq} DLQ, {result.rows_skipped_unchanged} skipped"
         )
         return result

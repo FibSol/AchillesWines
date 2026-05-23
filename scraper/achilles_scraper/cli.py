@@ -77,7 +77,8 @@ _ALL_SOURCES = [
     "werc",               # WERC megafile 1835-2024 → fact_werc_stats
     # --- Crowd / user-aggregate ratings (→ fact_rating) ---
     "xwines",             # X-Wines/Vivino crowd ratings (CC0)
-    "kaggle_reviews",     # WineEnthusiast reviews via Kaggle API
+    "kaggle_reviews",     # WineEnthusiast reviews via Kaggle API (v2, 130k, has title)
+    "kaggle_reviews_v1",  # WineEnthusiast reviews via Kaggle API (v1, 150k, NV only)
     "cellartracker",          # CellarTracker community DB (iWine sweep — Kasada-blocked, scaffolding only)
     "cellartracker_xlquery",  # CellarTracker official xlquery.asp export — own cellar + 30 critic columns
 ]
@@ -127,7 +128,7 @@ def _load_scrapers():
     from .scrapers.werc import WercScraper
     # Crowd ratings
     from .scrapers.xwines import XWinesScraper
-    from .scrapers.kaggle_reviews import KaggleReviewsScraper
+    from .scrapers.kaggle_reviews import KaggleReviewsScraper, KaggleReviewsV1Scraper
     from .scrapers.cellartracker import CellarTrackerScraper
     from .scrapers.cellartracker_xlquery import CellarTrackerXlqueryScraper
 
@@ -166,6 +167,7 @@ def _load_scrapers():
     SCRAPERS["werc"] = WercScraper
     SCRAPERS["xwines"] = XWinesScraper
     SCRAPERS["kaggle_reviews"] = KaggleReviewsScraper
+    SCRAPERS["kaggle_reviews_v1"] = KaggleReviewsV1Scraper
     SCRAPERS["cellartracker"] = CellarTrackerScraper
     SCRAPERS["cellartracker_xlquery"] = CellarTrackerXlqueryScraper
 
