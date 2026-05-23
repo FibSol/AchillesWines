@@ -128,7 +128,7 @@ def run(source: str, limit):
     import json
     from .config import config
     from .db import get_db
-    from .job_runner import _make_batch_id, LOG_DIR, _log
+    from .job_runner import _make_batch_id, LOG_DIR
     config.ensure_dirs()
     conn = get_db(config.db_path)
 
@@ -151,13 +151,27 @@ def run(source: str, limit):
     )
     conn.commit()
 
-    # Write output to logs/<batch_id>.log so the drawer can tail it.
+    # Single log file — use Python logging for ALL writes so ordering is correct.
+    # Two competing file descriptors (log_file + FileHandler) on the same path
+    # cause ordering issues; instead we use one FileHandler for everything.
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     log_path = LOG_DIR / f"{batch_id}.log"
-    log_file = open(log_path, "w", encoding="utf-8", buffering=1)
+
+    import logging as _logging
+    # Suppress noisy HTTP internals — keep only WARNING+ from httpcore/httpx.
+    for _noisy in ("httpcore", "httpx", "hpack", "h2"):
+        _logging.getLogger(_noisy).setLevel(_logging.WARNING)
+    file_handler = _logging.FileHandler(str(log_path), mode="w", encoding="utf-8")
+    file_handler.setFormatter(_logging.Formatter("%(asctime)s [%(name)s] %(levelname)s %(message)s"))
+    file_handler.setLevel(_logging.DEBUG)
+    root_logger = _logging.getLogger()
+    root_logger.addHandler(file_handler)
+    if root_logger.level == _logging.NOTSET or root_logger.level > _logging.DEBUG:
+        root_logger.setLevel(_logging.DEBUG)
+    _batch_log = _logging.getLogger("achilles_scraper.cli")
 
     console.print(f"[bold]Scraping:[/bold] {source}" + (f" (limit={limit})" if limit else ""))
-    _log(log_file, f"[batch {batch_id}] starting (cli)")
+    _batch_log.info("[batch %s] starting (cli)", batch_id)
 
     try:
         scraper = SCRAPERS[source](conn)
@@ -169,14 +183,13 @@ def run(source: str, limit):
         from .scrapers.base import ScrapeResult
         result = ScrapeResult(error=str(exc), batch_id=batch_id)
 
-    _log(
-        log_file,
-        f"[batch {batch_id}] finished fetched={result.rows_fetched} "
-        f"inserted={result.rows_inserted} dlq={result.rows_dlq} "
-        f"error={result.error or 'none'}",
+    _batch_log.info(
+        "[batch %s] finished fetched=%d inserted=%d dlq=%d error=%s",
+        batch_id, result.rows_fetched, result.rows_inserted, result.rows_dlq,
+        result.error or "none",
     )
-    log_file.flush()
-    log_file.close()
+    root_logger.removeHandler(file_handler)
+    file_handler.close()
 
     status = "failed" if result.error else "done"
     conn.execute(

@@ -227,6 +227,7 @@ class VinatissScraper(BaseScraper):
                 if not products_data:
                     break  # No products on this page → end of catalogue
 
+                _logger.info("page=%d products=%d", page, len(products_data))
                 page_hash = hashlib.sha256(resp.content).hexdigest()
                 cached = self.conn.execute(
                     "SELECT last_hash FROM ops_content_hashes WHERE url = ?", (url,)
@@ -316,7 +317,9 @@ class VinatissScraper(BaseScraper):
                         )
                         self.conn.commit()
                         result.rows_inserted += 1
+                        _logger.info("inserted wine_key=%s price=%.2f name=%s", wine_key, price_eur, raw_name)
                     except Exception as e:
+                        _logger.warning("dlq validation_error wine_key=%s err=%s", wine_key, e)
                         write_dlq(self.conn, SOURCE_KEY, batch_id, "validation_error", str(e),
                                   {"wine_key": wine_key, "price_eur": price_eur})
                         result.rows_dlq += 1

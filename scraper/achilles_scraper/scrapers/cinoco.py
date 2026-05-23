@@ -233,6 +233,7 @@ class CinocoScraper(BaseScraper):
                 if not products_data:
                     break
 
+                _logger.info("page=%d products=%d", page, len(products_data))
                 page_hash = hashlib.sha256(resp.content).hexdigest()
                 cached = self.conn.execute(
                     "SELECT last_hash FROM ops_content_hashes WHERE url = ?", (url,)
@@ -317,10 +318,12 @@ class CinocoScraper(BaseScraper):
                         )
                         self.conn.commit()
                         result.rows_inserted += 1
+                        _logger.info("inserted wine_key=%s price=%.2f name=%s", wine_key, price_eur, raw_name)
                     except Exception as e:
                         write_dlq(self.conn, SOURCE_KEY, batch_id, "validation_error", str(e),
                                   {"wine_key": wine_key, "price_eur": price_eur})
                         result.rows_dlq += 1
+                        _logger.warning("dlq validation_error wine_key=%s err=%s", wine_key, e)
 
                     total_fetched += 1
                     result.rows_fetched += 1

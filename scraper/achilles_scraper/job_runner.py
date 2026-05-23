@@ -1,3 +1,4 @@
+import logging
 import os
 import sqlite3
 import sys
@@ -27,7 +28,8 @@ _SCHEDULE_ENV_PREFIX = "ACHILLES_SCHEDULE_"
 
 # Per-batch logs live at <project_root>/logs/<batch_id>.log so the
 # JobLogsDrawer at /admin/jobs can tail them via GET /api/jobs/[jobId]/logs.
-LOG_DIR = Path.cwd() / "logs"
+# Use __file__ so the path is always correct regardless of cwd at startup.
+LOG_DIR = Path(__file__).resolve().parent.parent.parent / "logs"
 
 # Thread-local storage for per-thread log files.
 # Each worker thread stores its open log file here so _TeeWriter can find it.
@@ -187,6 +189,20 @@ def _worker_run_scraper(
     log_file,
 ) -> ScrapeResult:
     """Run a scraper inside the worker thread, writing output to log_file."""
+    # Attach a FileHandler to the root logger so every _logger.info/warning/error
+    # call inside any scraper is captured to the per-batch log file.
+    # Suppress noisy HTTP internals — keep only WARNING+ from httpcore/httpx.
+    for _noisy in ("httpcore", "httpx", "hpack", "h2"):
+        logging.getLogger(_noisy).setLevel(logging.WARNING)
+    file_handler = logging.FileHandler(log_file.name, mode="a", encoding="utf-8")
+    file_handler.setFormatter(logging.Formatter("%(asctime)s [%(name)s] %(levelname)s %(message)s"))
+    file_handler.setLevel(logging.DEBUG)
+    root_logger = logging.getLogger()
+    root_logger.addHandler(file_handler)
+    # Ensure root logger level allows DEBUG through (scrapers use INFO/DEBUG)
+    if root_logger.level == logging.NOTSET or root_logger.level > logging.DEBUG:
+        root_logger.setLevel(logging.DEBUG)
+
     try:
         _log(log_file, f"[batch {batch_id}] starting")
         scraper = scraper_cls(conn)
@@ -206,6 +222,9 @@ def _worker_run_scraper(
         return result
     except Exception as exc:
         return ScrapeResult(error=str(exc), batch_id=batch_id)
+    finally:
+        root_logger.removeHandler(file_handler)
+        file_handler.close()
 
 
 def _worker_run_auth_test(

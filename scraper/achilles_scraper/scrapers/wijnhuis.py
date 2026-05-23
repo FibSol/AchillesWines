@@ -260,7 +260,9 @@ class WijnhuisScraper(BaseScraper):
                 if not product_cards:
                     break
 
+                _logger.info("page=%d cards=%d", page, len(product_cards))
                 if cached and cached[0] == page_hash:
+                    _logger.info("page=%d unchanged (hash match), skipping", page)
                     result.rows_skipped_unchanged += len(product_cards)
                     if limit is not None and total_fetched + len(product_cards) >= limit:
                         break
@@ -354,7 +356,9 @@ class WijnhuisScraper(BaseScraper):
                         )
                         self.conn.commit()
                         result.rows_inserted += 1
+                        _logger.info("inserted wine_key=%s price=%.2f name=%s", wine_key, price_eur, raw_name)
                     except Exception as e:
+                        _logger.warning("dlq validation_error wine_key=%s err=%s", wine_key, e)
                         write_dlq(
                             self.conn, SOURCE_KEY, batch_id,
                             "validation_error", str(e),
