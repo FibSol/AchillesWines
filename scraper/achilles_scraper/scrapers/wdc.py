@@ -181,6 +181,12 @@ def _ensure_producer(conn: sqlite3.Connection, producer_norm: str, producer_name
         return False
 
 
+_DEAD_SOURCE_MSG = (
+    "wdc.be domain is for sale (Nameshift/NVA Online Advertising B.V. — verified 2026-05-23). "
+    "The wine shop no longer exists at this URL. Source deactivated."
+)
+
+
 class WdcScraper(BaseScraper):
     source_code = "wdc_be"
 
@@ -189,6 +195,34 @@ class WdcScraper(BaseScraper):
         self.batch_id: Optional[str] = None
 
     def run(self, limit: Optional[int] = None) -> ScrapeResult:
+        source_row = self.conn.execute(
+            "SELECT source_key FROM dim_source WHERE source_code = ?", (self.source_code,)
+        ).fetchone()
+        if not source_row:
+            return ScrapeResult(error=f"source_code '{self.source_code}' not found in dim_source")
+        SOURCE_KEY = source_row[0]
+
+        batch_id = self.batch_id or f"wdc_be-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:8]}"
+        result = ScrapeResult(batch_id=batch_id)
+
+        # Disable source so it no longer appears in scheduler or job-launch UI.
+        self.conn.execute(
+            "UPDATE dim_source SET enabled = 0 WHERE source_code = ?", (self.source_code,)
+        )
+        self.conn.commit()
+
+        _logger.warning(_DEAD_SOURCE_MSG)
+        write_dlq(
+            self.conn, SOURCE_KEY, batch_id,
+            "source_dead", _DEAD_SOURCE_MSG,
+            {"url": _BASE, "verified_at": "2026-05-23"},
+        )
+        result.rows_dlq += 1
+        result.error = _DEAD_SOURCE_MSG
+        return result
+
+    def _run_legacy(self, limit: Optional[int] = None) -> ScrapeResult:
+        """Legacy httpx-based scraper — kept for reference. Never called: domain is dead."""
         if not HAS_DEPS:
             return ScrapeResult(error="Missing dependencies: httpx or selectolax not installed")
 

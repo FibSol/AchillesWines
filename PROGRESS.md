@@ -1,5 +1,10 @@
 # Achilles's Wines — Progress Log
 
+## 2026-05-23 — Sprint 13: wdc_be source retired (domain for sale)
+
+### Patroclus (Backend)
+- [Patroclus] wdc_be scraper: domain wdc.be confirmed for-sale on Nameshift (NVA Online Advertising B.V., verified via cf.api.nameshift.com API). Wine shop no longer exists. Scraper rewritten to immediately log `source_dead` DLQ entry + set `dim_source.enabled=0`; legacy httpx code preserved in `_run_legacy()` for reference. Also fixed scheduler regression (start_scheduler now only creates BackgroundScheduler when ≥1 valid cron job registered — 2 test failures resolved, 124/124 Python tests pass). · files: scraper/achilles_scraper/scrapers/wdc.py, scraper/achilles_scraper/job_runner.py, NEXT.md
+
 ## 2026-05-23 — Sprint 13: hachette_vins_shop full-catalog + ventealapropriete Algolia rewrite
 
 ### Patroclus (Backend)
