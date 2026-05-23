@@ -33,6 +33,5 @@ CREATE UNIQUE INDEX `idx_harvest_unique`       ON `fact_harvest_volume` (`source
 INSERT OR IGNORE INTO `dim_source`
     (source_code, source_name, source_tier, country_code, base_url, license_class, cadence, requires_auth)
 VALUES
-    ('ec_agrifood',       'EC Agri-food Wine API',              'A_official',      NULL, 'https://api.tech.ec.europa.eu/agrifood', 'public_open',         'weekly',  0),
-    ('eurostat_harvest',  'Eurostat Grape Harvest (tag00121)',   'A_official',      NULL, 'https://ec.europa.eu/eurostat',          'public_open',         'annual',  0),
-    ('christies',         'Christie''s Wine & Spirits Auctions','B_retailer_major','GB', 'https://www.christies.com',              'public_check_terms',  'monthly', 0);
+    ('ec_agrifood',       'EC Agri-food Wine API',            'A_official', NULL, 'https://api.tech.ec.europa.eu/agrifood', 'public_open', 'weekly', 0),
+    ('eurostat_harvest',  'Eurostat Grape Harvest (tag00121)','A_official', NULL, 'https://ec.europa.eu/eurostat',          'public_open', 'annual', 0);
