@@ -145,9 +145,11 @@ def _worker_run_job(
     )
 
     # Each worker opens its own connection — SQLite connections are not
-    # thread-safe across threads.
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
+    # thread-safe across threads. Routed through get_db() so the worker
+    # picks up PRAGMA foreign_keys=ON (without it, scrapers silently
+    # create orphan dim_wine -> dim_producer rows; see audit F-1).
+    from .db import get_db
+    conn = get_db(db_path)
 
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     log_path = LOG_DIR / f"{batch_id}.log"
