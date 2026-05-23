@@ -393,14 +393,14 @@ class JobRunner:
 
         console.print(t)
 
-        # Always start the scheduler so live DB updates are picked up.
+        if not registered:
+            # No valid cron jobs — leave _scheduler as None.
+            return
+
         scheduler.start()
         self._scheduler = scheduler
         self._active_schedules = dict(schedules)
-        if registered:
-            console.print(f"[bold green]Scheduler started:[/bold green] {len(registered)} source(s) on cron.")
-        else:
-            console.print("[dim]Scheduler started (no cron jobs yet — configure via web UI).[/dim]")
+        console.print(f"[bold green]Scheduler started:[/bold green] {len(registered)} source(s) on cron.")
 
     def _refresh_schedules(self) -> None:
         """Re-read schedules from DB + env and update APScheduler live.
