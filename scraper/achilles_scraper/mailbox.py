@@ -230,6 +230,13 @@ class Mailbox:
         if typ != "OK":
             raise MailboxError(f"STORE \\Seen on {uid!r} failed: {typ}")
 
+    def delete(self, uid: bytes) -> None:
+        """Mark a UID as \\Deleted and expunge it from the mailbox."""
+        typ, _ = self.conn.uid("STORE", uid, "+FLAGS", "(\\Deleted)")
+        if typ != "OK":
+            raise MailboxError(f"STORE \\Deleted on {uid!r} failed: {typ}")
+        self.conn.expunge()
+
 
 def extract_html_body(msg: Message) -> str:
     """Return the first text/html part of a multipart message, decoded.

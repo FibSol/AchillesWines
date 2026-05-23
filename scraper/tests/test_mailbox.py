@@ -137,6 +137,27 @@ class FromAddrExtractionTests(unittest.TestCase):
         self.assertEqual(mailbox._extract_from_addr(msg), "foo@bar.com")
 
 
+class MailboxDeleteTests(unittest.TestCase):
+    def _make_mailbox(self, store_typ="OK", expunge_typ="OK"):
+        conn = mock.MagicMock()
+        conn.uid.return_value = (store_typ, [b""])
+        conn.expunge.return_value = (expunge_typ, [b""])
+        cfg = mailbox.MailboxConfig(host="127.0.0.1", port=1143, username="u", password="p")
+        return mailbox.Mailbox(conn=conn, cfg=cfg)
+
+    def test_delete_stores_deleted_flag_and_expunges(self):
+        mb = self._make_mailbox()
+        mb.delete(b"1")
+        mb.conn.uid.assert_called_once_with("STORE", b"1", "+FLAGS", "(\\Deleted)")
+        mb.conn.expunge.assert_called_once()
+
+    def test_delete_raises_on_store_failure(self):
+        mb = self._make_mailbox(store_typ="NO")
+        with self.assertRaises(mailbox.MailboxError):
+            mb.delete(b"1")
+        mb.conn.expunge.assert_not_called()
+
+
 class ExtractHtmlBodyTests(unittest.TestCase):
     def test_returns_html_part(self):
         msg = EmailMessage()

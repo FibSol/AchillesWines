@@ -195,8 +195,8 @@ class EmailNewsletterScraper(BaseScraper):
                                 result.rows_dlq += 1
                         self.conn.commit()
 
-                        # Success → mark seen so we don't reprocess next batch.
-                        mb.mark_seen(uid)
+                        # Success → delete from mailbox so it doesn't accumulate.
+                        mb.delete(uid)
                     except MailboxError as e:
                         print(f"  uid={uid!r} mailbox error: {e}")
                         result.rows_dlq += 1
