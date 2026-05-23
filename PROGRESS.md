@@ -1,5 +1,11 @@
 # Achilles's Wines — Progress Log
 
+## 2026-05-23
+
+### Patroclus (Backend) — issue #39 / #30
+
+- [Patroclus] INAO French appellation ingestor (Phase 0). New scraper `scraper/achilles_scraper/scrapers/inao.py` with 315-entry built-in taxonomy covering all major French wine regions (Bordeaux, Bourgogne, Champagne, Loire, Rhône, Alsace, Languedoc-Roussillon, Provence, Beaujolais, Sud-Ouest, Jura, Savoie, Corse). Registered as `dim_source` code=INAO tier=A_official cadence=annual. First run: 820→915 dim_appellation rows (+95 new FR appellations), lat/lon coverage 206→497. Idempotent: second run 0 inserts, 315 unchanged. INAO REST API 404 (URL likely changed) — falls back gracefully to taxonomy. data.gouv.fr GeoJSON endpoint also unavailable — architecture supports both for future re-activation. · files: scraper/achilles_scraper/scrapers/inao.py, scraper/achilles_scraper/cli.py
+
 ## 2026-05-23 — Sprint 14 planned: full-France 60% strict (ADR-013)
 
 ### Helena (BA) / Hector (Architect)

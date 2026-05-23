@@ -69,6 +69,8 @@ _ALL_SOURCES = [
     "terredevins",
     # --- Vintage chart scrapers (→ fact_vintage_rating) ---
     "vintage_ratings",
+    # --- Official appellation / dimension sources ---
+    "inao",               # INAO French AOC/IGP registry → dim_appellation
     # --- Official market / statistical sources ---
     "ec_agrifood",        # EC Agri-food wine API → fact_market_index
     "eurostat_harvest",   # Eurostat tag00121 → fact_harvest_volume
@@ -117,6 +119,8 @@ def _load_scrapers():
     # Vintage charts
     from .scrapers.vintage_ratings import VintageRatingsScraper
     from .scrapers.wine_searcher import WineSearcherScraper
+    # Official appellation / dimension sources
+    from .scrapers.inao import INAOScraper
     # Official statistical sources
     from .scrapers.ec_agrifood import EcAgrifoodScraper
     from .scrapers.eurostat_harvest import EurostatHarvestScraper
@@ -156,6 +160,7 @@ def _load_scrapers():
     SCRAPERS["terredevins"] = TerreDeVinsScraper
     SCRAPERS["vintage_ratings"] = VintageRatingsScraper
     SCRAPERS["wine_searcher"] = WineSearcherScraper
+    SCRAPERS["inao"] = INAOScraper
     SCRAPERS["ec_agrifood"] = EcAgrifoodScraper
     SCRAPERS["eurostat_harvest"] = EurostatHarvestScraper
     SCRAPERS["werc"] = WercScraper
