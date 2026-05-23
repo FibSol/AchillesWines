@@ -1,5 +1,10 @@
 # Achilles's Wines — Progress Log
 
+## 2026-05-23 — Sprint 13: staging dedup fix + UNIQUE index
+
+### Patroclus (Backend)
+- [Patroclus] Fix staging_price_candidates duplication bug: scrapers hitting multi-page catalogues were inserting the same product multiple times (no UNIQUE constraint on content_hash). topwijnen_be: 141,942 staging rows from 5,910 products (24x duplication). Fix: (1) add `insert_staging_candidate()` helper in dlq.py that checks rowcount for INSERT OR IGNORE; (2) migrate all 6 retail scrapers to use helper; (3) purge 56,460 duplicate staging rows + 14,190 inflated fact_price rows; (4) add UNIQUE INDEX uix_staging_wine_source_hash on (wine_key, source_key, content_hash); (5) migration 0009_staging_dedup_unique_index.sql; (6) re-run promoter → 1,383 clean fact_price rows from 490 multi-source wine_keys. · files: scraper/achilles_scraper/dlq.py, scrapers/millesima.py, cavissima.py, cinoco.py, vinatis.py, wijnhuis.py, topwijnen_be.py, db/schema.ts, db/migrations/0009_staging_dedup_unique_index.sql, NEXT.md
+
 ## 2026-05-23 — Sprint 13: scraper identity fixes + full-catalog ingestion
 
 ### Patroclus (Backend)

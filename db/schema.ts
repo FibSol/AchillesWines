@@ -587,6 +587,11 @@ export const stagingPriceCandidates = sqliteTable(
   (t) => ({
     wineIdx: index("idx_staging_price_wine").on(t.wineKey),
     reviewIdx: index("idx_staging_price_review").on(t.needsReview, t.recordedAt),
+    // Prevent duplicate inserts: same product from same source with same content hash
+    // Note: partial index (WHERE content_hash IS NOT NULL) is applied at DB level via migration
+    dedupeIdx: uniqueIndex("uix_staging_wine_source_hash").on(
+      t.wineKey, t.sourceKey, t.contentHash
+    ),
   })
 );
 

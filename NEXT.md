@@ -126,7 +126,9 @@ Wine press (E_press_critic → write to fact_rating):
 - [x] **P1 · 1h** [Patroclus] Run wijnhuis unlimited scrape (currently only 500 from benchmark); run promoter after to add BE overlap ✓ 2026-05-23
 - [x] **P1 · 1h** [Patroclus] Add promote button to /admin/jobs UI (POST /api/promote) with stats chip (N pending, M overlap) ✓ 2026-05-23
 - [x] **P2 · 1h** [Odysseus] Best Value page: price-confidence fallback mode when fact_rating empty (shows 1787 wines ranked by multi-source price agreement) ✓ 2026-05-23
-- [ ] **P2 · 2h** [Patroclus] Run topwijnen_be full catalog (Shopify) + wdc_be to widen overlap coverage
+- [x] **P0 · 2h** [Patroclus] Fix staging_price_candidates dedup bug: add UNIQUE INDEX on (wine_key, source_key, content_hash); add insert_staging_candidate() helper; migrate all 6 retail scrapers; purge 56,460 duplicate rows + 14,190 inflated fact_price rows; re-run promoter → 1,383 clean rows ✓ 2026-05-23
+- [x] **P2 · 2h** [Patroclus] Run topwijnen_be full catalog (Shopify) — 5,910 products staged (deduped) + promoter ran ✓ 2026-05-23 (wdc_be still pending)
+- [ ] **P2 · 1h** [Patroclus] Run wdc_be full catalog to widen overlap coverage
 - [ ] **P2 · 3h** [Patroclus] Rewrite vinsbrunin scraper for WiziShop platform (current code uses WooCommerce selectors; site uses `/bordeaux/`, `/bourgogne/`, etc. with `?page=N` pagination; no single catalog URL)
 - [ ] **P2 · 2h** [Patroclus] Force-clear millesima content hashes + re-run to fix ~1092 Champagne/NV wines stuck in DLQ (appellation="" — fix applied but cached pages won't re-trigger)
 
