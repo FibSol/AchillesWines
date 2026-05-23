@@ -120,14 +120,78 @@ def cli():
 )
 @click.option("--limit", default=None, type=int, help="Max rows to fetch")
 def run(source: str, limit):
-    """Run a scraper immediately."""
+    """Run a scraper immediately (recorded in ops_job_queue for history)."""
+    import time
+    import uuid
+    import json
     from .config import config
     from .db import get_db
+    from .job_runner import _make_batch_id, LOG_DIR, _log
     config.ensure_dirs()
     conn = get_db(config.db_path)
-    scraper = SCRAPERS[source](conn)
+
+    # Resolve source_key from dim_source so the job row links correctly.
+    row = conn.execute(
+        "SELECT source_key FROM dim_source WHERE source_code = ?", (source,)
+    ).fetchone()
+    source_key = row["source_key"] if row else None
+
+    job_id = str(uuid.uuid4())
+    batch_id = _make_batch_id(source)
+    params_json = json.dumps({"limit": limit}) if limit else None
+    started_at = int(time.time())
+
+    conn.execute(
+        "INSERT INTO ops_job_queue "
+        "(job_id, source_key, requested_by, status, started_at, batch_id, params) "
+        "VALUES (?, ?, 'cli', 'running', ?, ?, ?)",
+        (job_id, source_key, started_at, batch_id, params_json),
+    )
+    conn.commit()
+
+    # Write output to logs/<batch_id>.log so the drawer can tail it.
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    log_path = LOG_DIR / f"{batch_id}.log"
+    log_file = open(log_path, "w", encoding="utf-8", buffering=1)
+
     console.print(f"[bold]Scraping:[/bold] {source}" + (f" (limit={limit})" if limit else ""))
-    result = scraper.run(limit=limit)
+    _log(log_file, f"[batch {batch_id}] starting (cli)")
+
+    try:
+        scraper = SCRAPERS[source](conn)
+        scraper.batch_id = batch_id
+        result = scraper.run(limit=limit)
+        if not result.batch_id:
+            result.batch_id = batch_id
+    except Exception as exc:
+        from .scrapers.base import ScrapeResult
+        result = ScrapeResult(error=str(exc), batch_id=batch_id)
+
+    _log(
+        log_file,
+        f"[batch {batch_id}] finished fetched={result.rows_fetched} "
+        f"inserted={result.rows_inserted} dlq={result.rows_dlq} "
+        f"error={result.error or 'none'}",
+    )
+    log_file.flush()
+    log_file.close()
+
+    status = "failed" if result.error else "done"
+    conn.execute(
+        "UPDATE ops_job_queue SET status=?, finished_at=?, rows_fetched=?, "
+        "rows_inserted=?, rows_dlq=?, error_message=? WHERE job_id=?",
+        (
+            status,
+            int(time.time()),
+            result.rows_fetched,
+            result.rows_inserted,
+            result.rows_dlq,
+            result.error,
+            job_id,
+        ),
+    )
+    conn.commit()
+
     t = Table(title="Result")
     t.add_column("Metric")
     t.add_column("Value", justify="right")
@@ -141,6 +205,7 @@ def run(source: str, limit):
     if result.error:
         t.add_row("[red]Error[/red]", result.error)
     console.print(t)
+    console.print(f"[dim]Job recorded: {job_id[:8]}… batch={batch_id}[/dim]")
 
 
 @cli.command("run-jobs")
