@@ -88,13 +88,14 @@ class TerreDeVinsScraper(BaseScraper):
         # (/vins, /search?q=…&post_type=vin) return 404. Wine tasting notes and
         # scores are published in articles that require a premium subscription.
         # No free machine-readable wine score endpoint exists.
-        write_dlq(
-            self.conn, SOURCE_KEY, batch_id, "auth_error",
+        msg = (
             "terredevins.com wine scores are subscription-gated. "
             "/vins and /search?q=...&post_type=vin both return 404. "
             "Degustation content requires a premium subscription. "
-            "Re-implement with authenticated session when credentials are available.",
-            {"url": _WINES_URL},
+            "Re-implement with authenticated session when credentials are available."
         )
+        write_dlq(self.conn, SOURCE_KEY, batch_id, "auth_error", msg,
+                  {"url": _WINES_URL})
         result.rows_dlq += 1
+        result.error = msg
         return result

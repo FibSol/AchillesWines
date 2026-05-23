@@ -250,7 +250,10 @@ class BelgiumWineWatchersScraper(BaseScraper):
                 tree = HTMLParser(resp.text)
 
                 product_cards = (
-                    tree.css(".product-item")
+                    # 2026-05-23: site moved to a custom <ap-product-box> element.
+                    tree.css("ap-product-box")
+                    or tree.css(".product-box-grid > a")
+                    or tree.css(".product-item")
                     or tree.css(".product-card")
                     or tree.css("ul.products li.product")
                     or tree.css(".wine-item")
@@ -261,6 +264,11 @@ class BelgiumWineWatchersScraper(BaseScraper):
                 )
 
                 if not product_cards:
+                    if total_fetched == 0 and not result.error:
+                        result.error = (
+                            f"No product cards found on {url} — selectors may have "
+                            "drifted again. Re-inspect the page."
+                        )
                     break
 
                 _logger.info("page=%d cards=%d", page, len(product_cards))

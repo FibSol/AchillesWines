@@ -86,12 +86,13 @@ class RvfScraper(BaseScraper):
         # behind a subscriber paywall. The public search (/recherche?q=…&type=degustation)
         # returns article cards but all score details (/20) are hidden — no numeric
         # ratings are visible in the HTML without a paid subscription.
-        write_dlq(
-            self.conn, SOURCE_KEY, batch_id, "auth_error",
-            "larvf.com (RVF) wine scores are fully paywalled. "
-            "Public search returns article cards but no /20 scores are visible in HTML. "
-            "Re-implement with authenticated session when RVF credentials are available.",
-            {"url": _SEARCH_URL},
+        msg = (
+            "larvf.com (RVF) wine scores are fully paywalled. Public search "
+            "returns article cards but no /20 scores are visible in HTML. "
+            "Re-implement with authenticated session when RVF credentials are available."
         )
+        write_dlq(self.conn, SOURCE_KEY, batch_id, "auth_error", msg,
+                  {"url": _SEARCH_URL})
         result.rows_dlq += 1
+        result.error = msg
         return result

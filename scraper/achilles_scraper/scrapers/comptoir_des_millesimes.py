@@ -34,7 +34,15 @@ _USER_AGENT = (
 )
 
 _BASE = "https://www.comptoirdesmillesimes.com"
-_CATALOGUE_URL = f"{_BASE}/vins"
+# 2026-05-23: the unified /vins catalog returns 404. The site reorganised
+# into region-rooted listing pages, each with ?page=N pagination.
+_REGION_PATHS = [
+    "/bordeaux", "/bourgogne", "/rhone", "/champagne", "/loire",
+    "/alsace", "/beaujolais", "/provence", "/languedoc-roussillon",
+    "/sud-ouest", "/vin-de-france",
+]
+# Kept for backward compatibility / first-region default in tests.
+_CATALOGUE_URL = f"{_BASE}{_REGION_PATHS[0]}"
 
 _logger = logging.getLogger(__name__)
 
@@ -189,12 +197,15 @@ class ComptoirDesMillesimesScraper(BaseScraper):
             "Accept-Language": "fr-FR,fr;q=0.9",
         }
 
-        page = 1
         total_fetched = 0
+        # We iterate every region until we either run out of regions or hit `limit`.
+        region_idx = 0
+        page = 1
 
         with httpx.Client(headers=headers, timeout=30, follow_redirects=True) as client:
-            while True:
-                url = f"{_CATALOGUE_URL}?page={page}" if page > 1 else _CATALOGUE_URL
+            while region_idx < len(_REGION_PATHS):
+                region_base = f"{_BASE}{_REGION_PATHS[region_idx]}"
+                url = f"{region_base}?page={page}" if page > 1 else region_base
                 try:
                     resp = self._fetch(lambda u=url: client.get(u))
                     resp.raise_for_status()
@@ -212,8 +223,11 @@ class ComptoirDesMillesimesScraper(BaseScraper):
                     break
 
                 tree = HTMLParser(resp.text)
+                # 2026-05-23: site uses BEM-prefixed classes now.
                 products = (
-                    tree.css(".product-item")
+                    tree.css(".c-pdtmini-lg__card")
+                    or tree.css(".c-pdt-mini__card")
+                    or tree.css(".product-item")
                     or tree.css(".wine-card")
                     or tree.css(".product-card")
                     or tree.css("article.product")
@@ -221,7 +235,10 @@ class ComptoirDesMillesimesScraper(BaseScraper):
                 )
 
                 if not products:
-                    break
+                    # Exhausted this region — roll to the next one.
+                    region_idx += 1
+                    page = 1
+                    continue
 
                 page_hash = hashlib.sha256(resp.content).hexdigest()
 
@@ -251,9 +268,12 @@ class ComptoirDesMillesimesScraper(BaseScraper):
                         break
 
                     name_node = node.css_first(
-                        ".product-name, .wine-name, .product-title, h2 a, h3 a, h2, h3"
+                        "a.u-h3, .u-h3, .product-name, .wine-name, .product-title, "
+                        "h2 a, h3 a, h2, h3"
                     )
-                    price_node = node.css_first(".price, .product-price, .prix, .wine-price")
+                    price_node = node.css_first(
+                        ".c-price, .price, .product-price, .prix, .wine-price"
+                    )
 
                     if not name_node or not price_node:
                         write_dlq(
@@ -282,10 +302,25 @@ class ComptoirDesMillesimesScraper(BaseScraper):
                     appellation = ""
                     region = ""
 
-                    appellation_node = node.css_first(".appellation, .region, .wine-appellation, .aoc")
-                    if appellation_node:
-                        appellation = appellation_node.text(strip=True)
-                        region = appellation
+                    # New card layout exposes vintage + region + appellation as
+                    # consecutive <span> children of .c-pdt-mini__tags.
+                    tag_spans = node.css(".c-pdt-mini__tags span")
+                    if tag_spans:
+                        tag_texts = [t.text(strip=True) for t in tag_spans if t.text(strip=True)]
+                        # First span that is not a 4-digit vintage is taken as region;
+                        # the next non-vintage one as appellation when available.
+                        non_vintage = [t for t in tag_texts if not _extract_vintage(t)]
+                        if non_vintage:
+                            region = non_vintage[0]
+                        if len(non_vintage) >= 2:
+                            appellation = non_vintage[1]
+                        else:
+                            appellation = region
+                    else:
+                        appellation_node = node.css_first(".appellation, .region, .wine-appellation, .aoc")
+                        if appellation_node:
+                            appellation = appellation_node.text(strip=True)
+                            region = appellation
 
                     link_node = (name_node if name_node.tag == "a" else None) or node.css_first("a[href]")
                     href = (link_node.attrs.get("href", "") if link_node else "") or ""
@@ -348,12 +383,14 @@ class ComptoirDesMillesimesScraper(BaseScraper):
                 if limit is not None and total_fetched >= limit:
                     break
 
-                # Check for next page link
+                # Check for next page link inside this region
                 next_node = tree.css_first("a[rel='next'], .pagination-next a, .next a, li.next a")
                 if not next_node:
-                    break
-
-                page += 1
+                    # End of region — advance to the next region from page 1.
+                    region_idx += 1
+                    page = 1
+                else:
+                    page += 1
                 time.sleep(1.0)
 
         return result

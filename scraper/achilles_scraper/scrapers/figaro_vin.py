@@ -102,12 +102,14 @@ class FigaroVinScraper(BaseScraper):
         # avis-vin.lefigaro.fr/vins?page=N returns HTTP 400.
         # Individual wine detail pages require a Figaro Premium subscription —
         # no public numeric scores are accessible without authentication.
-        write_dlq(
-            self.conn, SOURCE_KEY, batch_id, "auth_error",
+        msg = (
             "avis-vin.lefigaro.fr wine scores are paywalled. "
-            "/vins?page=N returns HTTP 400. Individual wine pages require a Figaro Premium subscription. "
-            "Re-implement with authenticated session when credentials are available.",
-            {"url": _WINES_URL},
+            "/vins?page=N returns HTTP 400. Individual wine pages require a "
+            "Figaro Premium subscription. Re-implement with authenticated "
+            "session when credentials are available."
         )
+        write_dlq(self.conn, SOURCE_KEY, batch_id, "auth_error", msg,
+                  {"url": _WINES_URL})
         result.rows_dlq += 1
+        result.error = msg
         return result

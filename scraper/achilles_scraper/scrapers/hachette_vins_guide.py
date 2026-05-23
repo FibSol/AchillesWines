@@ -102,10 +102,19 @@ class HachetteVinsGuideScraper(BaseScraper):
             "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
         }
 
+        # Sanity cap: Hachette returns 200 OK with non-empty .wine-card markup
+        # for pages well past the real catalog end (verified 2026-05-23: page 1000
+        # still returns ~1.3 MB of HTML with cards). Without this cap the scraper
+        # spins for >60s on limit=5 when rows_inserted stays at 0 (eg FK failures).
+        MAX_PAGES = 50  # ~3000 wines per run, plenty for the v1 catalogue
         with httpx.Client(headers=headers, timeout=30, follow_redirects=True) as client:
             page = 1
-            while True:
-                if limit is not None and result.rows_inserted >= limit:
+            while page <= MAX_PAGES:
+                # Bound by *fetched* rows (work done), not inserted (rows that
+                # passed every downstream gate). Unrated wines + FK failures
+                # both used to leave rows_inserted at 0 and burned hundreds of
+                # pages before timing out.
+                if limit is not None and result.rows_fetched >= limit:
                     break
 
                 url = _LIST_URL if page == 1 else f"{_BASE}/vins/page-{page}/list/"
@@ -134,7 +143,7 @@ class HachetteVinsGuideScraper(BaseScraper):
                     break
 
                 for card in cards:
-                    if limit is not None and result.rows_inserted >= limit:
+                    if limit is not None and result.rows_fetched >= limit:
                         break
 
                     result.rows_fetched += 1
