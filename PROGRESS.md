@@ -1,5 +1,10 @@
 # Achilles's Wines — Progress Log
 
+## 2026-05-23 — Kaggle WineEnthusiast reviews ingestion
+
+### Patroclus (Backend)
+- [Patroclus] kaggle_reviews: wired KAGGLE_USERNAME/KAGGLE_KEY into ~/.kaggle/kaggle.json; authenticated against Kaggle API; full 130k WineEnthusiast dataset (zynicide/wine-reviews) downloaded and imported — 129,971 fact_rating rows inserted, 0 DLQ. critic_code=WE, scale=/100. · files: scripts/check_kaggle.py, scripts/test_kaggle_auth.py
+
 ## 2026-05-23 — Auth scrapers full run
 
 ### Patroclus (Backend) — 9 auth-required scrapers
