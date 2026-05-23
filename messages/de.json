@@ -248,6 +248,24 @@
     "docsHint": "Trag deine Zugangsdaten in die .env-Datei (nie committen).",
     "docsLink": "Doku"
   },
+  "adminSchedule": {
+    "title": "Scraper-Zeitpläne",
+    "subtitle": "Cron-Ausdruck (5 Felder: Minute Stunde Tag Monat Wochentag, UTC) für jede Datenquelle festlegen. Änderungen greifen innerhalb von 60 Sekunden ohne Neustart.",
+    "source": "Quelle",
+    "cronExpr": "Cron (UTC)",
+    "description": "Beschreibung",
+    "save": "Speichern",
+    "clear": "Löschen",
+    "saved": "Gespeichert",
+    "invalid": "Ungültig — 5 Felder erforderlich: Minute Stunde Tag Monat Wochentag",
+    "placeholder": "z. B. 0 4 * * *",
+    "manualOnly": "nur manuell",
+    "groupRetail": "Onlineshops",
+    "groupEmail": "E-Mail-Newsletter",
+    "groupCritic": "Presse & Kritiker",
+    "groupVintage": "Jahrgangstabellen",
+    "restartHint": "Zeitplanänderungen werden innerhalb von 60 Sekunden ohne Neustart des Add-ons übernommen."
+  },
   "adminJobs": {
     "title": "Scraper-Überwachung",
     "subtitle": "Job-Warteschlange und letzte 50 Läufe",

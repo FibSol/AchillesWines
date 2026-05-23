@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.5
+
+- Add schedule configuration panel on admin/auth page — set cron schedules per scraper from the web UI
+- New DB table `ops_scraper_schedule` (migration 0006) stores schedules persistently
+- Job runner reads schedules from DB (+ env var overrides) and refreshes live every 60 s — no restart needed
+- New API route `GET/PATCH /api/schedules`
+
 ## 1.0.4
 
 - Fix APScheduler crash on Alpine: pass explicit `timezone="UTC"` to `BackgroundScheduler` (Alpine has no system timezone data)

@@ -248,6 +248,24 @@
     "docsHint": "Mettez vos identifiants dans le fichier .env (jamais commité).",
     "docsLink": "Voir la doc"
   },
+  "adminSchedule": {
+    "title": "Planification des scrapers",
+    "subtitle": "Définissez une expression cron à 5 champs (minute heure jour mois jour_semaine) en UTC pour chaque source. Les modifications s'appliquent en moins de 60 secondes, sans redémarrage.",
+    "source": "Source",
+    "cronExpr": "Cron (UTC)",
+    "description": "Description",
+    "save": "Enregistrer",
+    "clear": "Effacer",
+    "saved": "Enregistré",
+    "invalid": "Invalide — 5 champs requis : minute heure jour mois jour_semaine",
+    "placeholder": "ex. 0 4 * * *",
+    "manualOnly": "manuel uniquement",
+    "groupRetail": "Boutiques en ligne",
+    "groupEmail": "Newsletters email",
+    "groupCritic": "Presse & critiques",
+    "groupVintage": "Millésimes",
+    "restartHint": "Les modifications de planification sont prises en compte en moins de 60 secondes, sans redémarrage du module."
+  },
   "adminJobs": {
     "title": "Supervision des scrapers",
     "subtitle": "File de jobs et historique",

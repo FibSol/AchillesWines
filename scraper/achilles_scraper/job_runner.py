@@ -80,7 +80,7 @@ def _make_batch_id(source_code: str) -> str:
 
 
 def _read_schedule_env() -> dict[str, str]:
-    """Return {source_key: cron_expression} for every ACHILLES_SCHEDULE_<KEY> env var."""
+    """Return {source_code: cron_expression} for every ACHILLES_SCHEDULE_<CODE> env var."""
     schedules: dict[str, str] = {}
     for key, value in os.environ.items():
         if key.startswith(_SCHEDULE_ENV_PREFIX):
@@ -89,6 +89,24 @@ def _read_schedule_env() -> dict[str, str]:
             if source_key and cron_expr:
                 schedules[source_key] = cron_expr
     return schedules
+
+
+def _read_schedules_from_db(conn: sqlite3.Connection) -> dict[str, str]:
+    """Return {source_code: cron_expression} from ops_scraper_schedule table."""
+    try:
+        rows = conn.execute(
+            "SELECT source_code, cron_expr FROM ops_scraper_schedule "
+            "WHERE cron_expr IS NOT NULL AND cron_expr != ''"
+        ).fetchall()
+        return {row["source_code"]: row["cron_expr"] for row in rows}
+    except Exception:
+        return {}
+
+
+def _merge_schedules(db_schedules: dict[str, str], env_schedules: dict[str, str]) -> dict[str, str]:
+    """Merge DB schedules with env var overrides. Env vars take priority."""
+    return {**db_schedules, **env_schedules}
+
 
 
 def _should_enqueue(source_key: int, conn: sqlite3.Connection) -> bool:
@@ -246,6 +264,7 @@ class JobRunner:
         self.conn = conn
         self.scrapers = scrapers
         self._scheduler: "BackgroundScheduler | None" = None
+        self._active_schedules: dict[str, str] = {}
 
         # max_workers: prefer explicit arg, then env var, then default 4.
         if max_workers is not None:
@@ -299,17 +318,20 @@ class JobRunner:
         console.print(f"[green]Scheduler: enqueued {source_code} (job_id={job_id[:8]}…)[/green]")
 
     def start_scheduler(self) -> None:
-        """Create and start a BackgroundScheduler for any configured cron schedules.
+        """Create and start a BackgroundScheduler.
 
-        Reads ACHILLES_SCHEDULE_<SOURCE_KEY> environment variables.
-        Sources without an env var remain manual-only.
-        Does nothing if APScheduler is not installed.
+        Reads cron schedules from ops_scraper_schedule DB table (primary) and
+        ACHILLES_SCHEDULE_<SOURCE_CODE> env vars (override). The scheduler is
+        always started so live schedule updates from the web UI take effect
+        within 60 s without restarting the add-on.
         """
         if not HAS_APSCHEDULER:
             console.print("[yellow]APScheduler not installed — cron scheduling disabled.[/yellow]")
             return
 
-        schedules = _read_schedule_env()
+        db_schedules = _read_schedules_from_db(self.conn)
+        env_schedules = _read_schedule_env()
+        schedules = _merge_schedules(db_schedules, env_schedules)
 
         # Build a rich table showing schedule status for every known scraper.
         t = Table(title="Scraper Schedule", show_header=True)
@@ -319,7 +341,6 @@ class JobRunner:
 
         if not schedules:
             console.print("[dim]No ACHILLES_SCHEDULE_* env vars found — all sources are manual-only.[/dim]")
-            # Still render a table if there are known scrapers.
 
         scheduler = BackgroundScheduler(timezone="UTC")
         registered: list[str] = []
@@ -333,11 +354,8 @@ class JobRunner:
                         raise ValueError(f"Expected 5 cron fields, got {len(parts)}")
                     minute, hour, day, month, day_of_week = parts
                     trigger = CronTrigger(
-                        minute=minute,
-                        hour=hour,
-                        day=day,
-                        month=month,
-                        day_of_week=day_of_week,
+                        minute=minute, hour=hour, day=day,
+                        month=month, day_of_week=day_of_week,
                     )
                     scheduler.add_job(
                         self._enqueue_scheduled_job,
@@ -356,10 +374,66 @@ class JobRunner:
 
         console.print(t)
 
+        # Always start the scheduler so live DB updates are picked up.
+        scheduler.start()
+        self._scheduler = scheduler
+        self._active_schedules = dict(schedules)
         if registered:
-            scheduler.start()
-            self._scheduler = scheduler
             console.print(f"[bold green]Scheduler started:[/bold green] {len(registered)} source(s) on cron.")
+        else:
+            console.print("[dim]Scheduler started (no cron jobs yet — configure via web UI).[/dim]")
+
+    def _refresh_schedules(self) -> None:
+        """Re-read schedules from DB + env and update APScheduler live.
+
+        Called from run_loop every 60 s. Adds/removes/updates jobs without
+        requiring an add-on restart.
+        """
+        if not HAS_APSCHEDULER or self._scheduler is None:
+            return
+
+        db_schedules = _read_schedules_from_db(self.conn)
+        env_schedules = _read_schedule_env()
+        new_schedules = _merge_schedules(db_schedules, env_schedules)
+
+        if new_schedules == self._active_schedules:
+            return  # nothing changed
+
+        console.print("[dim]Scraper schedules changed — refreshing APScheduler…[/dim]")
+
+        # Remove jobs that were dropped
+        for source_code in list(self._active_schedules.keys()):
+            if source_code not in new_schedules:
+                try:
+                    self._scheduler.remove_job(f"schedule_{source_code}")
+                    console.print(f"[yellow]Scheduler: removed cron for {source_code}[/yellow]")
+                except Exception:
+                    pass
+
+        # Add or update changed jobs
+        for source_code, cron_expr in new_schedules.items():
+            if self._active_schedules.get(source_code) != cron_expr:
+                try:
+                    parts = cron_expr.split()
+                    if len(parts) == 5:
+                        minute, hour, day, month, dow = parts
+                        trigger = CronTrigger(
+                            minute=minute, hour=hour, day=day,
+                            month=month, day_of_week=dow,
+                        )
+                        self._scheduler.add_job(
+                            self._enqueue_scheduled_job,
+                            trigger=trigger,
+                            args=[source_code],
+                            id=f"schedule_{source_code}",
+                            name=f"Auto-enqueue {source_code}",
+                            replace_existing=True,
+                        )
+                        console.print(f"[green]Scheduler: (re)scheduled {source_code} → {cron_expr}[/green]")
+                except Exception as exc:
+                    console.print(f"[red]Scheduler refresh error for {source_code}: {exc}[/red]")
+
+        self._active_schedules = dict(new_schedules)
 
     def _claim_jobs(self, n: int) -> list[dict]:
         """Claim up to *n* queued jobs atomically. Returns the claimed job rows."""
@@ -518,10 +592,16 @@ class JobRunner:
 
         # in_flight: Future → job_id mapping so we can reap results.
         in_flight: dict[Future, str] = {}
+        _poll_iter = 0
 
         with ThreadPoolExecutor(max_workers=self.max_workers, thread_name_prefix="scraper") as executor:
             try:
                 while True:
+                    _poll_iter += 1
+                    # ── 0. Refresh schedules from DB every 60 s ─────────────
+                    if _poll_iter % 12 == 0:
+                        self._refresh_schedules()
+
                     # ── 1. Reap completed futures ────────────────────────────
                     done_futures = [f for f in list(in_flight) if f.done()]
                     for future in done_futures:

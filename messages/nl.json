@@ -248,6 +248,24 @@
     "docsHint": "Zet je inloggegevens in het .env-bestand (nooit gecommit).",
     "docsLink": "Documentatie"
   },
+  "adminSchedule": {
+    "title": "Scraper-planningen",
+    "subtitle": "Stel een cron-expressie in (5 velden: minuut uur dag maand weekdag, UTC) voor elke databron. Wijzigingen worden binnen 60 seconden doorgevoerd zonder herstart.",
+    "source": "Bron",
+    "cronExpr": "Cron (UTC)",
+    "description": "Beschrijving",
+    "save": "Opslaan",
+    "clear": "Wissen",
+    "saved": "Opgeslagen",
+    "invalid": "Ongeldig — 5 velden vereist: minuut uur dag maand weekdag",
+    "placeholder": "bijv. 0 4 * * *",
+    "manualOnly": "alleen handmatig",
+    "groupRetail": "Webshops",
+    "groupEmail": "E-mailnieuwsbrieven",
+    "groupCritic": "Pers & critici",
+    "groupVintage": "Jaargangenkaarten",
+    "restartHint": "Planningswijzigingen worden binnen 60 seconden toegepast zonder herstart van de add-on."
+  },
   "adminJobs": {
     "title": "Scraper bewaking",
     "subtitle": "Jobwachtrij en geschiedenis van de laatste 50 runs",

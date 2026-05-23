@@ -248,6 +248,24 @@
     "docsHint": "Put your credentials in the .env file (never committed).",
     "docsLink": "See docs"
   },
+  "adminSchedule": {
+    "title": "Scraper schedules",
+    "subtitle": "Set a 5-field cron expression (minute hour day month weekday) in UTC for each source. Changes are picked up within 60 seconds — no add-on restart needed.",
+    "source": "Source",
+    "cronExpr": "Cron (UTC)",
+    "description": "Description",
+    "save": "Save",
+    "clear": "Clear",
+    "saved": "Saved",
+    "invalid": "Invalid — 5 fields required: minute hour day month weekday",
+    "placeholder": "e.g. 0 4 * * *",
+    "manualOnly": "manual only",
+    "groupRetail": "Web retailers",
+    "groupEmail": "Email newsletters",
+    "groupCritic": "Press & critics",
+    "groupVintage": "Vintage charts",
+    "restartHint": "Schedule changes are applied within 60 seconds without restarting the add-on."
+  },
   "adminJobs": {
     "title": "Scraper supervision",
     "subtitle": "Job queue and last 50 runs history",

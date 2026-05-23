@@ -248,6 +248,24 @@
     "docsHint": "Pon tus credenciales en el archivo .env (nunca commiteado).",
     "docsLink": "Ver documentación"
   },
+  "adminSchedule": {
+    "title": "Planificación de scrapers",
+    "subtitle": "Define una expresión cron (5 campos: minuto hora día mes día_semana, UTC) por fuente. Los cambios se aplican en menos de 60 segundos sin reiniciar.",
+    "source": "Fuente",
+    "cronExpr": "Cron (UTC)",
+    "description": "Descripción",
+    "save": "Guardar",
+    "clear": "Borrar",
+    "saved": "Guardado",
+    "invalid": "Inválido — se requieren 5 campos: minuto hora día mes día_semana",
+    "placeholder": "ej. 0 4 * * *",
+    "manualOnly": "solo manual",
+    "groupRetail": "Tiendas online",
+    "groupEmail": "Boletines de correo",
+    "groupCritic": "Prensa y críticos",
+    "groupVintage": "Tablas de añadas",
+    "restartHint": "Los cambios de planificación se aplican en menos de 60 segundos sin reiniciar el complemento."
+  },
   "adminJobs": {
     "title": "Supervisión de scrapers",
     "subtitle": "Cola de trabajos e historial de los últimos 50",

@@ -524,6 +524,20 @@ export const stagingPriceCandidates = sqliteTable(
   })
 );
 
+/** Per-source cron schedules configured from the admin UI. */
+export const opsScraperSchedule = sqliteTable(
+  "ops_scraper_schedule",
+  {
+    /** Must match dim_source.source_code */
+    sourceCode: text("source_code").primaryKey(),
+    /** Standard 5-field cron expression (UTC). NULL = manual only. */
+    cronExpr: text("cron_expr"),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  }
+);
+
 /** Job queue for UI-triggered scrapers (ADR-006). */
 export const opsJobQueue = sqliteTable(
   "ops_job_queue",
@@ -570,3 +584,4 @@ export type CellarInventory = typeof cellarInventory.$inferSelect;
 export type CellarConsumption = typeof cellarConsumption.$inferSelect;
 export type DeadLetter = typeof opsDeadLetter.$inferSelect;
 export type JobQueue = typeof opsJobQueue.$inferSelect;
+export type ScraperSchedule = typeof opsScraperSchedule.$inferSelect;

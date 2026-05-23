@@ -4,6 +4,7 @@ import { dimSource } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
 import { PageShell } from "@/components/page-shell";
 import { AuthSourceList, type AuthSourceRow } from "@/components/AuthSourceList";
+import { SchedulePanel } from "@/components/SchedulePanel";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,7 @@ export default async function AdminAuthPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("adminAuth");
+  const ts = await getTranslations("adminSchedule");
 
   const sources = await db
     .select({
@@ -53,30 +55,58 @@ export default async function AdminAuthPage({
     envPassVar: `ACHILLES_AUTH_${envKey(s.sourceCode)}_PASSWORD`,
   }));
 
+  const scheduleLabels = {
+    title: ts("title"),
+    subtitle: ts("subtitle"),
+    source: ts("source"),
+    cronExpr: ts("cronExpr"),
+    description: ts("description"),
+    save: ts("save"),
+    clear: ts("clear"),
+    saved: ts("saved"),
+    invalid: ts("invalid"),
+    placeholder: ts("placeholder"),
+    manualOnly: ts("manualOnly"),
+    groupRetail: ts("groupRetail"),
+    groupEmail: ts("groupEmail"),
+    groupCritic: ts("groupCritic"),
+    groupVintage: ts("groupVintage"),
+    restartHint: ts("restartHint"),
+  };
+
   return (
-    <PageShell
-      title={t("title")}
-      subtitle={t("subtitle")}
-      badge={`${rows.length} ${t("sources").toLowerCase()}`}
-    >
-      <AuthSourceList
-        rows={rows}
-        labels={{
-          source: t("source"),
-          status: t("status"),
-          envVars: t("envVars"),
-          credsPresent: t("credsPresent"),
-          credsMissing: t("credsMissing"),
-          testLogin: t("testLogin"),
-          testing: t("testing"),
-          empty: t("empty"),
-          jobQueued: t("jobQueued"),
-          viewJob: t("viewJob"),
-          docsHint: t("docsHint"),
-          docsLink: t("docsLink"),
-        }}
-        locale={locale}
-      />
-    </PageShell>
+    <div className="space-y-12">
+      <PageShell
+        title={t("title")}
+        subtitle={t("subtitle")}
+        badge={`${rows.length} ${t("sources").toLowerCase()}`}
+      >
+        <AuthSourceList
+          rows={rows}
+          labels={{
+            source: t("source"),
+            status: t("status"),
+            envVars: t("envVars"),
+            credsPresent: t("credsPresent"),
+            credsMissing: t("credsMissing"),
+            testLogin: t("testLogin"),
+            testing: t("testing"),
+            empty: t("empty"),
+            jobQueued: t("jobQueued"),
+            viewJob: t("viewJob"),
+            docsHint: t("docsHint"),
+            docsLink: t("docsLink"),
+          }}
+          locale={locale}
+        />
+      </PageShell>
+
+      <PageShell
+        title={ts("title")}
+        subtitle={ts("subtitle")}
+      >
+        <SchedulePanel labels={scheduleLabels} />
+      </PageShell>
+    </div>
   );
 }
