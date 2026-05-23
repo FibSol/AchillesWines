@@ -321,7 +321,7 @@ class JobRunner:
             console.print("[dim]No ACHILLES_SCHEDULE_* env vars found — all sources are manual-only.[/dim]")
             # Still render a table if there are known scrapers.
 
-        scheduler = BackgroundScheduler()
+        scheduler = BackgroundScheduler(timezone="UTC")
         registered: list[str] = []
 
         for source_code in sorted(self.scrapers.keys()):

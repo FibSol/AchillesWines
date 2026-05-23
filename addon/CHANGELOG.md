@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.4
+
+- Fix APScheduler crash on Alpine: pass explicit `timezone="UTC"` to `BackgroundScheduler` (Alpine has no system timezone data)
+- Add `tzdata` to Dockerfile so system timezone is available
+- Fix Next.js 16 warning: move `themeColor` from `metadata` to `generateViewport` in root layout
+
 ## 1.0.3
 
 - Add watchdog health check (`http://[HOST]:3000/`) for automatic restart on crash

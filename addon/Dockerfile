@@ -1,7 +1,7 @@
 FROM node:22-alpine
 
 # Build tools required for better-sqlite3 native module
-RUN apk add --no-cache python3 py3-pip make g++ git
+RUN apk add --no-cache python3 py3-pip make g++ git tzdata
 
 WORKDIR /app
 
