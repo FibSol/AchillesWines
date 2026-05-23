@@ -1,5 +1,11 @@
 # Achilles's Wines — Progress Log
 
+## 2026-05-23 — Sprint 13: hachette_vins_shop full-catalog + ventealapropriete Algolia rewrite
+
+### Patroclus (Backend)
+- [Patroclus] hachette_vins_shop.py: full Shopware 6 rewrite — product detection via `div[data-product-information]` JSON attribute; name from JSON `.name`; URL from first `a[href]` matching `_BASE/`; `_extract_price` skips values < 2.0 (filters out bottle-volume "0,75L"); trailing-slash pagination `/?p={page}` (prevents redirect dropping query param); termination via `new_on_page == 0`. Full catalog: 1,050 products, 0 DLQ, ~100s. · files: scraper/achilles_scraper/scrapers/hachette_vins_shop.py
+- [Patroclus] ventealapropriete.py: complete rewrite — discarded broken HTML-scraping + auth flow; replaced with Algolia private-index approach. Strategy: (1) POST `/api/auth/login` (Nuxt server auth → `nuxt-session` cookie); (2) GET `/compte` → extract authenticated `algoliaKey` + `accessToken` from `__NUXT_DATA__` SSR payload; (3) query private Algolia index `ventes_prod_valap_nuxt_prive_fr` with `typeProduit:vin AND pays:France` — 701 wines per cycle, all with real prices in `prixUnitaireTtc.FR`; (4) `insert_staging_candidate` dedup. Pricing: €5.90–€2300. Full run: 676 fetched, 666 inserted, 0 DLQ, 2.5s. No auth module dependency (inherits BaseScraper, uses own login flow). · files: scraper/achilles_scraper/scrapers/ventealapropriete.py
+
 ## 2026-05-23 — Sprint 13: wdc_be catalog + millesima_be DLQ flush
 
 ### Patroclus (Backend)
