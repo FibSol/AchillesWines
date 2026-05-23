@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Clock, Check, X, AlertTriangle, CalendarClock } from "lucide-react";
+import { Clock, Check, X, CalendarClock } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -31,43 +31,90 @@ interface ScheduleLabels {
   restartHint: string;
 }
 
-// ─── Cron helpers ─────────────────────────────────────────────────────────────
+// ─── Schedule state → cron ────────────────────────────────────────────────────
 
-function isValidCron(expr: string): boolean {
-  const parts = expr.trim().split(/\s+/);
-  return parts.length === 5 && parts.every((p) => /^[\d*/,\-]+$/.test(p));
+type Freq = "manual" | "daily" | "twice_daily" | "weekly" | "monthly";
+
+interface SchedState {
+  freq: Freq;
+  hour: number;   // 0-23 (0-11 for twice_daily, second fires at hour+12)
+  minute: number; // 0 | 15 | 30 | 45
+  dow: number;    // 0=Sun … 6=Sat (weekly only)
+  dom: number;    // 1-28 (monthly only)
 }
 
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DOW_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const MINUTES = [0, 15, 30, 45];
+const HOURS_ALL = Array.from({ length: 24 }, (_, i) => i);
+const HOURS_HALF = Array.from({ length: 12 }, (_, i) => i); // 0-11 for twice_daily
 
-function describeCron(expr: string): string {
-  const parts = expr.trim().split(/\s+/);
-  if (parts.length !== 5) return "";
-  const [min, hour, dom, , dow] = parts;
-
-  const allWild = (v: string) => v === "*";
-  const fixed = (v: string) => /^\d+$/.test(v);
-
-  // Time component
-  let time = "";
-  if (fixed(hour) && fixed(min)) {
-    time = `${hour.padStart(2, "0")}:${min.padStart(2, "0")} UTC`;
-  } else if (fixed(hour)) {
-    time = `${hour}h UTC`;
+function stateToCron(s: SchedState): string | null {
+  if (s.freq === "manual") return null;
+  const M = String(s.minute);
+  const H = String(s.hour);
+  if (s.freq === "daily") return `${M} ${H} * * *`;
+  if (s.freq === "twice_daily") {
+    const h2 = (s.hour + 12) % 24;
+    return `${M} ${H},${h2} * * *`;
   }
-
-  if (!allWild(dow) && fixed(dow)) {
-    const dayName = DAYS[parseInt(dow)] ?? `day ${dow}`;
-    return time ? `Every ${dayName} at ${time}` : `Every ${dayName}`;
-  }
-  if (!allWild(dom) && fixed(dom)) {
-    return time ? `Monthly on day ${dom} at ${time}` : `Monthly on day ${dom}`;
-  }
-  if (time) return `Daily at ${time}`;
-  if (min === "0" && allWild(hour)) return "Every hour";
-  if (allWild(min) && allWild(hour)) return "Every minute";
-  return expr;
+  if (s.freq === "weekly") return `${M} ${H} * * ${s.dow}`;
+  if (s.freq === "monthly") return `${M} ${H} ${s.dom} * *`;
+  return null;
 }
+
+function cronToState(cron: string | null): SchedState {
+  const defaults: SchedState = { freq: "manual", hour: 3, minute: 0, dow: 1, dom: 1 };
+  if (!cron) return defaults;
+  const parts = cron.trim().split(/\s+/);
+  if (parts.length !== 5) return defaults;
+  const [minStr, hourStr, domStr, , dowStr] = parts;
+  const minute = MINUTES.includes(parseInt(minStr)) ? parseInt(minStr) : 0;
+
+  // weekly
+  if (dowStr !== "*" && /^\d+$/.test(dowStr)) {
+    return { freq: "weekly", hour: parseInt(hourStr) || 0, minute, dow: parseInt(dowStr), dom: 1 };
+  }
+  // monthly
+  if (domStr !== "*" && /^\d+$/.test(domStr)) {
+    return { freq: "monthly", hour: parseInt(hourStr) || 0, minute, dow: 1, dom: parseInt(domStr) || 1 };
+  }
+  // twice daily: "M H1,H2 * * *" where |H1-H2|=12
+  if (hourStr.includes(",")) {
+    const [h1, h2] = hourStr.split(",").map(Number);
+    if (!isNaN(h1) && !isNaN(h2) && Math.abs(h1 - h2) === 12) {
+      return { freq: "twice_daily", hour: Math.min(h1, h2), minute, dow: 1, dom: 1 };
+    }
+  }
+  // daily
+  if (hourStr !== "*" && /^\d+$/.test(hourStr)) {
+    return { freq: "daily", hour: parseInt(hourStr), minute, dow: 1, dom: 1 };
+  }
+  return defaults;
+}
+
+function pad(n: number) { return String(n).padStart(2, "0"); }
+
+function describeState(s: SchedState): string {
+  if (s.freq === "manual") return "";
+  const t = `${pad(s.hour)}:${pad(s.minute)} UTC`;
+  if (s.freq === "daily") return `Every day at ${t}`;
+  if (s.freq === "twice_daily") {
+    const t2 = `${pad((s.hour + 12) % 24)}:${pad(s.minute)} UTC`;
+    return `Every day at ${t} and ${t2}`;
+  }
+  if (s.freq === "weekly") return `Every ${DOW_NAMES[s.dow]} at ${t}`;
+  if (s.freq === "monthly") return `Every month on day ${s.dom} at ${t}`;
+  return "";
+}
+
+// ─── Shared select style ──────────────────────────────────────────────────────
+
+const SEL = [
+  "bg-[rgba(13,6,26,0.7)] border border-[color:var(--color-border)]",
+  "text-[color:var(--color-fg)] text-xs rounded px-2 py-1.5 outline-none",
+  "focus:border-[color:var(--color-primary)] cursor-pointer transition-colors",
+  "hover:border-[color:var(--color-primary)]",
+].join(" ");
 
 // ─── Tier grouping ────────────────────────────────────────────────────────────
 
@@ -88,158 +135,143 @@ const TIER_COLORS: Record<string, string> = {
   F_vintage_authority: "text-[color:var(--color-coral-200)]",
 };
 
-const TIER_SHORT: Record<string, string> = {
-  B_retailer_major: "B",
-  C_retailer_minor: "C",
-  D_user_aggregate: "D",
-  E_press_critic: "E",
-  F_vintage_authority: "F",
-};
-
 // ─── Row component ────────────────────────────────────────────────────────────
 
-type RowState = "idle" | "saving" | "saved" | "error";
+type SaveState = "idle" | "saving" | "saved" | "error";
 
 function ScheduleRow({
   row,
-  labels,
   onSave,
 }: {
   row: SourceRow;
-  labels: ScheduleLabels;
   onSave: (sourceCode: string, cronExpr: string | null) => Promise<void>;
 }) {
-  const [value, setValue] = useState(row.cronExpr ?? "");
-  const [state, setState] = useState<RowState>("idle");
-  const [validationMsg, setValidationMsg] = useState("");
+  const [s, setS] = useState<SchedState>(() => cronToState(row.cronExpr));
+  const [saveState, setSaveState] = useState<SaveState>("idle");
 
-  // Keep local value in sync if parent data refreshes
-  useEffect(() => {
-    setValue(row.cronExpr ?? "");
-  }, [row.cronExpr]);
+  // Sync if parent data changes (e.g. initial load)
+  useEffect(() => { setS(cronToState(row.cronExpr)); }, [row.cronExpr]);
 
-  const isDirty = value !== (row.cronExpr ?? "");
-  const hasValue = value.trim().length > 0;
-  const valid = !hasValue || isValidCron(value);
+  const cronExpr = stateToCron(s);
+  const isDirty = cronExpr !== row.cronExpr;
 
-  async function handleSave() {
-    if (!valid) {
-      setValidationMsg(labels.invalid);
-      return;
-    }
-    setValidationMsg("");
-    setState("saving");
+  async function save(next: SchedState) {
+    setSaveState("saving");
     try {
-      await onSave(row.sourceCode, hasValue ? value.trim() : null);
-      setState("saved");
-      setTimeout(() => setState("idle"), 2000);
+      await onSave(row.sourceCode, stateToCron(next));
+      setSaveState("saved");
+      setTimeout(() => setSaveState("idle"), 2000);
     } catch {
-      setState("error");
-      setTimeout(() => setState("idle"), 3000);
+      setSaveState("error");
+      setTimeout(() => setSaveState("idle"), 2500);
     }
   }
 
-  function handleClear() {
-    setValue("");
-    if (row.cronExpr !== null) {
-      onSave(row.sourceCode, null)
-        .then(() => {
-          setState("saved");
-          setTimeout(() => setState("idle"), 2000);
-        })
-        .catch(() => setState("idle"));
-    }
+  function update(patch: Partial<SchedState>) {
+    setS((prev) => {
+      const next = { ...prev, ...patch };
+      // If switching to twice_daily and hour > 11, clamp it
+      if (next.freq === "twice_daily" && next.hour > 11) next.hour = next.hour % 12;
+      return next;
+    });
   }
 
-  const desc = hasValue && valid ? describeCron(value) : "";
+  const hourOptions = s.freq === "twice_daily" ? HOURS_HALF : HOURS_ALL;
+  const desc = describeState(s);
 
   return (
-    <div className="flex items-center gap-3 py-2 border-b border-[color:var(--color-border)] last:border-0 flex-wrap sm:flex-nowrap">
+    <div className="py-3 border-b border-[color:var(--color-border)] last:border-0">
       {/* Source name */}
-      <div className="flex items-center gap-2 min-w-0 flex-1 basis-36">
-        <span
-          className={`font-mono text-[10px] w-4 shrink-0 font-bold ${TIER_COLORS[row.sourceTier] ?? "text-[color:var(--color-fg-muted)]"}`}
-        >
-          {TIER_SHORT[row.sourceTier] ?? "?"}
+      <div className="flex items-center gap-2 mb-2">
+        <span className={`font-mono text-[10px] font-bold shrink-0 ${TIER_COLORS[row.sourceTier] ?? "text-[color:var(--color-fg-muted)]"}`}>
+          {row.sourceTier.charAt(0)}
         </span>
-        <span
-          className="truncate text-sm text-[color:var(--color-fg)] font-mono"
-          title={row.sourceName}
-        >
-          {row.sourceCode}
-        </span>
+        <span className="text-sm font-medium text-[color:var(--color-fg)]">{row.sourceName}</span>
+        <span className="font-mono text-[10px] text-[color:var(--color-fg-subtle)]">{row.sourceCode}</span>
       </div>
 
-      {/* Cron input */}
-      <div className="flex flex-col gap-0.5 flex-1 basis-40 min-w-0">
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => {
-            setValue(e.target.value);
-            setValidationMsg("");
-            setState("idle");
-          }}
-          onKeyDown={(e) => e.key === "Enter" && handleSave()}
-          placeholder={labels.placeholder}
-          spellCheck={false}
-          className={`w-full font-mono text-xs px-2 py-1.5 rounded bg-[rgba(13,6,26,0.6)] border text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] outline-none focus:ring-1 transition-colors ${
-            !valid && hasValue
-              ? "border-[color:var(--color-coral-600)] focus:ring-[color:var(--color-coral-700)]"
-              : "border-[color:var(--color-border)] focus:ring-[color:var(--color-coral-800)]"
-          }`}
-        />
-        {validationMsg && (
-          <p className="text-[10px] text-[color:var(--color-coral-400)] leading-none">
-            {validationMsg}
-          </p>
+      {/* Sentence-form controls */}
+      <div className="flex items-center gap-2 flex-wrap">
+
+        {/* Frequency */}
+        <select className={SEL} value={s.freq} onChange={(e) => update({ freq: e.target.value as Freq })}>
+          <option value="manual">— manual only —</option>
+          <option value="daily">1 time a day</option>
+          <option value="twice_daily">2 times a day</option>
+          <option value="weekly">1 time a week</option>
+          <option value="monthly">1 time a month</option>
+        </select>
+
+        {/* Day-of-week (weekly) */}
+        {s.freq === "weekly" && (
+          <>
+            <span className="text-xs text-[color:var(--color-fg-subtle)]">on</span>
+            <select className={SEL} value={s.dow} onChange={(e) => update({ dow: Number(e.target.value) })}>
+              {DOW_NAMES.map((d, i) => <option key={i} value={i}>{d}</option>)}
+            </select>
+          </>
         )}
-      </div>
 
-      {/* Human-readable description */}
-      <div className="flex-1 basis-32 min-w-0">
-        <span className="text-xs text-[color:var(--color-fg-muted)] truncate block">
-          {desc || (
-            <span className="text-[color:var(--color-fg-subtle)] italic">
-              {labels.manualOnly}
-            </span>
-          )}
-        </span>
-      </div>
+        {/* Day-of-month (monthly) */}
+        {s.freq === "monthly" && (
+          <>
+            <span className="text-xs text-[color:var(--color-fg-subtle)]">on day</span>
+            <select className={SEL} value={s.dom} onChange={(e) => update({ dom: Number(e.target.value) })}>
+              {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+          </>
+        )}
 
-      {/* Actions */}
-      <div className="flex items-center gap-1.5 shrink-0">
-        {state === "saved" && (
-          <span className="text-[color:var(--color-mint-400)] flex items-center gap-1 text-xs">
-            <Check className="size-3" strokeWidth={2.5} />
-            {labels.saved}
+        {/* Time (hidden when manual) */}
+        {s.freq !== "manual" && (
+          <>
+            <span className="text-xs text-[color:var(--color-fg-subtle)]">at</span>
+            <select className={SEL} value={s.hour} onChange={(e) => update({ hour: Number(e.target.value) })}>
+              {hourOptions.map((h) => <option key={h} value={h}>{pad(h)}</option>)}
+            </select>
+            <span className="text-xs text-[color:var(--color-fg-subtle)] -mx-1">:</span>
+            <select className={SEL} value={s.minute} onChange={(e) => update({ minute: Number(e.target.value) })}>
+              {MINUTES.map((m) => <option key={m} value={m}>{pad(m)}</option>)}
+            </select>
+            <span className="text-[10px] text-[color:var(--color-fg-subtle)]">UTC</span>
+          </>
+        )}
+
+        {/* Save / clear */}
+        {saveState === "saved" && (
+          <span className="flex items-center gap-1 text-xs text-[color:var(--color-mint-400)]">
+            <Check className="size-3" strokeWidth={2.5} /> saved
           </span>
         )}
-        {state === "error" && (
-          <span className="text-[color:var(--color-coral-400)] flex items-center gap-1 text-xs">
-            <AlertTriangle className="size-3" strokeWidth={2.5} />
-          </span>
+        {saveState === "error" && (
+          <span className="text-xs text-[color:var(--color-coral-400)]">error</span>
         )}
-        {(state === "idle" || state === "saving") && isDirty && hasValue && (
+        {isDirty && (
           <button
-            onClick={handleSave}
-            disabled={state === "saving" || !valid}
+            onClick={() => save(s)}
+            disabled={saveState === "saving"}
             className="btn btn-ghost text-xs py-1 px-2 disabled:opacity-40"
           >
-            {state === "saving" ? "…" : labels.save}
+            {saveState === "saving" ? "…" : "Save"}
           </button>
         )}
-        {(state === "idle" || state === "saving") && (row.cronExpr !== null || (hasValue && !isDirty)) && (
+        {s.freq !== "manual" && !isDirty && (
           <button
-            onClick={handleClear}
-            disabled={state === "saving"}
-            className="btn btn-ghost text-xs py-1 px-2 text-[color:var(--color-fg-muted)] disabled:opacity-40"
-            title={labels.clear}
+            onClick={() => { update({ freq: "manual" }); save({ ...s, freq: "manual" }); }}
+            className="btn btn-ghost text-xs py-1 px-2 text-[color:var(--color-fg-subtle)]"
+            title="Remove schedule"
           >
             <X className="size-3" strokeWidth={2.5} />
           </button>
         )}
       </div>
+
+      {/* Human-readable confirmation */}
+      {desc && (
+        <p className="mt-1 text-[11px] text-[color:var(--color-fg-subtle)] italic">{desc}</p>
+      )}
     </div>
   );
 }
@@ -249,19 +281,17 @@ function ScheduleRow({
 function GroupSection({
   title,
   rows,
-  labels,
   onSave,
 }: {
   title: string;
   rows: SourceRow[];
-  labels: ScheduleLabels;
   onSave: (sourceCode: string, cronExpr: string | null) => Promise<void>;
 }) {
   if (rows.length === 0) return null;
   const scheduled = rows.filter((r) => r.cronExpr).length;
   return (
     <div className="glass-card p-4">
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-1">
         <h3 className="text-xs font-semibold uppercase tracking-widest text-[color:var(--color-fg-muted)]">
           {title}
         </h3>
@@ -273,7 +303,7 @@ function GroupSection({
       </div>
       <div>
         {rows.map((row) => (
-          <ScheduleRow key={row.sourceCode} row={row} labels={labels} onSave={onSave} />
+          <ScheduleRow key={row.sourceCode} row={row} onSave={onSave} />
         ))}
       </div>
     </div>
@@ -353,30 +383,10 @@ export function SchedulePanel({ labels }: { labels: ScheduleLabels }) {
         </div>
       ) : (
         <div className="space-y-3">
-          <GroupSection
-            title={labels.groupRetail}
-            rows={grouped.retail}
-            labels={labels}
-            onSave={handleSave}
-          />
-          <GroupSection
-            title={labels.groupEmail}
-            rows={grouped.email}
-            labels={labels}
-            onSave={handleSave}
-          />
-          <GroupSection
-            title={labels.groupCritic}
-            rows={grouped.critic}
-            labels={labels}
-            onSave={handleSave}
-          />
-          <GroupSection
-            title={labels.groupVintage}
-            rows={grouped.vintage}
-            labels={labels}
-            onSave={handleSave}
-          />
+          <GroupSection title={labels.groupRetail}  rows={grouped.retail}  onSave={handleSave} />
+          <GroupSection title={labels.groupEmail}   rows={grouped.email}   onSave={handleSave} />
+          <GroupSection title={labels.groupCritic}  rows={grouped.critic}  onSave={handleSave} />
+          <GroupSection title={labels.groupVintage} rows={grouped.vintage} onSave={handleSave} />
         </div>
       )}
 
