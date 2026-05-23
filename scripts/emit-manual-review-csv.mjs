@@ -85,13 +85,26 @@ for (const p of producers) {
 }
 
 const wines = db.prepare(`
-  SELECT w.wine_key, w.cuvee_name, w.vintage,
+  SELECT w.wine_key, w.cuvee_name, w.vintage, w.producer_key,
          p.producer_name,
          a.appellation_name, a.region
   FROM dim_wine w
   JOIN dim_producer p ON p.producer_key = w.producer_key
   JOIN dim_appellation a ON a.appellation_key = w.appellation_key
 `).all();
+
+// Pre-compute which producers have at least one non-VdF wine in the DB.
+// Producers that only have VdF wines are likely VdF specialists (legitimate),
+// not scraper errors — they should NOT be flagged. See docs/VIN-DE-FRANCE.md.
+const vdfKeyRow = db.prepare("SELECT appellation_key FROM dim_appellation WHERE appellation_name = 'Vin de France' AND country_code='FR'").get();
+const producersWithRealAoc = new Set();
+if (vdfKeyRow) {
+  for (const r of db.prepare(`
+    SELECT DISTINCT producer_key FROM dim_wine WHERE appellation_key <> ?
+  `).all(vdfKeyRow.appellation_key)) {
+    producersWithRealAoc.add(r.producer_key);
+  }
+}
 
 for (const w of wines) {
   const cn = w.cuvee_name || '';
@@ -104,8 +117,13 @@ for (const w of wines) {
     if (CLASSIFICATION_RE.test(cn))      flags.push('cuvee_classification');
     if (APP_TAIL_RE.test(cn))            flags.push('cuvee_appellation_tail');
   }
-  if (VIN_DE_FRANCE_RE.test(w.appellation_name || '') && w.region && w.region !== 'Vin de France') {
-    flags.push('appellation_vin_de_france_with_known_region');
+  // Only flag a VdF wine when the producer ALSO has wines under a real AOC —
+  // a producer with only VdF wines is a VdF specialist, not an error.
+  // See docs/VIN-DE-FRANCE.md.
+  if (VIN_DE_FRANCE_RE.test(w.appellation_name || '')
+      && w.region && w.region !== 'Vin de France'
+      && producersWithRealAoc.has(w.producer_key)) {
+    flags.push('appellation_vin_de_france_mixed_portfolio');
   }
   if (flags.length === 0) continue;
   const lookupName = `${w.producer_name} ${cn || ''}`.replace(/\s+/g, ' ').trim();
