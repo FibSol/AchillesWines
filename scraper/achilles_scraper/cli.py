@@ -80,6 +80,7 @@ _ALL_SOURCES = [
     # --- Crowd / user-aggregate ratings (→ fact_rating) ---
     "xwines",             # X-Wines/Vivino crowd ratings (CC0)
     "kaggle_reviews",     # WineEnthusiast reviews via Kaggle API
+    "cellartracker",      # CellarTracker community DB (login + iWine sweep)
 ]
 
 
@@ -130,6 +131,7 @@ def _load_scrapers():
     # Crowd ratings
     from .scrapers.xwines import XWinesScraper
     from .scrapers.kaggle_reviews import KaggleReviewsScraper
+    from .scrapers.cellartracker import CellarTrackerScraper
 
     SCRAPERS["millesima"] = MillesimaScraper
     SCRAPERS["millesima_be"] = MillesimaBeScraper
@@ -167,6 +169,7 @@ def _load_scrapers():
     SCRAPERS["christies"] = ChristiesScraper
     SCRAPERS["xwines"] = XWinesScraper
     SCRAPERS["kaggle_reviews"] = KaggleReviewsScraper
+    SCRAPERS["cellartracker"] = CellarTrackerScraper
 
 
 @click.group()
