@@ -35,9 +35,6 @@ _USER_AGENT = (
 _BASE = "https://www.hachette-vins.shop"
 _CATALOGUE_URL = f"{_BASE}/vins"
 
-# Product URLs look like /domaine-xxx-cuvee-2024/72611 — slug + 4-6 digit ID
-_PRODUCT_HREF_RE = re.compile(r"^/[a-z0-9][a-z0-9-]*/\d{4,6}$")
-
 _logger = logging.getLogger(__name__)
 
 
@@ -47,9 +44,11 @@ def _extract_vintage(text: str) -> Optional[int]:
 
 
 def _extract_price(text: str) -> Optional[float]:
-    m = re.search(r"(\d+[.,]\d{1,2})", text or "")
-    if m:
-        return float(m.group(1).replace(",", "."))
+    # Skip sub-2€ values that are bottle sizes (0,75L, 1,5L, etc.)
+    for m in re.finditer(r"(\d+[.,]\d{1,2})", text or ""):
+        val = float(m.group(1).replace(",", "."))
+        if val >= 2.0:
+            return val
     return None
 
 
@@ -219,7 +218,8 @@ class HachetteVinsShopScraper(BaseScraper):
 
         with httpx.Client(headers=headers, timeout=30, follow_redirects=True) as client:
             while True:
-                url = f"{_CATALOGUE_URL}?page={page}" if page > 1 else _CATALOGUE_URL
+                # Shopware 6 uses ?p=N for pagination; trailing slash required or ?p= drops on redirect
+                url = f"{_CATALOGUE_URL}/?p={page}" if page > 1 else _CATALOGUE_URL
 
                 try:
                     resp = self._fetch(lambda u=url: client.get(u))
@@ -251,31 +251,19 @@ class HachetteVinsShopScraper(BaseScraper):
 
                 tree = HTMLParser(resp.text)
 
-                # Hachette Vins Shop uses semantic HTML with no CSS classes.
-                # Detect products by <a href="/slug/NNNNN"> pattern (slug + 4-6 digit ID).
-                product_links = [
-                    a for a in tree.css("a[href]")
-                    if _PRODUCT_HREF_RE.match(a.attrs.get("href", ""))
-                ]
-                # Deduplicate by href within the page
-                seen_page: set[str] = set()
-                unique_links = []
-                for a in product_links:
-                    href = a.attrs.get("href", "")
-                    if href not in seen_page:
-                        seen_page.add(href)
-                        unique_links.append(a)
-                product_links = unique_links
+                # Shopware 6: each product is in div[data-product-information]
+                # Name comes from the JSON attribute; URL from the full href inside.
+                product_boxes = tree.css("div[data-product-information]")
 
-                if not product_links:
+                if not product_boxes:
                     break
 
-                _logger.info("page=%d links=%d", page, len(product_links))
+                _logger.info("page=%d boxes=%d", page, len(product_boxes))
 
                 if cached and cached[0] == page_hash:
                     _logger.info("page=%d unchanged (hash match), skipping", page)
-                    result.rows_skipped_unchanged += len(product_links)
-                    if limit is not None and total_fetched + len(product_links) >= limit:
+                    result.rows_skipped_unchanged += len(product_boxes)
+                    if limit is not None and total_fetched + len(product_boxes) >= limit:
                         break
                     page += 1
                     time.sleep(0.5)
@@ -290,37 +278,38 @@ class HachetteVinsShopScraper(BaseScraper):
                 )
                 self.conn.commit()
 
-                for link in product_links:
+                new_on_page = 0
+                for box in product_boxes:
                     if limit is not None and total_fetched >= limit:
                         break
 
-                    href = link.attrs.get("href", "")
-                    product_url = href if href.startswith("http") else f"{_BASE}{href}"
-                    if product_url in seen_urls:
-                        continue
-                    seen_urls.add(product_url)
-
-                    # Title from link text; fall back to img[alt] inside the link
-                    raw_name = link.text(strip=True)
-                    if not raw_name:
-                        img = link.css_first("img[alt]")
-                        raw_name = img.attrs.get("alt", "").strip() if img else ""
+                    # Name from data-product-information JSON
+                    try:
+                        info = json.loads(box.attrs.get("data-product-information") or "{}")
+                        raw_name = info.get("name", "").strip()
+                    except (json.JSONDecodeError, TypeError):
+                        raw_name = ""
                     if not raw_name:
                         result.rows_dlq += 1
                         continue
 
-                    # Walk up up to 4 levels from the link to find a price in the container text
-                    price_eur: Optional[float] = None
-                    container = link.parent
-                    for _ in range(4):
-                        if container is None:
+                    # URL: first <a href="https://www.hachette-vins.shop/..."> in the box
+                    product_url = url
+                    for a in box.css("a[href]"):
+                        href = a.attrs.get("href") or ""
+                        if href.startswith(_BASE + "/") and href != _BASE + "/":
+                            product_url = href
                             break
-                        container_text = container.text(strip=True)
-                        price_eur = _extract_price(container_text)
-                        if price_eur is not None:
-                            break
-                        container = container.parent
 
+                    if product_url in seen_urls:
+                        result.rows_skipped_unchanged += 1
+                        continue
+                    seen_urls.add(product_url)
+                    new_on_page += 1
+
+                    # Price: first euro amount in box text (sale price comes first)
+                    box_text = box.text(strip=True)
+                    price_eur = _extract_price(box_text)
                     if price_eur is None:
                         write_dlq(
                             self.conn, SOURCE_KEY, batch_id,
@@ -331,8 +320,7 @@ class HachetteVinsShopScraper(BaseScraper):
                         continue
 
                     vintage = _extract_vintage(raw_name)
-                    color_text = (container.text(strip=True) if container else "") + " " + raw_name
-                    color = _map_color(color_text)
+                    color = _map_color(box_text + " " + raw_name)
 
                     card_hash = hashlib.sha256(
                         json.dumps({"name": raw_name, "price": price_eur, "url": product_url}, sort_keys=True).encode()
@@ -391,6 +379,10 @@ class HachetteVinsShopScraper(BaseScraper):
                     result.rows_fetched += 1
 
                 if limit is not None and total_fetched >= limit:
+                    break
+
+                # If no new URLs were found on this page, we've cycled back to page 1
+                if new_on_page == 0:
                     break
 
                 page += 1
