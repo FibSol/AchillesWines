@@ -160,6 +160,19 @@ def _ensure_producer(conn: sqlite3.Connection, producer_norm: str, producer_name
         return False
 
 
+def _appellation_from_title(conn: sqlite3.Connection, title: str) -> tuple[str, str]:
+    """Match the longest known French appellation in the wine title; falls back to Vin de France."""
+    title_up = title.upper()
+    rows = conn.execute(
+        "SELECT appellation_name, appellation_norm FROM dim_appellation"
+        " WHERE country_code = 'FR' ORDER BY length(appellation_name) DESC"
+    ).fetchall()
+    for name, norm in rows:
+        if name.upper() in title_up:
+            return name, norm
+    return "Vin de France", "vin de france"
+
+
 class VinatissScraper(BaseScraper):
     source_code = "vinatis"
 
@@ -273,16 +286,23 @@ class VinatissScraper(BaseScraper):
                     features = p.get("features") or {}
                     raw_vintage = features.get("vintage") or features.get("sortable_vintage")
                     vintage = int(raw_vintage) if raw_vintage and str(raw_vintage).isdigit() else _extract_vintage(raw_name)
-                    appellation = (features.get("appellation") or "").strip()
-                    region = appellation
                     colour_raw = (features.get("colour") or "").lower()
                     color = _COLOR_MAP.get(colour_raw, "red")
                     producer_name = (p.get("manufacturer_name") or "").strip()
                     slug = p.get("link_rewrite") or ""
                     source_url = f"{_BASE}/{slug}" if slug else _BASE
 
+                    gtm_appellation = (features.get("appellation") or "").strip()
+                    if gtm_appellation:
+                        appellation = gtm_appellation
+                        appellation_norm = norm_text(gtm_appellation)
+                        region = appellation
+                    else:
+                        # GTM appellation empty (international wines) — infer from title
+                        appellation, appellation_norm = _appellation_from_title(self.conn, raw_name)
+                        region = appellation
+
                     producer_norm = normalize_producer(producer_name or raw_name)
-                    appellation_norm = norm_text(appellation) if appellation else ""
                     cuvee_norm = normalize_cuvee(raw_name, strip_words=[producer_norm, appellation_norm])
 
                     if not producer_norm:

@@ -1,5 +1,10 @@
 # Achilles's Wines — Progress Log
 
+## 2026-05-23 — Sprint 13: comprehensive scraper audit + fixes
+
+### Patroclus (Backend)
+- [Patroclus] Comprehensive scraper audit + 9-file fix pass. Root causes addressed: (1) cinoco.py — filter `C\d+` case-pack bundles (BOLLINGER BSC C6 etc.) + ALL-CAPS title/vendor normalization to Title Case before normalize_producer; (2) vinatis.py — add `_appellation_from_title` fallback for international wines where GTM `appellation=""` (Koala Shiraz, Bread And Butter etc.) causing 241 unresolved_dim; (3) hachette_vins_shop.py — full rewrite: semantic HTML link-href detection via `_PRODUCT_HREF_RE = /[slug]/\d{4,6}`, title from link text, price walk-up 4 levels, `?page=N` pagination, `insert_staging_candidate`; (4) belgiumwinewatchers.py — URL fix `/en/all-wine`, `.attrs` fix, appellation fallback, `insert_staging_candidate`; (5) wdc.py — `.attrs` fix, appellation fallback, `insert_staging_candidate`; (6) wijnhuis.py — `.attrs` fix; (7) wijnendeclerck_be.py — `.attrs` fix, appellation fallback, `insert_staging_candidate`; (8) millesima_be.py — appellation fallback for Champagne/NV empty-appellation rows, `insert_staging_candidate`; (9) cavissima_be.py — `.attrs` fix, appellation fallback, `insert_staging_candidate`. All 9 files pass py_compile syntax check. · files: scrapers/cinoco.py, vinatis.py, hachette_vins_shop.py, belgiumwinewatchers.py, wdc.py, wijnhuis.py, wijnendeclerck_be.py, millesima_be.py, cavissima_be.py
+
 ## 2026-05-23 — Sprint 13: vinsbrunin WiziShop rewrite
 
 ### Patroclus (Backend)

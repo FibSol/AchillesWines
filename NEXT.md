@@ -130,7 +130,8 @@ Wine press (E_press_critic → write to fact_rating):
 - [x] **P2 · 2h** [Patroclus] Run topwijnen_be full catalog (Shopify) — 5,910 products staged (deduped) + promoter ran ✓ 2026-05-23 (wdc_be still pending)
 - [ ] **P2 · 1h** [Patroclus] Run wdc_be full catalog to widen overlap coverage
 - [x] **P2 · 3h** [Patroclus] Rewrite vinsbrunin scraper for WiziShop platform (current code uses WooCommerce selectors; site uses `/bordeaux/`, `/bourgogne/`, etc. with `?page=N` pagination; no single catalog URL) ✓ 2026-05-23
-- [ ] **P2 · 2h** [Patroclus] Force-clear millesima content hashes + re-run to fix ~1092 Champagne/NV wines stuck in DLQ (appellation="" — fix applied but cached pages won't re-trigger)
+- [x] **P2 · 4h** [Patroclus] Comprehensive scraper audit + fix: cinoco bundle filter + ALLCAPS norm, vinatis international wines appellation fallback, hachette full rewrite (link-href detection), belgiumwinewatchers URL+attrs, wdc/wijnendeclerck/wijnhuis/cavissima_be/millesima_be .attrs+appellation+insert_staging_candidate ✓ 2026-05-23
+- [ ] **P2 · 0.5h** [Patroclus] Force-clear millesima_be content hashes for Champagne/NV wines stuck in DLQ (code fix applied in scraper audit; run: `DELETE FROM ops_content_hashes WHERE url LIKE '%millesima.be%'` then re-run scraper)
 
 ## Sprint 12 — Production data migration
 

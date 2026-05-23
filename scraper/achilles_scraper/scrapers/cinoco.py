@@ -274,22 +274,34 @@ class CinocoScraper(BaseScraper):
                         result.rows_dlq += 1
                         continue
 
-                    vintage = _extract_vintage(raw_name)
+                    # Skip case-pack bundles (C6, C12, C24, etc.)
+                    if re.search(r'\bC\d+\b', raw_name):
+                        result.rows_skipped_unchanged += 1
+                        total_fetched += 1
+                        result.rows_fetched += 1
+                        continue
+
+                    # Normalize ALL-CAPS titles to Title Case for reliable matching
+                    norm_name = raw_name.title() if raw_name == raw_name.upper() and len(raw_name) > 4 else raw_name
+
+                    vintage = _extract_vintage(norm_name)
                     product_type = (p.get("product_type") or "").lower()
-                    color = _map_color(product_type + " " + raw_name.lower())
+                    color = _map_color(product_type + " " + norm_name.lower())
                     handle = p.get("handle") or ""
                     source_url = f"{_BASE}/products/{handle}" if handle else _BASE
                     vendor_raw = (p.get("vendor") or "").strip()
+                    if vendor_raw and vendor_raw == vendor_raw.upper() and len(vendor_raw) > 3:
+                        vendor_raw = vendor_raw.title()
                     if not vendor_raw or norm_text(vendor_raw) in ("cinoco", ""):
-                        parts = raw_name.split(" - ", 1)
-                        producer_name = parts[0].strip() if len(parts) == 2 else raw_name
+                        parts = norm_name.split(" - ", 1)
+                        producer_name = parts[0].strip() if len(parts) == 2 else norm_name
                     else:
                         producer_name = vendor_raw
 
-                    appellation, appellation_norm = _appellation_from_title(self.conn, raw_name)
+                    appellation, appellation_norm = _appellation_from_title(self.conn, norm_name)
                     region = appellation
                     producer_norm = normalize_producer(producer_name)
-                    cuvee_norm = normalize_cuvee(raw_name, strip_words=[producer_norm, appellation_norm])
+                    cuvee_norm = normalize_cuvee(norm_name, strip_words=[producer_norm, appellation_norm])
                     wine_key = compute_wine_key(producer_norm, cuvee_norm, vintage, appellation_norm)
 
                     if not producer_norm:

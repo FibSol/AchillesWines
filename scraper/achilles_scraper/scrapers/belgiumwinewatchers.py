@@ -24,7 +24,7 @@ except ImportError:
 
 from .base import BaseScraper, ScrapeResult
 from ..identity import normalize_producer, normalize_cuvee, compute_wine_key, norm_text
-from ..dlq import write_dlq
+from ..dlq import write_dlq, insert_staging_candidate
 
 _USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -33,8 +33,7 @@ _USER_AGENT = (
 )
 
 _BASE = "https://www.belgiumwinewatchers.com"
-# Try multiple possible shop paths
-_CATALOGUE_PATHS = ["/shop", "/wines", "/vins", "/wijnen", "/wine", "/products", "/"]
+_CATALOGUE_URL = f"{_BASE}/en/all-wine"
 
 _logger = logging.getLogger(__name__)
 
@@ -153,6 +152,19 @@ def _ensure_wine(
         return False
 
 
+def _appellation_from_title(conn: sqlite3.Connection, title: str) -> tuple[str, str]:
+    """Match the longest known French appellation in the wine title; falls back to Vin de France."""
+    title_up = title.upper()
+    rows = conn.execute(
+        "SELECT appellation_name, appellation_norm FROM dim_appellation"
+        " WHERE country_code = 'FR' ORDER BY length(appellation_name) DESC"
+    ).fetchall()
+    for name, norm in rows:
+        if name.upper() in title_up:
+            return name, norm
+    return "Vin de France", "vin de france"
+
+
 def _ensure_producer(conn: sqlite3.Connection, producer_norm: str, producer_name: str) -> bool:
     row = conn.execute(
         "SELECT producer_key FROM dim_producer WHERE producer_norm = ? AND country_code = 'FR'",
@@ -171,19 +183,6 @@ def _ensure_producer(conn: sqlite3.Connection, producer_norm: str, producer_name
         return True
     except Exception:
         return False
-
-
-def _find_catalogue_url(client: "httpx.Client", base: str, paths: list) -> Optional[str]:
-    """Try each path and return the first that returns HTTP 200 with substantial content."""
-    for path in paths:
-        url = f"{base}{path}"
-        try:
-            resp = client.get(url, timeout=15)
-            if resp.status_code == 200 and len(resp.text) > 1000:
-                return url
-        except Exception:
-            continue
-    return None
 
 
 class BelgiumWineWatchersScraper(BaseScraper):
@@ -217,20 +216,12 @@ class BelgiumWineWatchersScraper(BaseScraper):
         total_fetched = 0
 
         with httpx.Client(headers=headers, timeout=30, follow_redirects=True) as client:
-            def _get(url: str):
-                resp = self._fetch(lambda: client.get(url))
-                resp.raise_for_status()
-                return resp
-
-            catalogue_base = _find_catalogue_url(client, _BASE, _CATALOGUE_PATHS)
-            if not catalogue_base:
-                result.error = f"Could not find a working catalogue URL at {_BASE}"
-                return result
-
             while True:
-                url = f"{catalogue_base}?page={page}" if page > 1 else catalogue_base
+                # The site uses LOAD MORE (AJAX) for pagination; ?page=N may work for some requests
+                url = f"{_CATALOGUE_URL}?page={page}" if page > 1 else _CATALOGUE_URL
                 try:
-                    resp = _get(url)
+                    resp = self._fetch(lambda u=url: client.get(u))
+                    resp.raise_for_status()
                 except Exception as e:
                     result.error = f"HTTP error on page {page}: {e}"
                     write_dlq(self.conn, SOURCE_KEY, batch_id, "auth_error", str(e), {"url": url})
@@ -265,13 +256,17 @@ class BelgiumWineWatchersScraper(BaseScraper):
                     or tree.css(".wine-item")
                     or tree.css(".wine-listing")
                     or tree.css(".product")
+                    or tree.css("article.wine")
                     or tree.css("article")
                 )
 
                 if not product_cards:
                     break
 
+                _logger.info("page=%d cards=%d", page, len(product_cards))
+
                 if cached and cached[0] == page_hash:
+                    _logger.info("page=%d unchanged (hash match), skipping", page)
                     result.rows_skipped_unchanged += len(product_cards)
                     if limit is not None and total_fetched + len(product_cards) >= limit:
                         break
@@ -326,7 +321,7 @@ class BelgiumWineWatchersScraper(BaseScraper):
                     link_node = card.css_first("a[href]")
                     product_url = url
                     if link_node:
-                        href = link_node.attributes.get("href", "")
+                        href = link_node.attrs.get("href", "")
                         product_url = href if href.startswith("http") else f"{_BASE}{href}"
 
                     color_text = card.text(strip=True)
@@ -337,24 +332,24 @@ class BelgiumWineWatchersScraper(BaseScraper):
                     ).hexdigest()
 
                     producer_norm = normalize_producer(raw_name)
-                    cuvee_norm = normalize_cuvee(raw_name)
-
-                    if not producer_norm or not cuvee_norm:
+                    if not producer_norm:
                         write_dlq(
                             self.conn, SOURCE_KEY, batch_id,
-                            "parse_error", f"Empty producer_norm or cuvee_norm for: {raw_name!r}",
+                            "parse_error", f"Empty producer_norm for: {raw_name!r}",
                             {"raw_name": raw_name, "url": product_url},
                         )
                         result.rows_dlq += 1
                         continue
 
-                    appellation_norm = ""
+                    appellation, appellation_norm = _appellation_from_title(self.conn, raw_name)
+                    region = appellation
+                    cuvee_norm = normalize_cuvee(raw_name, strip_words=[producer_norm, appellation_norm])
                     wine_key = compute_wine_key(producer_norm, cuvee_norm, vintage, appellation_norm)
                     _ensure_producer(self.conn, producer_norm, raw_name)
 
                     if not _ensure_wine(
                         self.conn, wine_key, producer_norm, raw_name,
-                        cuvee_norm, "", appellation_norm, "", vintage, color,
+                        cuvee_norm, appellation, appellation_norm, region, vintage, color,
                     ):
                         write_dlq(
                             self.conn, SOURCE_KEY, batch_id,
@@ -365,15 +360,18 @@ class BelgiumWineWatchersScraper(BaseScraper):
                         continue
 
                     try:
-                        self.conn.execute(
-                            """INSERT OR IGNORE INTO staging_price_candidates
-                               (wine_key, source_key, retailer, recorded_at, currency_code,
-                                amount_local, amount_eur, source_url, content_hash, batch_id, needs_review)
-                               VALUES (?, ?, 'belgiumwinewatchers', ?, 'EUR', ?, ?, ?, ?, ?, 1)""",
-                            (wine_key, SOURCE_KEY, int(time.time()), price_eur, price_eur, product_url, card_hash, batch_id),
+                        inserted = insert_staging_candidate(
+                            self.conn,
+                            wine_key=wine_key, source_key=SOURCE_KEY, retailer="belgiumwinewatchers",
+                            recorded_at=int(time.time()), amount_local=price_eur,
+                            amount_eur=price_eur, source_url=product_url,
+                            content_hash=card_hash, batch_id=batch_id,
                         )
-                        self.conn.commit()
-                        result.rows_inserted += 1
+                        if inserted:
+                            result.rows_inserted += 1
+                            _logger.info("inserted wine_key=%s price=%.2f name=%s", wine_key, price_eur, raw_name)
+                        else:
+                            result.rows_skipped_unchanged += 1
                     except Exception as e:
                         write_dlq(
                             self.conn, SOURCE_KEY, batch_id,

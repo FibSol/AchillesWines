@@ -24,7 +24,7 @@ except ImportError:
 
 from .base import BaseScraper, ScrapeResult
 from ..identity import normalize_producer, normalize_cuvee, compute_wine_key, norm_text
-from ..dlq import write_dlq
+from ..dlq import write_dlq, insert_staging_candidate
 
 _USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -34,6 +34,9 @@ _USER_AGENT = (
 
 _BASE = "https://www.hachette-vins.shop"
 _CATALOGUE_URL = f"{_BASE}/vins"
+
+# Product URLs look like /domaine-xxx-cuvee-2024/72611 — slug + 4-6 digit ID
+_PRODUCT_HREF_RE = re.compile(r"^/[a-z0-9][a-z0-9-]*/\d{4,6}$")
 
 _logger = logging.getLogger(__name__)
 
@@ -150,6 +153,19 @@ def _ensure_wine(
         return False
 
 
+def _appellation_from_title(conn: sqlite3.Connection, title: str) -> tuple[str, str]:
+    """Match the longest known French appellation in the wine title; falls back to Vin de France."""
+    title_up = title.upper()
+    rows = conn.execute(
+        "SELECT appellation_name, appellation_norm FROM dim_appellation"
+        " WHERE country_code = 'FR' ORDER BY length(appellation_name) DESC"
+    ).fetchall()
+    for name, norm in rows:
+        if name.upper() in title_up:
+            return name, norm
+    return "Vin de France", "vin de france"
+
+
 def _ensure_producer(conn: sqlite3.Connection, producer_norm: str, producer_name: str) -> bool:
     row = conn.execute(
         "SELECT producer_key FROM dim_producer WHERE producer_norm = ? AND country_code = 'FR'",
@@ -199,39 +215,20 @@ class HachetteVinsShopScraper(BaseScraper):
 
         page = 1
         total_fetched = 0
+        seen_urls: set[str] = set()
 
         with httpx.Client(headers=headers, timeout=30, follow_redirects=True) as client:
-            def _get(url: str):
-                resp = self._fetch(lambda: client.get(url))
-                resp.raise_for_status()
-                return resp
-
             while True:
-                # Support both WooCommerce (/page/N/) and Shopify (?page=N) pagination
-                if page > 1:
-                    url = f"{_CATALOGUE_URL}/page/{page}/"
-                else:
-                    url = _CATALOGUE_URL
+                url = f"{_CATALOGUE_URL}?page={page}" if page > 1 else _CATALOGUE_URL
 
                 try:
-                    resp = _get(url)
+                    resp = self._fetch(lambda u=url: client.get(u))
+                    resp.raise_for_status()
                 except Exception as e:
-                    # Fallback: try ?page=N style if /page/N/ fails
-                    if page > 1:
-                        alt_url = f"{_CATALOGUE_URL}?page={page}"
-                        try:
-                            resp = _get(alt_url)
-                            url = alt_url
-                        except Exception:
-                            result.error = f"HTTP error on page {page}: {e}"
-                            write_dlq(self.conn, SOURCE_KEY, batch_id, "auth_error", str(e), {"url": url})
-                            result.rows_dlq += 1
-                            break
-                    else:
-                        result.error = f"HTTP error on page {page}: {e}"
-                        write_dlq(self.conn, SOURCE_KEY, batch_id, "auth_error", str(e), {"url": url})
-                        result.rows_dlq += 1
-                        break
+                    result.error = f"HTTP error on page {page}: {e}"
+                    write_dlq(self.conn, SOURCE_KEY, batch_id, "auth_error", str(e), {"url": url})
+                    result.rows_dlq += 1
+                    break
 
                 if resp.status_code == 404:
                     break
@@ -254,21 +251,31 @@ class HachetteVinsShopScraper(BaseScraper):
 
                 tree = HTMLParser(resp.text)
 
-                # WooCommerce: ul.products li.product; Shopify: .product-item
-                product_cards = (
-                    tree.css("ul.products li.product")
-                    or tree.css(".product-item")
-                    or tree.css(".product-card")
-                    or tree.css(".woocommerce-loop-product")
-                    or tree.css(".product")
-                )
+                # Hachette Vins Shop uses semantic HTML with no CSS classes.
+                # Detect products by <a href="/slug/NNNNN"> pattern (slug + 4-6 digit ID).
+                product_links = [
+                    a for a in tree.css("a[href]")
+                    if _PRODUCT_HREF_RE.match(a.attrs.get("href", ""))
+                ]
+                # Deduplicate by href within the page
+                seen_page: set[str] = set()
+                unique_links = []
+                for a in product_links:
+                    href = a.attrs.get("href", "")
+                    if href not in seen_page:
+                        seen_page.add(href)
+                        unique_links.append(a)
+                product_links = unique_links
 
-                if not product_cards:
+                if not product_links:
                     break
 
+                _logger.info("page=%d links=%d", page, len(product_links))
+
                 if cached and cached[0] == page_hash:
-                    result.rows_skipped_unchanged += len(product_cards)
-                    if limit is not None and total_fetched + len(product_cards) >= limit:
+                    _logger.info("page=%d unchanged (hash match), skipping", page)
+                    result.rows_skipped_unchanged += len(product_links)
+                    if limit is not None and total_fetched + len(product_links) >= limit:
                         break
                     page += 1
                     time.sleep(0.5)
@@ -283,49 +290,48 @@ class HachetteVinsShopScraper(BaseScraper):
                 )
                 self.conn.commit()
 
-                for card in product_cards:
+                for link in product_links:
                     if limit is not None and total_fetched >= limit:
                         break
 
-                    name_node = (
-                        card.css_first(".woocommerce-loop-product__title")
-                        or card.css_first(".product-title")
-                        or card.css_first(".product-name")
-                        or card.css_first("h2")
-                        or card.css_first("h3")
-                        or card.css_first(".name")
-                    )
-                    raw_name = name_node.text(strip=True) if name_node else ""
+                    href = link.attrs.get("href", "")
+                    product_url = href if href.startswith("http") else f"{_BASE}{href}"
+                    if product_url in seen_urls:
+                        continue
+                    seen_urls.add(product_url)
+
+                    # Title from link text; fall back to img[alt] inside the link
+                    raw_name = link.text(strip=True)
+                    if not raw_name:
+                        img = link.css_first("img[alt]")
+                        raw_name = img.attrs.get("alt", "").strip() if img else ""
                     if not raw_name:
                         result.rows_dlq += 1
                         continue
 
-                    price_node = (
-                        card.css_first(".price")
-                        or card.css_first(".woocommerce-Price-amount")
-                        or card.css_first(".product-price")
-                        or card.css_first("[class*='price']")
-                    )
-                    price_text = price_node.text(strip=True) if price_node else ""
-                    price_eur = _extract_price(price_text)
+                    # Walk up up to 4 levels from the link to find a price in the container text
+                    price_eur: Optional[float] = None
+                    container = link.parent
+                    for _ in range(4):
+                        if container is None:
+                            break
+                        container_text = container.text(strip=True)
+                        price_eur = _extract_price(container_text)
+                        if price_eur is not None:
+                            break
+                        container = container.parent
+
                     if price_eur is None:
                         write_dlq(
                             self.conn, SOURCE_KEY, batch_id,
                             "parse_error", f"No price found for: {raw_name!r}",
-                            {"raw_name": raw_name, "url": url},
+                            {"raw_name": raw_name, "url": product_url},
                         )
                         result.rows_dlq += 1
                         continue
 
                     vintage = _extract_vintage(raw_name)
-
-                    link_node = card.css_first("a[href]")
-                    product_url = url
-                    if link_node:
-                        href = link_node.attributes.get("href", "")
-                        product_url = href if href.startswith("http") else f"{_BASE}{href}"
-
-                    color_text = card.text(strip=True)
+                    color_text = (container.text(strip=True) if container else "") + " " + raw_name
                     color = _map_color(color_text)
 
                     card_hash = hashlib.sha256(
@@ -333,24 +339,24 @@ class HachetteVinsShopScraper(BaseScraper):
                     ).hexdigest()
 
                     producer_norm = normalize_producer(raw_name)
-                    cuvee_norm = normalize_cuvee(raw_name)
-
-                    if not producer_norm or not cuvee_norm:
+                    if not producer_norm:
                         write_dlq(
                             self.conn, SOURCE_KEY, batch_id,
-                            "parse_error", f"Empty producer_norm or cuvee_norm for: {raw_name!r}",
+                            "parse_error", f"Empty producer_norm for: {raw_name!r}",
                             {"raw_name": raw_name, "url": product_url},
                         )
                         result.rows_dlq += 1
                         continue
 
-                    appellation_norm = ""
+                    appellation, appellation_norm = _appellation_from_title(self.conn, raw_name)
+                    region = appellation
+                    cuvee_norm = normalize_cuvee(raw_name, strip_words=[producer_norm, appellation_norm])
                     wine_key = compute_wine_key(producer_norm, cuvee_norm, vintage, appellation_norm)
                     _ensure_producer(self.conn, producer_norm, raw_name)
 
                     if not _ensure_wine(
                         self.conn, wine_key, producer_norm, raw_name,
-                        cuvee_norm, "", appellation_norm, "", vintage, color,
+                        cuvee_norm, appellation, appellation_norm, region, vintage, color,
                     ):
                         write_dlq(
                             self.conn, SOURCE_KEY, batch_id,
@@ -361,15 +367,18 @@ class HachetteVinsShopScraper(BaseScraper):
                         continue
 
                     try:
-                        self.conn.execute(
-                            """INSERT OR IGNORE INTO staging_price_candidates
-                               (wine_key, source_key, retailer, recorded_at, currency_code,
-                                amount_local, amount_eur, source_url, content_hash, batch_id, needs_review)
-                               VALUES (?, ?, 'hachette_vins_shop', ?, 'EUR', ?, ?, ?, ?, ?, 1)""",
-                            (wine_key, SOURCE_KEY, int(time.time()), price_eur, price_eur, product_url, card_hash, batch_id),
+                        inserted = insert_staging_candidate(
+                            self.conn,
+                            wine_key=wine_key, source_key=SOURCE_KEY, retailer="hachette_vins_shop",
+                            recorded_at=int(time.time()), amount_local=price_eur,
+                            amount_eur=price_eur, source_url=product_url,
+                            content_hash=card_hash, batch_id=batch_id,
                         )
-                        self.conn.commit()
-                        result.rows_inserted += 1
+                        if inserted:
+                            result.rows_inserted += 1
+                            _logger.info("inserted wine_key=%s price=%.2f name=%s", wine_key, price_eur, raw_name)
+                        else:
+                            result.rows_skipped_unchanged += 1
                     except Exception as e:
                         write_dlq(
                             self.conn, SOURCE_KEY, batch_id,

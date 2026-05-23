@@ -24,7 +24,7 @@ except ImportError:
 
 from .base import BaseScraper, ScrapeResult
 from ..identity import normalize_producer, normalize_cuvee, compute_wine_key, norm_text
-from ..dlq import write_dlq
+from ..dlq import write_dlq, insert_staging_candidate
 
 _USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -146,6 +146,19 @@ def _ensure_wine(
         return True
     except Exception:
         return False
+
+
+def _appellation_from_title(conn: sqlite3.Connection, title: str) -> tuple[str, str]:
+    """Match the longest known French appellation in the wine title; falls back to Vin de France."""
+    title_up = title.upper()
+    rows = conn.execute(
+        "SELECT appellation_name, appellation_norm FROM dim_appellation"
+        " WHERE country_code = 'FR' ORDER BY length(appellation_name) DESC"
+    ).fetchall()
+    for name, norm in rows:
+        if name.upper() in title_up:
+            return name, norm
+    return "Vin de France", "vin de france"
 
 
 def _ensure_producer(conn: sqlite3.Connection, producer_norm: str, producer_name: str) -> bool:
@@ -302,7 +315,7 @@ class WdcScraper(BaseScraper):
                     link_node = card.css_first("a[href]")
                     product_url = url
                     if link_node:
-                        href = link_node.attributes.get("href", "")
+                        href = link_node.attrs.get("href", "")
                         product_url = href if href.startswith("http") else f"{_BASE}{href}"
 
                     color_text = card.text(strip=True)
@@ -313,24 +326,24 @@ class WdcScraper(BaseScraper):
                     ).hexdigest()
 
                     producer_norm = normalize_producer(raw_name)
-                    cuvee_norm = normalize_cuvee(raw_name)
-
-                    if not producer_norm or not cuvee_norm:
+                    if not producer_norm:
                         write_dlq(
                             self.conn, SOURCE_KEY, batch_id,
-                            "parse_error", f"Empty producer_norm or cuvee_norm for: {raw_name!r}",
+                            "parse_error", f"Empty producer_norm for: {raw_name!r}",
                             {"raw_name": raw_name, "url": product_url},
                         )
                         result.rows_dlq += 1
                         continue
 
-                    appellation_norm = ""
+                    appellation, appellation_norm = _appellation_from_title(self.conn, raw_name)
+                    region = appellation
+                    cuvee_norm = normalize_cuvee(raw_name, strip_words=[producer_norm, appellation_norm])
                     wine_key = compute_wine_key(producer_norm, cuvee_norm, vintage, appellation_norm)
                     _ensure_producer(self.conn, producer_norm, raw_name)
 
                     if not _ensure_wine(
                         self.conn, wine_key, producer_norm, raw_name,
-                        cuvee_norm, "", appellation_norm, "", vintage, color,
+                        cuvee_norm, appellation, appellation_norm, region, vintage, color,
                     ):
                         write_dlq(
                             self.conn, SOURCE_KEY, batch_id,
@@ -341,15 +354,18 @@ class WdcScraper(BaseScraper):
                         continue
 
                     try:
-                        self.conn.execute(
-                            """INSERT OR IGNORE INTO staging_price_candidates
-                               (wine_key, source_key, retailer, recorded_at, currency_code,
-                                amount_local, amount_eur, source_url, content_hash, batch_id, needs_review)
-                               VALUES (?, ?, 'wdc_be', ?, 'EUR', ?, ?, ?, ?, ?, 1)""",
-                            (wine_key, SOURCE_KEY, int(time.time()), price_eur, price_eur, product_url, card_hash, batch_id),
+                        inserted = insert_staging_candidate(
+                            self.conn,
+                            wine_key=wine_key, source_key=SOURCE_KEY, retailer="wdc_be",
+                            recorded_at=int(time.time()), amount_local=price_eur,
+                            amount_eur=price_eur, source_url=product_url,
+                            content_hash=card_hash, batch_id=batch_id,
                         )
-                        self.conn.commit()
-                        result.rows_inserted += 1
+                        if inserted:
+                            result.rows_inserted += 1
+                            _logger.info("inserted wine_key=%s price=%.2f name=%s", wine_key, price_eur, raw_name)
+                        else:
+                            result.rows_skipped_unchanged += 1
                     except Exception as e:
                         write_dlq(
                             self.conn, SOURCE_KEY, batch_id,

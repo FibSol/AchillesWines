@@ -307,7 +307,7 @@ class WijnhuisScraper(BaseScraper):
                     link_node = card.css_first("a[data-vid]")
                     product_url = url
                     if link_node:
-                        href = link_node.attributes.get("href", "")
+                        href = link_node.attrs.get("href", "")
                         product_url = href if href.startswith("http") else f"{_BASE}{href}"
 
                     color_text = card.text(strip=True)
