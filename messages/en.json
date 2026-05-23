@@ -14,7 +14,8 @@
     "quality": "Data quality",
     "quarantine": "Quarantine",
     "adminJobs": "Supervision",
-    "adminAuth": "Authentication"
+    "adminAuth": "Authentication",
+    "adminCoverage": "Coverage"
   },
   "common": {
     "search": "Search",
@@ -293,5 +294,25 @@
     "colInserted": "Inserted",
     "colDlq": "DLQ",
     "colActions": "Actions"
+  },
+  "adminCoverage": {
+    "title": "Coverage Dashboard",
+    "subtitle": "Track the 60% French notable producer coverage target (ADR-013)",
+    "scoreLabel": "Coverage Score",
+    "targetLabel": "Target: 60%",
+    "totalProducers": "Total Producers",
+    "withCuvees": "With Cuvées",
+    "multiPrice": "Multi-source Prices",
+    "multiRating": "Multi-source Ratings",
+    "tierBreakdownTitle": "Coverage Tiers",
+    "tierNotable": "Notable",
+    "tierMid": "Mid",
+    "tierLongTail": "Long Tail",
+    "regionBreakdown": "French Regions Breakdown",
+    "region": "Region",
+    "colTotal": "Total",
+    "colCuvees": "Cuvées",
+    "colPrices": "Prices",
+    "colRatings": "Ratings"
   }
 }

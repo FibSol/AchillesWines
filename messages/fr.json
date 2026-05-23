@@ -14,7 +14,8 @@
     "quality": "Qualité données",
     "quarantine": "Quarantaine",
     "adminJobs": "Supervision",
-    "adminAuth": "Authentification"
+    "adminAuth": "Authentification",
+    "adminCoverage": "Couverture"
   },
   "common": {
     "search": "Rechercher",
@@ -293,5 +294,25 @@
     "colInserted": "Inserted",
     "colDlq": "DLQ",
     "colActions": "Actions"
+  },
+  "adminCoverage": {
+    "title": "Tableau de couverture",
+    "subtitle": "Suivre la cible 60 % des producteurs français notables (ADR-013)",
+    "scoreLabel": "Score de couverture",
+    "targetLabel": "Cible : 60 %",
+    "totalProducers": "Producteurs total",
+    "withCuvees": "Avec cuvées",
+    "multiPrice": "Prix multi-sources",
+    "multiRating": "Notes multi-sources",
+    "tierBreakdownTitle": "Niveaux de couverture",
+    "tierNotable": "Notable",
+    "tierMid": "Intermédiaire",
+    "tierLongTail": "Longue traîne",
+    "regionBreakdown": "Répartition par région (France)",
+    "region": "Région",
+    "colTotal": "Total",
+    "colCuvees": "Cuvées",
+    "colPrices": "Prix",
+    "colRatings": "Notes"
   }
 }

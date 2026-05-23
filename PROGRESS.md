@@ -1,5 +1,19 @@
 # Achilles's Wines — Progress Log
 
+## 2026-05-23 — Low-hanging fruit sprint: docs alignment + coverage tier + coverage dashboard + purge audit
+
+### Hector (Solution Architect)
+- [Hector] #32 coverage_tier: added `coverage_tier TEXT CHECK IN ('notable','mid','long_tail')` to dim_producer via migration 0013; populated — notable: 19,398 / mid: 7,412 / long_tail: 6,635 (total 33,445 producers). · files: db/schema.ts, db/migrations/0013_coverage_tier.sql, db/migrations/meta/_journal.json
+
+### Cassandra (Data Steward)
+- [Cassandra] #38 mono-source purge: ran audit script — fact_price 1,778 rows, 0 mono-source wine_keys found (already clean per ADR-003). Gate test added (2 new tests). 72/72 Vitest passing. · files: scripts/audit-mono-source-prices.mjs, tests/gates.test.ts
+
+### Odysseus (Frontend)
+- [Odysseus] #36 /admin/coverage KPI dashboard: coverage score gauge + 4 stat cards + tier breakdown + per-region French table (top 20). i18n 6 languages. SiteNav Target icon link. npx tsc --noEmit clean. · files: app/[locale]/admin/coverage/page.tsx, components/site-nav.tsx, messages/{en,fr,nl,de,es,it}.json
+
+### Helena (BA) + Hector (Architect)
+- [Helena+Hector] Docs alignment: README.md completely rewritten — Athena theme, correct stack (Next.js 16.2.6), updated roadmap (sprints 1-14 status), full docs index including wine knowledge base (FR-REGIONS.md, FR-IGP-REFERENCE.md, VIN-DE-FRANCE.md, BORDEAUX-VALIDATION.md), current metrics table. CLAUDE.md: fixed 2 stale Dionysus references → Athena. · files: README.md, CLAUDE.md
+
 ## 2026-05-23 — Kaggle WineEnthusiast reviews ingestion
 
 ### Patroclus (Backend)

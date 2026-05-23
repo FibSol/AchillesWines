@@ -131,6 +131,9 @@ export const dimProducer = sqliteTable(
       .notNull()
       .default(sql`(unixepoch())`),
     notes: text("notes"),
+    coverageTier: text("coverage_tier", {
+      enum: ["notable", "mid", "long_tail"],
+    }),
   },
   (t) => ({
     normIdx: uniqueIndex("idx_producer_norm").on(t.producerNorm, t.countryCode),

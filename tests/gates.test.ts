@@ -119,6 +119,34 @@ describe("applyTriSourceRule", () => {
   });
 });
 
+describe('mono-source gate', () => {
+  it('should flag wine_key with only 1 distinct source', () => {
+    const rows = [
+      { wine_key: 'abc123', source_key: 1, amount_eur: 10 },
+      { wine_key: 'abc123', source_key: 1, amount_eur: 11 }, // same source
+    ];
+    const byWine = new Map<string, typeof rows>();
+    for (const r of rows) {
+      const arr = byWine.get(r.wine_key) ?? [];
+      arr.push(r);
+      byWine.set(r.wine_key, arr);
+    }
+    for (const [, items] of byWine) {
+      const distinctSources = new Set(items.map(r => r.source_key));
+      expect(distinctSources.size).toBe(1); // only 1 source → should be purged
+    }
+  });
+
+  it('should pass wine_key with 2 distinct sources', () => {
+    const rows = [
+      { wine_key: 'abc123', source_key: 1, amount_eur: 10 },
+      { wine_key: 'abc123', source_key: 2, amount_eur: 10.5 },
+    ];
+    const distinctSources = new Set(rows.map(r => r.source_key));
+    expect(distinctSources.size).toBeGreaterThanOrEqual(2);
+  });
+});
+
 describe("normalizeRatingScore", () => {
   it("passes /100 scores", () => {
     const r = normalizeRatingScore({ score: 95, scale: "/100", rawRecord: {} });

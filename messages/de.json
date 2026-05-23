@@ -14,7 +14,8 @@
     "quality": "Datenqualität",
     "quarantine": "Quarantäne",
     "adminJobs": "Überwachung",
-    "adminAuth": "Authentifizierung"
+    "adminAuth": "Authentifizierung",
+    "adminCoverage": "Abdeckung"
   },
   "common": {
     "search": "Suchen",
@@ -293,5 +294,25 @@
     "colInserted": "Eingefügt",
     "colDlq": "DLQ",
     "colActions": "Aktionen"
+  },
+  "adminCoverage": {
+    "title": "Abdeckungs-Dashboard",
+    "subtitle": "Ziel: 60 % der bedeutenden französischen Produzenten (ADR-013)",
+    "scoreLabel": "Abdeckungsgrad",
+    "targetLabel": "Ziel: 60 %",
+    "totalProducers": "Produzenten gesamt",
+    "withCuvees": "Mit Cuvées",
+    "multiPrice": "Multi-Quellen Preise",
+    "multiRating": "Multi-Quellen Bewertungen",
+    "tierBreakdownTitle": "Abdeckungsebenen",
+    "tierNotable": "Notable",
+    "tierMid": "Mittel",
+    "tierLongTail": "Long Tail",
+    "regionBreakdown": "Aufschlüsselung nach Region (Frankreich)",
+    "region": "Region",
+    "colTotal": "Gesamt",
+    "colCuvees": "Cuvées",
+    "colPrices": "Preise",
+    "colRatings": "Bewertungen"
   }
 }

@@ -14,7 +14,8 @@
     "quality": "Datakwaliteit",
     "quarantine": "Quarantaine",
     "adminJobs": "Bewaking",
-    "adminAuth": "Authenticatie"
+    "adminAuth": "Authenticatie",
+    "adminCoverage": "Dekking"
   },
   "common": {
     "search": "Zoeken",
@@ -293,5 +294,25 @@
     "colInserted": "Ingevoegd",
     "colDlq": "DLQ",
     "colActions": "Acties"
+  },
+  "adminCoverage": {
+    "title": "Dekkingsdashboard",
+    "subtitle": "Volg de 60%-doelstelling voor Franse topproducenten (ADR-013)",
+    "scoreLabel": "Dekkingsscore",
+    "targetLabel": "Doel: 60%",
+    "totalProducers": "Totaal producenten",
+    "withCuvees": "Met cuvées",
+    "multiPrice": "Multi-bron prijzen",
+    "multiRating": "Multi-bron beoordelingen",
+    "tierBreakdownTitle": "Dekkingsniveaus",
+    "tierNotable": "Notable",
+    "tierMid": "Gemiddeld",
+    "tierLongTail": "Lange staart",
+    "regionBreakdown": "Verdeling per regio (Frankrijk)",
+    "region": "Regio",
+    "colTotal": "Totaal",
+    "colCuvees": "Cuvées",
+    "colPrices": "Prijzen",
+    "colRatings": "Beoordelingen"
   }
 }

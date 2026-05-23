@@ -71,6 +71,13 @@
       "when": 1748265600000,
       "tag": "0009_staging_dedup_unique_index",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1748350000000,
+      "tag": "0013_coverage_tier",
+      "breakpoints": true
     }
   ]
 }

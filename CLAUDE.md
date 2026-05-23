@@ -95,7 +95,7 @@ To start a step manually, use the pattern from the original sprint commands:
 claude --enable-auto-mode "You are Odysseus on the Achilles's Wines project at C:\Claude\achilles-wines.
 IMPORTANT: Do NOT invoke any skills. Do actual code work only.
 Stack: Next.js + React 19 + Drizzle + Tailwind v4 + next-intl 4 + Recharts.
-Theme: Dionysus (aubergine #1A0B2E, coral #FF5C8A, ivory #FAF7F5).
+Theme: Athena (noir #0F0E17, magenta vin #A53860, crème #F7F4EA, or champagne #E5B25D).
 
 Task — <priority> · <effort>: <description from NEXT.md>
 
@@ -116,7 +116,7 @@ When done:
 | `db/index.ts` | Drizzle client export |
 | `lib/identity.ts` | normText, computeWineKey, isAppellationAllowed |
 | `lib/quality/gates.ts` | regionGate, criticEnumGate, applyTriSourceRule |
-| `app/globals.css` | Dionysus theme, utility classes |
+| `app/globals.css` | Athena theme, utility classes |
 | `messages/{lang}.json` | i18n strings (6 languages) |
 | `scripts/next-session.ps1` | Auto-session launcher (Stop hook) |
 | `.claude/settings.json` | Claude Code project settings (Stop hook config) |

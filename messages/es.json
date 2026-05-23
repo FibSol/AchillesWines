@@ -14,7 +14,8 @@
     "quality": "Calidad datos",
     "quarantine": "Cuarentena",
     "adminJobs": "Supervisión",
-    "adminAuth": "Autenticación"
+    "adminAuth": "Autenticación",
+    "adminCoverage": "Cobertura"
   },
   "common": {
     "search": "Buscar",
@@ -293,5 +294,25 @@
     "colInserted": "Insertados",
     "colDlq": "DLQ",
     "colActions": "Acciones"
+  },
+  "adminCoverage": {
+    "title": "Panel de cobertura",
+    "subtitle": "Seguir el objetivo del 60% de productores franceses notables (ADR-013)",
+    "scoreLabel": "Puntuación de cobertura",
+    "targetLabel": "Objetivo: 60%",
+    "totalProducers": "Total productores",
+    "withCuvees": "Con cuvées",
+    "multiPrice": "Precios multi-fuente",
+    "multiRating": "Puntuaciones multi-fuente",
+    "tierBreakdownTitle": "Niveles de cobertura",
+    "tierNotable": "Notable",
+    "tierMid": "Intermedio",
+    "tierLongTail": "Long Tail",
+    "regionBreakdown": "Desglose por región (Francia)",
+    "region": "Región",
+    "colTotal": "Total",
+    "colCuvees": "Cuvées",
+    "colPrices": "Precios",
+    "colRatings": "Puntuaciones"
   }
 }
