@@ -1,5 +1,10 @@
 # Achilles's Wines — Progress Log
 
+## 2026-05-23 — Sprint 13: vinsbrunin WiziShop rewrite
+
+### Patroclus (Backend)
+- [Patroclus] Rewrite vinsbrunin scraper for WiziShop (was WooCommerce). New approach: 15 French category slugs (/bordeaux/, /bourgogne/, …) + directory-style pagination (/category/2, /category/3, …); product detection via <strong>€</strong> parent-walk (no class dependency); title parsing splits " - " → vintage/producer/cuvée; _appellation_from_title() longest-match; bottle-size filter (37,5cl/magnum); Bio/organic prefix strip. insert_staging_candidate() for dedup. Smoke test: 30/30 fetched, 25 inserted, 0 DLQ. · files: scraper/achilles_scraper/scrapers/vinsbrunin.py
+
 ## 2026-05-23 — Sprint 13: staging dedup fix + UNIQUE index
 
 ### Patroclus (Backend)

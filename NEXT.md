@@ -129,7 +129,7 @@ Wine press (E_press_critic → write to fact_rating):
 - [x] **P0 · 2h** [Patroclus] Fix staging_price_candidates dedup bug: add UNIQUE INDEX on (wine_key, source_key, content_hash); add insert_staging_candidate() helper; migrate all 6 retail scrapers; purge 56,460 duplicate rows + 14,190 inflated fact_price rows; re-run promoter → 1,383 clean rows ✓ 2026-05-23
 - [x] **P2 · 2h** [Patroclus] Run topwijnen_be full catalog (Shopify) — 5,910 products staged (deduped) + promoter ran ✓ 2026-05-23 (wdc_be still pending)
 - [ ] **P2 · 1h** [Patroclus] Run wdc_be full catalog to widen overlap coverage
-- [ ] **P2 · 3h** [Patroclus] Rewrite vinsbrunin scraper for WiziShop platform (current code uses WooCommerce selectors; site uses `/bordeaux/`, `/bourgogne/`, etc. with `?page=N` pagination; no single catalog URL)
+- [x] **P2 · 3h** [Patroclus] Rewrite vinsbrunin scraper for WiziShop platform (current code uses WooCommerce selectors; site uses `/bordeaux/`, `/bourgogne/`, etc. with `?page=N` pagination; no single catalog URL) ✓ 2026-05-23
 - [ ] **P2 · 2h** [Patroclus] Force-clear millesima content hashes + re-run to fix ~1092 Champagne/NV wines stuck in DLQ (appellation="" — fix applied but cached pages won't re-trigger)
 
 ## Sprint 12 — Production data migration
