@@ -1,0 +1,10 @@
+labels:
+  org.opencontainers.image.title: "Achilles's Wines"
+  org.opencontainers.image.description: "Home wine cellar management"
+  org.opencontainers.image.source: "https://github.com/FibSol/AchillesWines"
+  org.opencontainers.image.licenses: "MIT"
+  io.hass.name: "Achilles's Wines"
+  io.hass.description: "Home wine cellar — multilingual, price tracking & cellar inventory"
+  io.hass.arch: "aarch64|amd64|armv7"
+  io.hass.type: "addon"
+  io.hass.version: "1.0.3"

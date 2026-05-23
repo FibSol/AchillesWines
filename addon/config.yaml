@@ -1,6 +1,6 @@
 name: "Achilles's Wines"
 description: "Home wine cellar — multilingual, price tracking & cellar inventory"
-version: "1.0.2"
+version: "1.0.3"
 slug: "achilles_wines"
 init: false
 arch:
@@ -15,5 +15,10 @@ ports_description:
   3000/tcp: "Achilles Wines web interface"
 map:
   - data:rw
-options: {}
-schema: {}
+watchdog: "http://[HOST]:3000/"
+homeassistant_api: false
+auth_api: false
+options:
+  log_level: info
+schema:
+  log_level: list(trace|debug|info|notice|warning|error|fatal)
