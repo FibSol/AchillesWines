@@ -12,20 +12,22 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["better-sqlite3"],
 };
 
-// PWA is only applied in production builds — @ducanh2912/next-pwa modifies
-// the webpack config in ways that break Turbopack's dev server even when
-// disable:true is set. The manifest.json + icons are served statically anyway.
-async function buildConfig() {
-  if (process.env.NODE_ENV === "production") {
-    const withPWAInit = (await import("@ducanh2912/next-pwa")).default;
-    const withPWA = withPWAInit({
-      dest: "public",
-      register: true,
-      workboxOptions: { disableDevLogs: true },
-    });
-    return withPWA(withNextIntl(nextConfig));
-  }
-  return withNextIntl(nextConfig);
+const base = withNextIntl(nextConfig);
+
+// PWA only in production — @ducanh2912/next-pwa modifies the webpack config in
+// ways that break Turbopack dev-server navigation. Cannot use top-level await in
+// next.config.ts (ERR_REQUIRE_ASYNC_MODULE), so we use a synchronous require().
+function applyPWA(config: NextConfig): NextConfig {
+  if (process.env.NODE_ENV !== "production") return config;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const withPWAInit = require("@ducanh2912/next-pwa").default as (
+    opts: object
+  ) => (c: NextConfig) => NextConfig;
+  return withPWAInit({
+    dest: "public",
+    register: true,
+    workboxOptions: { disableDevLogs: true },
+  })(config);
 }
 
-export default await buildConfig();
+export default applyPWA(base);
