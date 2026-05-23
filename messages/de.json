@@ -84,7 +84,15 @@
     "clickToExplore": "Klicke eine Zelle, um die verfügbaren Weine zu erkunden.",
     "loadingWines": "Laden…",
     "noWines": "Keine Weine für diese Auswahl gefunden.",
-    "chartTitle": "Weine im Register nach Jahrgang"
+    "chartTitle": "Weine im Register nach Jahrgang",
+    "tiers": {
+      "t1": "Schwach",
+      "t2": "Mittel",
+      "t3": "Gut",
+      "t4": "Hervorragend",
+      "t5": "Legendär"
+    },
+    "densityLabel": "Weine (kein Score)"
   },
   "map": {
     "title": "Karte der Weingüter",
@@ -250,9 +258,9 @@
   },
   "adminSchedule": {
     "title": "Scraper-Zeitpläne",
-    "subtitle": "Cron-Ausdruck (5 Felder: Minute Stunde Tag Monat Wochentag, UTC) für jede Datenquelle festlegen. Änderungen greifen innerhalb von 60 Sekunden ohne Neustart.",
+    "subtitle": "Zeitplan für jede Datenquelle festlegen. Zeiten in CET (UTC+1). Änderungen greifen innerhalb von 60 Sekunden ohne Neustart.",
     "source": "Quelle",
-    "cronExpr": "Cron (UTC)",
+    "cronExpr": "Zeitplan",
     "description": "Beschreibung",
     "save": "Speichern",
     "clear": "Löschen",

@@ -84,7 +84,15 @@
     "clickToExplore": "Clicca una cella per esplorare i vini disponibili.",
     "loadingWines": "Caricamento…",
     "noWines": "Nessun vino trovato per questa selezione.",
-    "chartTitle": "Vini nel registro per annata"
+    "chartTitle": "Vini nel registro per annata",
+    "tiers": {
+      "t1": "Scarso",
+      "t2": "Mediocre",
+      "t3": "Buono",
+      "t4": "Eccellente",
+      "t5": "Leggendario"
+    },
+    "densityLabel": "vini (nessun punteggio)"
   },
   "map": {
     "title": "Mappa cantine",
@@ -250,9 +258,9 @@
   },
   "adminSchedule": {
     "title": "Pianificazione scraper",
-    "subtitle": "Imposta un'espressione cron (5 campi: minuto ora giorno mese giorno_settimana, UTC) per ogni fonte. Le modifiche si applicano entro 60 secondi senza riavvio.",
+    "subtitle": "Imposta la pianificazione per ogni fonte. Gli orari sono in CET (UTC+1). Le modifiche si applicano entro 60 secondi senza riavvio.",
     "source": "Fonte",
-    "cronExpr": "Cron (UTC)",
+    "cronExpr": "Pianificazione",
     "description": "Descrizione",
     "save": "Salva",
     "clear": "Cancella",

@@ -84,7 +84,15 @@
     "clickToExplore": "Klik op een cel om de beschikbare wijnen te bekijken.",
     "loadingWines": "Laden…",
     "noWines": "Geen wijnen gevonden voor deze selectie.",
-    "chartTitle": "Wijnen in register per jaargang"
+    "chartTitle": "Wijnen in register per jaargang",
+    "tiers": {
+      "t1": "Slecht",
+      "t2": "Matig",
+      "t3": "Goed",
+      "t4": "Uitstekend",
+      "t5": "Legendarisch"
+    },
+    "densityLabel": "wijnen (geen score)"
   },
   "map": {
     "title": "Kaart wijnhuizen",
@@ -250,9 +258,9 @@
   },
   "adminSchedule": {
     "title": "Scraper-planningen",
-    "subtitle": "Stel een cron-expressie in (5 velden: minuut uur dag maand weekdag, UTC) voor elke databron. Wijzigingen worden binnen 60 seconden doorgevoerd zonder herstart.",
+    "subtitle": "Stel de planning in voor elke databron. Tijden zijn in CET (UTC+1). Wijzigingen worden binnen 60 seconden doorgevoerd zonder herstart.",
     "source": "Bron",
-    "cronExpr": "Cron (UTC)",
+    "cronExpr": "Planning",
     "description": "Beschrijving",
     "save": "Opslaan",
     "clear": "Wissen",

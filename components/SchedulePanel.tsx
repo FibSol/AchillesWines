@@ -33,61 +33,75 @@ interface ScheduleLabels {
 
 // ─── Schedule state → cron ────────────────────────────────────────────────────
 
-type Freq = "manual" | "daily" | "twice_daily" | "weekly" | "monthly";
+// All times shown to the user are in CET (UTC+1). Cron is stored/run in UTC.
+const CET_OFFSET = 1;
+
+type Freq = "manual" | "daily" | "twice_daily" | "weekly" | "monthly" | "yearly";
 
 interface SchedState {
   freq: Freq;
-  hour: number;   // 0-23 (0-11 for twice_daily, second fires at hour+12)
+  hour: number;   // CET hour shown to user (0-23; 0-11 for twice_daily)
   minute: number; // 0 | 15 | 30 | 45
   dow: number;    // 0=Sun … 6=Sat (weekly only)
-  dom: number;    // 1-28 (monthly only)
+  dom: number;    // 1-28 (monthly + yearly)
+  month: number;  // 1-12 (yearly only)
 }
 
 const DOW_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const MINUTES = [0, 15, 30, 45];
 const HOURS_ALL = Array.from({ length: 24 }, (_, i) => i);
-const HOURS_HALF = Array.from({ length: 12 }, (_, i) => i); // 0-11 for twice_daily
+const HOURS_HALF = Array.from({ length: 12 }, (_, i) => i); // 0-11 CET for twice_daily
+
+function cetToUtc(cetHour: number): number { return (cetHour - CET_OFFSET + 24) % 24; }
+function utcToCet(utcHour: number): number { return (utcHour + CET_OFFSET) % 24; }
 
 function stateToCron(s: SchedState): string | null {
   if (s.freq === "manual") return null;
   const M = String(s.minute);
-  const H = String(s.hour);
+  const H = String(cetToUtc(s.hour));
   if (s.freq === "daily") return `${M} ${H} * * *`;
   if (s.freq === "twice_daily") {
-    const h2 = (s.hour + 12) % 24;
+    const h2 = cetToUtc((s.hour + 12) % 24);
     return `${M} ${H},${h2} * * *`;
   }
-  if (s.freq === "weekly") return `${M} ${H} * * ${s.dow}`;
+  if (s.freq === "weekly")  return `${M} ${H} * * ${s.dow}`;
   if (s.freq === "monthly") return `${M} ${H} ${s.dom} * *`;
+  if (s.freq === "yearly")  return `${M} ${H} ${s.dom} ${s.month} *`;
   return null;
 }
 
 function cronToState(cron: string | null): SchedState {
-  const defaults: SchedState = { freq: "manual", hour: 3, minute: 0, dow: 1, dom: 1 };
+  const defaults: SchedState = { freq: "manual", hour: 3, minute: 0, dow: 1, dom: 1, month: 1 };
   if (!cron) return defaults;
   const parts = cron.trim().split(/\s+/);
   if (parts.length !== 5) return defaults;
-  const [minStr, hourStr, domStr, , dowStr] = parts;
+  const [minStr, hourStr, domStr, monStr, dowStr] = parts;
   const minute = MINUTES.includes(parseInt(minStr)) ? parseInt(minStr) : 0;
 
+  // yearly: dom + month both fixed
+  if (domStr !== "*" && /^\d+$/.test(domStr) && monStr !== "*" && /^\d+$/.test(monStr)) {
+    return { freq: "yearly", hour: utcToCet(parseInt(hourStr) || 0), minute, dow: 1, dom: parseInt(domStr) || 1, month: parseInt(monStr) || 1 };
+  }
   // weekly
   if (dowStr !== "*" && /^\d+$/.test(dowStr)) {
-    return { freq: "weekly", hour: parseInt(hourStr) || 0, minute, dow: parseInt(dowStr), dom: 1 };
+    return { freq: "weekly", hour: utcToCet(parseInt(hourStr) || 0), minute, dow: parseInt(dowStr), dom: 1, month: 1 };
   }
   // monthly
   if (domStr !== "*" && /^\d+$/.test(domStr)) {
-    return { freq: "monthly", hour: parseInt(hourStr) || 0, minute, dow: 1, dom: parseInt(domStr) || 1 };
+    return { freq: "monthly", hour: utcToCet(parseInt(hourStr) || 0), minute, dow: 1, dom: parseInt(domStr) || 1, month: 1 };
   }
   // twice daily: "M H1,H2 * * *" where |H1-H2|=12
   if (hourStr.includes(",")) {
     const [h1, h2] = hourStr.split(",").map(Number);
     if (!isNaN(h1) && !isNaN(h2) && Math.abs(h1 - h2) === 12) {
-      return { freq: "twice_daily", hour: Math.min(h1, h2), minute, dow: 1, dom: 1 };
+      const cetMin = utcToCet(Math.min(h1, h2));
+      return { freq: "twice_daily", hour: cetMin <= 11 ? cetMin : (cetMin + 12) % 24, minute, dow: 1, dom: 1, month: 1 };
     }
   }
   // daily
   if (hourStr !== "*" && /^\d+$/.test(hourStr)) {
-    return { freq: "daily", hour: parseInt(hourStr), minute, dow: 1, dom: 1 };
+    return { freq: "daily", hour: utcToCet(parseInt(hourStr)), minute, dow: 1, dom: 1, month: 1 };
   }
   return defaults;
 }
@@ -96,14 +110,15 @@ function pad(n: number) { return String(n).padStart(2, "0"); }
 
 function describeState(s: SchedState): string {
   if (s.freq === "manual") return "";
-  const t = `${pad(s.hour)}:${pad(s.minute)} UTC`;
+  const t = `${pad(s.hour)}:${pad(s.minute)} CET`;
   if (s.freq === "daily") return `Every day at ${t}`;
   if (s.freq === "twice_daily") {
-    const t2 = `${pad((s.hour + 12) % 24)}:${pad(s.minute)} UTC`;
+    const t2 = `${pad((s.hour + 12) % 24)}:${pad(s.minute)} CET`;
     return `Every day at ${t} and ${t2}`;
   }
-  if (s.freq === "weekly") return `Every ${DOW_NAMES[s.dow]} at ${t}`;
+  if (s.freq === "weekly")  return `Every ${DOW_NAMES[s.dow]} at ${t}`;
   if (s.freq === "monthly") return `Every month on day ${s.dom} at ${t}`;
+  if (s.freq === "yearly")  return `Every year on ${MONTH_NAMES[s.month - 1]} ${s.dom} at ${t}`;
   return "";
 }
 
@@ -200,6 +215,7 @@ function ScheduleRow({
           <option value="twice_daily">2 times a day</option>
           <option value="weekly">1 time a week</option>
           <option value="monthly">1 time a month</option>
+          <option value="yearly">1 time a year</option>
         </select>
 
         {/* Day-of-week (weekly) */}
@@ -212,7 +228,22 @@ function ScheduleRow({
           </>
         )}
 
-        {/* Day-of-month (monthly) */}
+        {/* Month + day-of-month (yearly) */}
+        {s.freq === "yearly" && (
+          <>
+            <span className="text-xs text-[color:var(--color-fg-subtle)]">on</span>
+            <select className={SEL} value={s.month} onChange={(e) => update({ month: Number(e.target.value) })}>
+              {MONTH_NAMES.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+            </select>
+            <select className={SEL} value={s.dom} onChange={(e) => update({ dom: Number(e.target.value) })}>
+              {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+          </>
+        )}
+
+        {/* Day-of-month (monthly only) */}
         {s.freq === "monthly" && (
           <>
             <span className="text-xs text-[color:var(--color-fg-subtle)]">on day</span>
@@ -235,7 +266,7 @@ function ScheduleRow({
             <select className={SEL} value={s.minute} onChange={(e) => update({ minute: Number(e.target.value) })}>
               {MINUTES.map((m) => <option key={m} value={m}>{pad(m)}</option>)}
             </select>
-            <span className="text-[10px] text-[color:var(--color-fg-subtle)]">UTC</span>
+            <span className="text-[10px] text-[color:var(--color-fg-subtle)]">CET</span>
           </>
         )}
 

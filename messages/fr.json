@@ -84,7 +84,15 @@
     "clickToExplore": "Clique sur une cellule pour explorer les vins disponibles.",
     "loadingWines": "Chargement…",
     "noWines": "Aucun vin pour cette sélection.",
-    "chartTitle": "Vins dans le registre par millésime"
+    "chartTitle": "Vins dans le registre par millésime",
+    "tiers": {
+      "t1": "Faible",
+      "t2": "Moyen",
+      "t3": "Bon",
+      "t4": "Excellent",
+      "t5": "Légendaire"
+    },
+    "densityLabel": "vins (sans note)"
   },
   "map": {
     "title": "Carte des domaines",
@@ -250,9 +258,9 @@
   },
   "adminSchedule": {
     "title": "Planification des scrapers",
-    "subtitle": "Définissez une expression cron à 5 champs (minute heure jour mois jour_semaine) en UTC pour chaque source. Les modifications s'appliquent en moins de 60 secondes, sans redémarrage.",
+    "subtitle": "Définissez la planification de chaque source. Les heures sont en CET (UTC+1). Les modifications s'appliquent en moins de 60 secondes, sans redémarrage.",
     "source": "Source",
-    "cronExpr": "Cron (UTC)",
+    "cronExpr": "Planification",
     "description": "Description",
     "save": "Enregistrer",
     "clear": "Effacer",

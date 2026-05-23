@@ -84,7 +84,15 @@
     "clickToExplore": "Click a cell to explore available wines.",
     "loadingWines": "Loading…",
     "noWines": "No wines found for this selection.",
-    "chartTitle": "Wines in registry by vintage"
+    "chartTitle": "Wines in registry by vintage",
+    "tiers": {
+      "t1": "Bad",
+      "t2": "Average",
+      "t3": "Good",
+      "t4": "Excellent",
+      "t5": "Legendary"
+    },
+    "densityLabel": "wines (no score)"
   },
   "map": {
     "title": "Producer map",
@@ -250,9 +258,9 @@
   },
   "adminSchedule": {
     "title": "Scraper schedules",
-    "subtitle": "Set a 5-field cron expression (minute hour day month weekday) in UTC for each source. Changes are picked up within 60 seconds — no add-on restart needed.",
+    "subtitle": "Set the schedule for each source. Times are in CET (UTC+1). Changes are picked up within 60 seconds — no add-on restart needed.",
     "source": "Source",
-    "cronExpr": "Cron (UTC)",
+    "cronExpr": "Schedule",
     "description": "Description",
     "save": "Save",
     "clear": "Clear",
