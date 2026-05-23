@@ -279,18 +279,26 @@ class CavissimaScraper(BaseScraper):
 
                     handle = p.get("handle") or ""
                     source_url = f"{_BASE}/products/{handle}" if handle else _BASE
-                    producer_name = (p.get("vendor") or "").strip()
+                    vendor_raw = (p.get("vendor") or "").strip()
+                    # Shopify stores often set vendor = shop name — extract real producer
+                    # from the title using the "Producer - Cuvée Vintage" convention.
+                    if not vendor_raw or norm_text(vendor_raw) in ("cavissima", ""):
+                        parts = raw_name.split(" - ", 1)
+                        producer_name = parts[0].strip() if len(parts) == 2 else raw_name
+                    else:
+                        producer_name = vendor_raw
 
                     appellation, appellation_norm = _appellation_from_title(self.conn, raw_name)
                     region = appellation
-                    producer_norm = normalize_producer(producer_name or raw_name)
-                    cuvee_norm = normalize_cuvee(raw_name)
+                    producer_norm = normalize_producer(producer_name)
+                    cuvee_norm = normalize_cuvee(raw_name, strip_words=[producer_norm, appellation_norm])
 
-                    if not producer_norm or not cuvee_norm:
+                    if not producer_norm:
                         write_dlq(self.conn, SOURCE_KEY, batch_id, "parse_error",
-                                  f"Empty norms: {raw_name!r}", {"raw_name": raw_name})
+                                  f"Empty producer_norm for: {raw_name!r}", {"raw_name": raw_name})
                         result.rows_dlq += 1
                         continue
+                    # cuvee_norm can be empty for single-estate wines (château IS the wine)
 
                     wine_key = compute_wine_key(producer_norm, cuvee_norm, vintage, appellation_norm)
                     _ensure_producer(self.conn, producer_norm, producer_name or raw_name)

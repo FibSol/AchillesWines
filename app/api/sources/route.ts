@@ -11,6 +11,9 @@ export interface SourceRow {
   countryCode: string | null;
   cadence: string;
   requiresAuth: boolean;
+  recommendedBatchSize: number | null;
+  lastBenchmarkAt: number | null;
+  benchmarkSuccessRate: number | null;
 }
 
 export async function GET() {
@@ -23,6 +26,9 @@ export async function GET() {
       countryCode: dimSource.countryCode,
       cadence: dimSource.cadence,
       requiresAuth: dimSource.requiresAuth,
+      recommendedBatchSize: dimSource.recommendedBatchSize,
+      lastBenchmarkAt: dimSource.lastBenchmarkAt,
+      benchmarkSuccessRate: dimSource.benchmarkSuccessRate,
     })
     .from(dimSource)
     .where(eq(dimSource.enabled, true))

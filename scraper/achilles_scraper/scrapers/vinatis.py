@@ -282,14 +282,15 @@ class VinatissScraper(BaseScraper):
                     source_url = f"{_BASE}/{slug}" if slug else _BASE
 
                     producer_norm = normalize_producer(producer_name or raw_name)
-                    cuvee_norm = normalize_cuvee(raw_name)
                     appellation_norm = norm_text(appellation) if appellation else ""
+                    cuvee_norm = normalize_cuvee(raw_name, strip_words=[producer_norm, appellation_norm])
 
-                    if not producer_norm or not cuvee_norm:
+                    if not producer_norm:
                         write_dlq(self.conn, SOURCE_KEY, batch_id, "parse_error",
-                                  f"Empty producer_norm or cuvee_norm: {raw_name!r}", {"raw_name": raw_name})
+                                  f"Empty producer_norm for: {raw_name!r}", {"raw_name": raw_name})
                         result.rows_dlq += 1
                         continue
+                    # cuvee_norm can be empty for single-estate wines (château IS the wine)
 
                     wine_key = compute_wine_key(producer_norm, cuvee_norm, vintage, appellation_norm)
                     _ensure_producer(self.conn, producer_norm, producer_name or raw_name)

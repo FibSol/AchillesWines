@@ -31,6 +31,9 @@ interface Source {
   countryCode: string | null;
   cadence: string;
   requiresAuth: boolean;
+  recommendedBatchSize: number | null;
+  lastBenchmarkAt: number | null;
+  benchmarkSuccessRate: number | null;
 }
 
 const STATUS_BADGE: Record<JobStatus, string> = {
@@ -75,6 +78,8 @@ export function JobsTable() {
   const limitRef = useRef<HTMLInputElement>(null);
 
   const sourceByKey = new Map(sources.map((s) => [s.sourceKey, s]));
+  const [selectedSourceKey, setSelectedSourceKey] = useState<number | null>(null);
+  const selectedSource = selectedSourceKey ? sourceByKey.get(selectedSourceKey) : null;
 
   const fetchJobs = async () => {
     try {
@@ -100,6 +105,17 @@ export function JobsTable() {
       .catch(() => setSources([]));
     return () => clearInterval(id);
   }, []);
+
+  const handleSourceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const key = parseInt(e.target.value ?? "0") || null;
+    setSelectedSourceKey(key);
+    if (limitRef.current && key) {
+      const src = sourceByKey.get(key);
+      if (src?.recommendedBatchSize) {
+        limitRef.current.value = String(src.recommendedBatchSize);
+      }
+    }
+  };
 
   const handleLaunch = async () => {
     const sourceKey = parseInt(sourceRef.current?.value ?? "0");
@@ -147,6 +163,7 @@ export function JobsTable() {
             <label className="text-xs text-[color:var(--color-fg-muted)]">Source</label>
             <select
               ref={sourceRef}
+              onChange={handleSourceChange}
               className="rounded-lg border border-[color:var(--color-border)] bg-[rgba(255,255,255,0.05)] px-3 py-2 text-sm text-[color:var(--color-fg)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] min-w-[16rem] [&>option]:bg-white [&>option]:text-gray-900"
               disabled={sources.length === 0}
             >
@@ -158,9 +175,18 @@ export function JobsTable() {
                   {s.sourceName}
                   {s.countryCode ? ` (${s.countryCode})` : ""}
                   {s.requiresAuth ? " 🔑" : ""}
+                  {s.recommendedBatchSize ? ` · rec=${s.recommendedBatchSize}` : ""}
                 </option>
               ))}
             </select>
+            {selectedSource?.recommendedBatchSize && (
+              <div className="mt-1 text-xs text-[color:var(--color-accent)]">
+                Recommended: {selectedSource.recommendedBatchSize}
+                {selectedSource.benchmarkSuccessRate != null
+                  ? ` · ${Math.round(selectedSource.benchmarkSuccessRate * 100)}% success rate`
+                  : ""}
+              </div>
+            )}
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-xs text-[color:var(--color-fg-muted)]">Limite</label>

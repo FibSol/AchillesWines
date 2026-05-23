@@ -317,20 +317,21 @@ class WijnhuisScraper(BaseScraper):
                         json.dumps({"name": raw_name, "price": price_eur, "url": product_url}, sort_keys=True).encode()
                     ).hexdigest()
 
+                    appellation, appellation_norm = _appellation_from_title(self.conn, raw_name)
+                    region = appellation
                     producer_norm = normalize_producer(raw_name)
-                    cuvee_norm = normalize_cuvee(raw_name)
+                    cuvee_norm = normalize_cuvee(raw_name, strip_words=[producer_norm, appellation_norm])
 
-                    if not producer_norm or not cuvee_norm:
+                    if not producer_norm:
                         write_dlq(
                             self.conn, SOURCE_KEY, batch_id,
-                            "parse_error", f"Empty producer_norm or cuvee_norm for: {raw_name!r}",
+                            "parse_error", f"Empty producer_norm for: {raw_name!r}",
                             {"raw_name": raw_name, "url": product_url},
                         )
                         result.rows_dlq += 1
                         continue
+                    # cuvee_norm can be empty for single-estate wines (château IS the wine)
 
-                    appellation, appellation_norm = _appellation_from_title(self.conn, raw_name)
-                    region = appellation
                     wine_key = compute_wine_key(producer_norm, cuvee_norm, vintage, appellation_norm)
                     _ensure_producer(self.conn, producer_norm, raw_name)
 

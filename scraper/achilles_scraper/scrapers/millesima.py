@@ -440,17 +440,19 @@ class MillesimaScraper(BaseScraper):
                     card_hash = card["card_hash"]
 
                     producer_norm = normalize_producer(raw_name)
-                    cuvee_norm = normalize_cuvee(raw_name)
                     appellation_norm = norm_text(appellation) if appellation else ""
+                    cuvee_norm = normalize_cuvee(raw_name, strip_words=[producer_norm, appellation_norm])
 
-                    if not producer_norm or not cuvee_norm:
+                    if not producer_norm:
                         write_dlq(
                             self.conn, SOURCE_KEY, batch_id,
-                            "parse_error", f"Empty producer_norm or cuvee_norm for: {raw_name!r}",
+                            "parse_error", f"Empty producer_norm for: {raw_name!r}",
                             {"raw_name": raw_name, "url": source_url},
                         )
                         result.rows_dlq += 1
                         continue
+                    # cuvee_norm can be empty for single-estate wines (e.g. "Château Pétrus 2010"
+                    # where the château itself IS the wine — no separate cuvée name).
 
                     wine_key = compute_wine_key(producer_norm, cuvee_norm, vintage, appellation_norm)
                     _ensure_producer(self.conn, producer_norm, raw_name)

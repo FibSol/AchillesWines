@@ -56,24 +56,49 @@ export function cleanCuveeTails(normalized: string): string {
   return out.replace(/\s+/g, " ").trim();
 }
 
+const VINTAGE_RE = /\b(19|20)\d{2}\b/g;
+
+/** Strip vintage years so per-vintage producer artifacts don't pollute the key. */
 export function normalizeProducer(name: string): string {
-  return expandProducerPrefix(normText(name));
+  const n = normText(name).replace(VINTAGE_RE, " ").replace(/\s+/g, " ").trim();
+  return expandProducerPrefix(n);
 }
 
-export function normalizeCuvee(name: string): string {
-  return cleanCuveeTails(normText(name));
+/**
+ * Normalize a cuvée name.
+ * Pass ``stripWords`` (producer norm, appellation norm …) to prevent them from
+ * leaking into the cuvée component of the wine_key.
+ */
+export function normalizeCuvee(name: string, stripWords?: string[]): string {
+  let base = normText(name);
+  if (stripWords) {
+    for (const word of stripWords) {
+      if (word) base = base.replace(new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "g"), " ");
+    }
+    base = base.replace(/\s+/g, " ").trim();
+  }
+  return cleanCuveeTails(base);
 }
 
+/**
+ * Compute a deterministic 16-char hex wine identity key.
+ *
+ * appellationNorm is kept in the signature for backwards-compat but is NOT
+ * included in the hash.  Different scrapers have wildly different appellation
+ * extraction quality (API attribute vs title heuristic vs fallback "vin de
+ * france"), which would produce unique hashes for the same physical wine.
+ * appellation still lives in dim_wine; it just doesn't affect the dedup key.
+ */
 export function computeWineKey(opts: {
   producerNorm: string;
   cuveeNorm: string;
   vintage: number | null;
-  appellationNorm: string;
+  appellationNorm?: string;   // accepted but not hashed
   bottleMl?: number;
 }): string {
-  const { producerNorm, cuveeNorm, vintage, appellationNorm, bottleMl = 750 } = opts;
+  const { producerNorm, cuveeNorm, vintage, bottleMl = 750 } = opts;
   const v = vintage === null ? "NV" : String(vintage);
-  const raw = `${producerNorm}|${cuveeNorm}|${v}|${appellationNorm}|${bottleMl}`;
+  const raw = `${producerNorm}|${cuveeNorm}|${v}|${bottleMl}`;
   return createHash("sha1").update(raw).digest("hex").slice(0, 16);
 }
 
