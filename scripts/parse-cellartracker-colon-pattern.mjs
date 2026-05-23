@@ -65,20 +65,51 @@ console.log(`Colon-pattern producers found : ${pollutedProducers.length}\n`);
 
 // ---------- 2. Parser ----------
 
-const APPELLATION_HEADS = [
-  // Burgundy
+// Village-level AOCs: head + " 1er Cru" or " Grand Cru" suffix becomes the
+// official appellation name (e.g. "Beaune Premier Cru", "Chablis Grand Cru").
+const VILLAGE_AOCS = [
   'Beaune', 'Volnay', 'Pommard', 'Meursault', 'Puligny-Montrachet',
   'Chassagne-Montrachet', 'Savigny-Les-Beaune', 'Savigny-lès-Beaune',
-  'Aloxe-Corton', 'Corton', 'Saint-Aubin', 'Saint-Romain',
+  'Aloxe-Corton', 'Saint-Aubin', 'Saint-Romain',
   'Auxey-Duresses', 'Monthélie', 'Santenay', 'Ladoix',
   'Pernand-Vergelesses', 'Chorey-lès-Beaune', 'Marsannay',
   'Fixin', 'Gevrey-Chambertin', 'Morey-Saint-Denis',
   'Chambolle-Musigny', 'Vougeot', 'Vosne-Romanée', 'Vosne-Romanee',
   'Nuits-Saint-Georges', 'Mercurey', 'Rully', 'Givry', 'Montagny',
   'Pouilly-Fuissé', 'Saint-Véran', 'Chablis',
-  // Champagne (Grand cru and Premier cru villages)
-  'Blanc de Blancs', 'Blanc de Noirs',
 ];
+
+// Burgundy Grand Cru AOCs: head IS itself an AOC name; classification is
+// just "Grand Cru" but is NOT appended to the appellation_name.
+// Per INAO 2012 list — these are each their own AOC.
+const GRAND_CRU_AOCS = [
+  // Côte de Nuits (Gevrey-Chambertin commune)
+  'Chambertin', 'Chambertin-Clos de Bèze', 'Chambertin-Clos-de-Bèze',
+  'Chapelle-Chambertin', 'Charmes-Chambertin', 'Griotte-Chambertin',
+  'Latricières-Chambertin', 'Mazis-Chambertin', 'Mazy-Chambertin',
+  'Mazoyères-Chambertin', 'Ruchottes-Chambertin',
+  // Morey-Saint-Denis
+  'Clos de la Roche', 'Clos Saint-Denis', 'Clos de Tart', 'Clos des Lambrays',
+  // Chambolle-Musigny
+  'Bonnes-Mares', 'Musigny',
+  // Vougeot
+  'Clos de Vougeot', 'Clos Vougeot',
+  // Flagey-Échezeaux
+  'Échezeaux', 'Echezeaux', 'Grands-Échezeaux', 'Grands-Echezeaux', 'Grands Échezeaux', 'Grands Echezeaux',
+  // Vosne-Romanée
+  'Romanée-Conti', 'La Tâche', 'Romanée-Saint-Vivant', 'La Romanée', 'La Grande Rue', 'Richebourg',
+  // Côte de Beaune — Corton hill
+  'Corton', 'Corton-Charlemagne', 'Charlemagne',
+  // Côte de Beaune — Montrachet hill
+  'Montrachet', 'Le Montrachet', 'Chevalier-Montrachet',
+  'Bâtard-Montrachet', 'Batard-Montrachet',
+  'Bienvenues-Bâtard-Montrachet', 'Bienvenues-Batard-Montrachet',
+  'Criots-Bâtard-Montrachet', 'Criots-Batard-Montrachet',
+];
+
+const APPELLATION_HEADS = [...GRAND_CRU_AOCS, ...VILLAGE_AOCS]
+  .sort((a, b) => b.length - a.length);   // longest-first to avoid prefix collisions
+const GRAND_CRU_SET = new Set(GRAND_CRU_AOCS.map(s => s.toLowerCase()));
 
 function parseRow(name) {
   // Producer is everything before the first " : ".
@@ -135,8 +166,13 @@ const updateWine = db.prepare(`
 const deleteProducer = db.prepare('DELETE FROM dim_producer WHERE producer_key = ?');
 const countWines = db.prepare('SELECT COUNT(*) AS n FROM dim_wine WHERE producer_key = ?');
 
-// Appellation tier lookup: 1er Cru / Grand Cru appellations need the suffix.
+// Appellation tier lookup:
+//   • Village AOC + 1er Cru → "<head> Premier Cru" (e.g. "Beaune Premier Cru")
+//   • Village AOC + Grand Cru → "<head> Grand Cru" (e.g. "Chablis Grand Cru")
+//   • Grand Cru AOC (Chambertin, Bonnes-Mares, Bâtard-Montrachet, …) → just the head;
+//     "Grand Cru" stays purely in the classification column.
 function appellationCanonicalName(head, classification) {
+  if (GRAND_CRU_SET.has(head.toLowerCase())) return head;
   if (classification === '1er Cru')   return `${head} Premier Cru`;
   if (classification === 'Grand Cru') return `${head} Grand Cru`;
   return head;
