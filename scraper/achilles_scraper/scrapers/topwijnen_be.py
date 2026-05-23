@@ -33,7 +33,7 @@ _USER_AGENT = (
 )
 
 _BASE = "https://www.topwijnen.be"
-_CATALOGUE_URL = f"{_BASE}/wijnen"
+_CATALOGUE_URL = f"{_BASE}/nl/stockwijnen"
 
 _logger = logging.getLogger(__name__)
 

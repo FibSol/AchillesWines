@@ -80,10 +80,10 @@ Wine press (E_press_critic → write to fact_rating):
 
 ## Sprint 11 — Scraper URL fixes + design review
 
-- [ ] **P1 · 0.5h** [Patroclus] Fix vinatis.py catalog URL (404 on `/vente-vin?page=1`) — [#14](https://github.com/FibSol/AchillesWines/issues/14)
-- [ ] **P1 · 0.5h** [Patroclus] Fix cavissima.py catalog URL (404 on `/vins/?p=1`) — [#15](https://github.com/FibSol/AchillesWines/issues/15)
-- [ ] **P1 · 1h**   [Patroclus] Tune BE shop URL patterns after first live test (wdc, cinoco, wijnhuis, topwijnen_be) — [#16](https://github.com/FibSol/AchillesWines/issues/16)
-- [ ] **P1 · 0.5h** [Patroclus] Add wine-searcher to dim_source (missed in 0004) + add scraper class — [#17](https://github.com/FibSol/AchillesWines/issues/17)
+- [x] **P1 · 0.5h** [Patroclus] Fix vinatis.py catalog URL (404 on `/vente-vin?page=1`) — [#14](https://github.com/FibSol/AchillesWines/issues/14) ✓ 2026-05-23
+- [x] **P1 · 0.5h** [Patroclus] Fix cavissima.py catalog URL (404 on `/vins/?p=1`) — [#15](https://github.com/FibSol/AchillesWines/issues/15) ✓ 2026-05-23
+- [x] **P1 · 1h**   [Patroclus] Tune BE shop URL patterns after first live test (wdc, cinoco, wijnhuis, topwijnen_be) — [#16](https://github.com/FibSol/AchillesWines/issues/16) ✓ 2026-05-23
+- [x] **P1 · 0.5h** [Patroclus] Add wine-searcher to dim_source (missed in 0004) + add scraper class — [#17](https://github.com/FibSol/AchillesWines/issues/17) ✓ 2026-05-23
 - [ ] **P1 · 3h**   [Odysseus] Design review: theme consistency, UX polish, empty/loading/error states, mobile — [#23](https://github.com/FibSol/AchillesWines/issues/23)
 
 ## Sprint 6 — Menu pairing

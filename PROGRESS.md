@@ -1,5 +1,13 @@
 # Achilles's Wines — Progress Log
 
+## 2026-05-23 — Sprint 11: scraper URL fixes + wine-searcher stub
+
+### Patroclus (Backend)
+- [Patroclus] Fix vinatis.py: `/vente-vin` → `/achat-vin-rouge` (live-probed) · closes #14 · files: scraper/achilles_scraper/scrapers/vinatis.py
+- [Patroclus] Fix cavissima.py: `/vins/` → `/achat-vin/` (live-probed) · closes #15 · files: scraper/achilles_scraper/scrapers/cavissima.py
+- [Patroclus] Fix BE shops: cinoco `/fr/vins` → `/collections/les-vins` (Shopify); wijnhuis.be → wijnhuis.nl/wijnen (wrong domain); topwijnen `/wijnen` → `/nl/stockwijnen`; wdc.be/fr/vins already correct · closes #16 · files: scrapers/cinoco.py, wijnhuis.py, topwijnen_be.py
+- [Patroclus] Add wine-searcher stub: WineSearcherScraper (not implemented, subscription needed) + registered in cli.py · closes #17 · files: scrapers/wine_searcher.py, cli.py
+
 ## 2026-05-22 — Sprint 5/8/9 scraper ramp-up complete
 
 ### Patroclus (Backend)

@@ -33,7 +33,7 @@ _USER_AGENT = (
 )
 
 _BASE = "https://www.cinoco.com"
-_CATALOGUE_URL = f"{_BASE}/fr/vins"
+_CATALOGUE_URL = f"{_BASE}/collections/les-vins"
 
 _logger = logging.getLogger(__name__)
 

@@ -76,6 +76,7 @@ def _load_scrapers():
     from .scrapers.terredevins import TerreDeVinsScraper
     # Vintage charts
     from .scrapers.vintage_ratings import VintageRatingsScraper
+    from .scrapers.wine_searcher import WineSearcherScraper
 
     SCRAPERS["millesima"] = MillesimaScraper
     SCRAPERS["millesima_be"] = MillesimaBeScraper
@@ -104,6 +105,7 @@ def _load_scrapers():
     SCRAPERS["figaro_vin"] = FigaroVinScraper
     SCRAPERS["terredevins"] = TerreDeVinsScraper
     SCRAPERS["vintage_ratings"] = VintageRatingsScraper
+    SCRAPERS["wine_searcher"] = WineSearcherScraper
 
 
 @click.group()

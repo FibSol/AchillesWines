@@ -33,7 +33,7 @@ _USER_AGENT = (
 )
 
 _BASE = "https://www.cavissima.com"
-_CATALOGUE_URL = f"{_BASE}/vins/"
+_CATALOGUE_URL = f"{_BASE}/achat-vin/"
 
 _logger = logging.getLogger(__name__)
 

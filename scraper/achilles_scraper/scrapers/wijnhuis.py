@@ -32,7 +32,7 @@ _USER_AGENT = (
     "Chrome/124.0.0.0 Safari/537.36"
 )
 
-_BASE = "https://www.wijnhuis.be"
+_BASE = "https://www.wijnhuis.nl"
 _CATALOGUE_URL = f"{_BASE}/wijnen"
 
 _logger = logging.getLogger(__name__)
