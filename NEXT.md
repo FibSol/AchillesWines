@@ -128,10 +128,10 @@ Wine press (E_press_critic → write to fact_rating):
 - [x] **P2 · 1h** [Odysseus] Best Value page: price-confidence fallback mode when fact_rating empty (shows 1787 wines ranked by multi-source price agreement) ✓ 2026-05-23
 - [x] **P0 · 2h** [Patroclus] Fix staging_price_candidates dedup bug: add UNIQUE INDEX on (wine_key, source_key, content_hash); add insert_staging_candidate() helper; migrate all 6 retail scrapers; purge 56,460 duplicate rows + 14,190 inflated fact_price rows; re-run promoter → 1,383 clean rows ✓ 2026-05-23
 - [x] **P2 · 2h** [Patroclus] Run topwijnen_be full catalog (Shopify) — 5,910 products staged (deduped) + promoter ran ✓ 2026-05-23 (wdc_be still pending)
-- [ ] **P2 · 1h** [Patroclus] Run wdc_be full catalog to widen overlap coverage
+- [x] **P2 · 1h** [Patroclus] Run wdc_be full catalog to widen overlap coverage — wdc.be is a Nameshift/SvelteKit SPA; static scraping not viable; SPA-detection + DLQ entry added; headless browser needed for future scraping ✓ 2026-05-23
 - [x] **P2 · 3h** [Patroclus] Rewrite vinsbrunin scraper for WiziShop platform (current code uses WooCommerce selectors; site uses `/bordeaux/`, `/bourgogne/`, etc. with `?page=N` pagination; no single catalog URL) ✓ 2026-05-23
 - [x] **P2 · 4h** [Patroclus] Comprehensive scraper audit + fix: cinoco bundle filter + ALLCAPS norm, vinatis international wines appellation fallback, hachette full rewrite (link-href detection), belgiumwinewatchers URL+attrs, wdc/wijnendeclerck/wijnhuis/cavissima_be/millesima_be .attrs+appellation+insert_staging_candidate ✓ 2026-05-23
-- [ ] **P2 · 0.5h** [Patroclus] Force-clear millesima_be content hashes for Champagne/NV wines stuck in DLQ (code fix applied in scraper audit; run: `DELETE FROM ops_content_hashes WHERE url LIKE '%millesima.be%'` then re-run scraper)
+- [x] **P2 · 0.5h** [Patroclus] Force-clear millesima_be content hashes for Champagne/NV wines stuck in DLQ (code fix applied in scraper audit; run: `DELETE FROM ops_content_hashes WHERE url LIKE '%millesima.be%'` then re-run scraper) — 0 hashes to delete (first run ever); scraper ran: 499 staged, 535 promoted to fact_price (total 1918) ✓ 2026-05-23
 
 ## Sprint 12 — Production data migration
 

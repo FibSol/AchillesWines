@@ -1,5 +1,12 @@
 # Achilles's Wines — Progress Log
 
+## 2026-05-23 — Sprint 13: wdc_be catalog + millesima_be DLQ flush
+
+### Patroclus (Backend)
+- [Patroclus] wdc_be full catalog run: discovered wdc.be is a Nameshift/SvelteKit pure-SPA returning a 1815-byte JS shell for every URL — static httpx scraping is not viable. Added SPA detection in wdc.py (size < 3000 + `__sveltekit_` marker) that logs a `scraper_not_applicable` DLQ entry with a clear recommendation to use a headless browser (Playwright/Selenium). 0 products staged as expected. · files: scraper/achilles_scraper/scrapers/wdc.py
+- [Patroclus] millesima_be DLQ flush + re-run: ops_content_hashes had 0 millesima.be rows (first-ever run), DELETE was a no-op. Ran millesima_be scraper (limit 500): 500 fetched, 499 inserted into staging_price_candidates, 1 DLQ (unresolved_dim). 12 content hash pages cached. · files: none (DB only)
+- [Patroclus] Promoter run after both scrapers: 535 new rows promoted to fact_price (total: 1383 → 1918). 720 wine_keys with 2+ sources; 26,334 still pending single-source. · milestone: 1918 fact_price rows
+
 ## 2026-05-23 — Sprint 13: comprehensive scraper audit + fixes
 
 ### Patroclus (Backend)

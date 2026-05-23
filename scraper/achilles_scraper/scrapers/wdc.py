@@ -245,6 +245,28 @@ class WdcScraper(BaseScraper):
 
                 tree = HTMLParser(resp.text)
 
+                # Detect JavaScript SPA shell — wdc.be is a Nameshift/SvelteKit SPA that
+                # returns a ~1815-byte empty shell for every URL.  Static HTTP scraping is
+                # not possible without a headless browser.  Log once and abort gracefully.
+                # Detection: tiny response (<3 KB) + SvelteKit bootstrap marker = pure SPA.
+                is_spa_shell = len(resp.content) < 3000 and "__sveltekit_" in resp.text
+                if is_spa_shell and page == 1:
+                    msg = (
+                        "wdc.be is a Nameshift/SvelteKit SPA: every URL returns a ~1815-byte "
+                        "JavaScript shell with no server-rendered product data.  "
+                        "Static httpx scraping cannot retrieve the catalogue; a headless "
+                        "browser (Playwright/Selenium) is required.  Skipping run."
+                    )
+                    _logger.warning(msg)
+                    write_dlq(
+                        self.conn, SOURCE_KEY, batch_id,
+                        "scraper_not_applicable", msg,
+                        {"url": url, "response_size": len(resp.content)},
+                    )
+                    result.rows_dlq += 1
+                    result.error = msg
+                    break
+
                 # Detect product cards — WDC uses typical e-commerce product card markup
                 product_cards = (
                     tree.css(".product-item")
