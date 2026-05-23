@@ -208,7 +208,9 @@ export function VintageHeatmap({ cells, regions, years, labels }: Props) {
       <div ref={scrollRef} className="glass-card p-4 overflow-x-auto" style={{ background: "rgba(13,6,26,0.7)" }}>
         <div style={{ minWidth: `${LABEL_W + visibleYears.length * (CELL_W + 2)}px` }}>
           {/* Year header */}
-          <div className="flex" style={{ paddingLeft: `${LABEL_W}px` }}>
+          <div className="flex">
+            {/* Sticky corner spacer */}
+            <div style={{ width: `${LABEL_W}px`, flexShrink: 0, position: "sticky", left: 0, zIndex: 2, background: "rgba(13,6,26,0.95)" }} />
             {visibleYears.map(y => (
               <div key={y} style={{ width: `${CELL_W}px`, flexShrink: 0, fontSize: "9px", marginRight: "2px" }} className="text-center text-[rgba(250,247,245,0.38)] select-none">
                 {String(y).slice(2)}
@@ -229,7 +231,7 @@ export function VintageHeatmap({ cells, regions, years, labels }: Props) {
                   >
                     <div
                       className="flex items-center gap-1.5 flex-shrink-0 pr-2"
-                      style={{ width: `${LABEL_W}px` }}
+                      style={{ width: `${LABEL_W}px`, position: "sticky", left: 0, zIndex: 1, background: "rgba(13,6,26,0.95)" }}
                     >
                       <ChevronRight
                         className={`size-3 text-[rgba(250,247,245,0.4)] group-hover:text-[color:var(--color-coral-400)] transition-transform ${isCollapsed ? "" : "rotate-90"}`}
@@ -254,7 +256,7 @@ export function VintageHeatmap({ cells, regions, years, labels }: Props) {
                           {/* Region label */}
                           <div
                             className="flex items-center flex-shrink-0 pr-2 overflow-hidden pl-5"
-                            style={{ width: `${LABEL_W}px` }}
+                            style={{ width: `${LABEL_W}px`, position: "sticky", left: 0, zIndex: 1, background: "rgba(13,6,26,0.95)" }}
                             title={region}
                           >
                             <span className="text-[rgba(250,247,245,0.58)] text-[11px] font-medium truncate">
