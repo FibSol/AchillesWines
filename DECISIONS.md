@@ -29,6 +29,20 @@
   - Apollo (bordeaux/safran, Cormorant + DM Sans) — non réévalué.
 - **Reasoning:** L'utilisateur a prescrit la palette exacte. Athena était une option dès ADR-002 (déjà documentée comme alternative). La combinaison magenta vin + or champagne est un classique sommellerie (accord couleur/or intentionnel, pas accidentel). Les deux accents servent des rôles distincts : magenta = interactif (boutons, bordures, états actifs), champagne = décoratif/données (valeurs stat cards, badges, le "A." du footer). next/font garantit le chargement réel des fontes (l'ancienne implémentation utilisait des fallbacks CSS sans téléchargement).
 
+## ADR-013 — Couverture France : skeleton-first, 60 % strict plutôt que 80 % bruité
+- **Date:** 2026-05-23
+- **Status:** accepted
+- **Decision:** Cible **60 % des producteurs français notables** avec données vérifiées, plutôt que 80 % en acceptant des données mono-source. Pipeline en 3 couches :
+  1. **Squelette (autoritaire, gratuit)** — INAO appellation registry complet + listes officielles des syndicats viticoles (CIVB Bordeaux, BIVB Bourgogne, Inter-Rhône, InterLoire, CIVC Champagne, CIVA Alsace, etc.) → `dim_producer` étendu sans prix ni rating.
+  2. **Cuvées + fourchettes de prix** — élargir les scrapers existants (iDealwine, Wine-Searcher, Vinatis, Millesima, Lavinia, Cavissima) + agrégat min/max par `wine_key`. Promotion à `fact_price` uniquement si **≥2 sources concordent à ±15 %** (ADR-003 inchangé).
+  3. **Ratings critiques** — RVF, Decanter, Bettane+Desseauve, James Suckling, Hachette ; promotion à `fact_rating` uniquement si **≥2 sources critiques** valident (nouveau gate). Vivino utilisé en tiebreaker seulement, jamais en source unique.
+- **KPI** : `coverage_score = (producers_with_≥1_cuvée + cuvées_with_≥2_source_price + wines_with_≥2_source_rating) / (3 × producers_total)` — cible **≥ 60 %**.
+- **Alternatives considered:**
+  - (a) 80 % coverage, sources uniques tolérées. Rejeté — répète l'erreur burgundy-manager (cf. [feedback_burgundy_prices_data_quality.md](../../../Users/Nicolas/.claude/projects/C--Claude/memory/feedback_burgundy_prices_data_quality.md)).
+  - (b) Vivino comme source primaire pour atteindre 80 %. Rejeté — crowd data introduit le bruit que les gates ADR-003 doivent justement bloquer.
+  - (c) LWIN/Liv-ex abonnement pour couverture exhaustive. Rejeté (coût, cf. ADR-005).
+- **Reasoning:** L'utilisateur a explicitement choisi "slower, stricter, 60 % is good enough" après reality-check. Le squelette INAO + syndicats est gratuit, autoritaire, et donne 100 % des producteurs déclarés sans pollution. Les couches 2 et 3 héritent du gate multi-source existant (ADR-003) au lieu de l'assouplir. Mieux vaut 60 % de données fiables qu'un 80 % qu'il faudrait re-nettoyer.
+
 ## ADR-003 — Stratégie data strict multi-source obligatoire
 - **Date:** 2026-05-21
 - **Status:** accepted

@@ -1,5 +1,10 @@
 # Achilles's Wines — Progress Log
 
+## 2026-05-23 — Sprint 14 planned: full-France 60% strict (ADR-013)
+
+### Helena (BA) / Hector (Architect)
+- [Helena+Hector] Locked coverage strategy after reality-check with Nicolas: target 60% of notable French producers with verified multi-source data, NOT 80% with mono-source noise. Added ADR-013 (skeleton-first INAO/syndicats layer, then ≥2-source price/rating gates, Vivino tiebreaker-only). Created Sprint 14 in NEXT.md with 9 tasks (2× P0, 5× P1, 2× P2) and matching GitHub issues #30–#38. · files: DECISIONS.md, NEXT.md, PROGRESS.md
+
 ## 2026-05-23
 
 ### Patroclus (Backend)
