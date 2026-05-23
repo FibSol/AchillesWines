@@ -1,5 +1,10 @@
 # Achilles's Wines — Progress Log
 
+## 2026-05-23
+
+### Patroclus (Backend)
+- [Patroclus] Fixed four broken scrapers: (1) xwines — updated URLs from renamed GitHub dataset (Slim→Test, zip→plain CSV), removed zipfile extraction logic; 50 rows inserted, 0 DLQ. (2) vintage_ratings / wine_spectator — rewrote selectors to use per-region sub-pages (`/vintage-charts/region/<slug>`), parse `<tr>` rows with `a.font-bold` year links + strip "Score" h5 prefix from score cell; disabled Decanter (404); 1,059 fact_vintage_rating rows inserted, 0 DLQ. (3) james_suckling — probed for `__NEXT_DATA__` (absent), site is client-side-only Next.js SPA; logs clean `scraper_not_applicable` DLQ + sets `requires_auth=1`. (4) decanter — detects Piano paywall via `piano-container-search-results` div, logs `auth_error` DLQ + sets `requires_auth=1`. All 124 Python tests pass. fact_rating total: 50 rows (xwines). · files: scraper/achilles_scraper/scrapers/xwines.py, scraper/achilles_scraper/scrapers/vintage_ratings.py, scraper/achilles_scraper/scrapers/james_suckling.py, scraper/achilles_scraper/scrapers/decanter_ratings.py, PROGRESS.md
+
 ## 2026-05-23 — Sprint 13: wdc_be source retired (domain for sale)
 
 ### Patroclus (Backend)

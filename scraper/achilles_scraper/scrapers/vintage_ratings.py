@@ -3,8 +3,15 @@
 Vintage chart ratings scraper.
 
 Fetches vintage-level ratings by region from:
-  - Wine Spectator: https://www.winespectator.com/vintagecharts/ (public)
-  - Decanter: https://www.decanter.com/wine-buying-guide/vintage-charts/ (public)
+  - Wine Spectator: per-region sub-pages at
+    https://www.winespectator.com/vintage-charts/region/<slug>  (public)
+  - Decanter: https://www.decanter.com/wine-buying-guide/vintage-charts/ (404 — disabled)
+
+Data is in a <table> on each region sub-page.  Each <tr> contains:
+  td[0]: vintage year  (a.font-bold link text, preceded by h5 "Vintage")
+  td[1]: score         (bare number, preceded by h5 "Score")
+  td[2]: drink window  (text, preceded by h5 "Drink Window")
+  td[3]: description   (text, td.d-none.d-md-table-cell)
 
 Writes to `fact_vintage_rating` (NOT fact_rating).
 
@@ -26,9 +33,9 @@ fact_vintage_rating columns:
 Unique constraint: (country_code, region, subregion, color, vintage, source_key)
 → use INSERT OR IGNORE for dedup.
 
-source_codes used: 'wine_spectator' and 'decanter' (both must be in dim_source)
+source_codes used: 'wine_spectator' (both must be in dim_source)
+NOTE: Decanter vintage charts returns 404 — that fetch is disabled.
 """
-import hashlib
 import logging
 import re
 import time
@@ -55,56 +62,29 @@ _USER_AGENT = (
     "Chrome/124.0.0.0 Safari/537.36"
 )
 
-_WS_URL = "https://www.winespectator.com/vintagecharts/"
-_DECANTER_URL = "https://www.decanter.com/wine-buying-guide/vintage-charts/"
+_WS_BASE = "https://www.winespectator.com"
+
+# Decanter vintage chart URL returns 404 — disabled until fixed upstream.
+# _DECANTER_URL = "https://www.decanter.com/wine-buying-guide/vintage-charts/"
 
 # Valid color values per schema
 _VALID_COLORS = {"red", "white", "rosé", "sparkling", "sweet", "fortified", "all"}
 
-# Region name normalisation: raw string → (country_code, region, subregion, color)
-# Wine Spectator and Decanter use similar region labels
-_WS_REGION_MAP: dict[str, tuple[str, str, Optional[str], str]] = {
-    "Burgundy Red": ("FR", "Burgundy", None, "red"),
-    "Burgundy White": ("FR", "Burgundy", None, "white"),
-    "Bordeaux": ("FR", "Bordeaux", None, "red"),
-    "Bordeaux White": ("FR", "Bordeaux", None, "white"),
-    "Champagne": ("FR", "Champagne", None, "sparkling"),
-    "Alsace": ("FR", "Alsace", None, "white"),
-    "Loire": ("FR", "Loire", None, "white"),
-    "Rhône Red": ("FR", "Rhône", None, "red"),
-    "Rhône White": ("FR", "Rhône", None, "white"),
-    "Sauternes": ("FR", "Bordeaux", "Sauternes", "sweet"),
-    "Barolo/Barbaresco": ("IT", "Piedmont", None, "red"),
-    "Tuscany": ("IT", "Tuscany", None, "red"),
-    "Rioja": ("ES", "Rioja", None, "red"),
-    "Ribera del Duero": ("ES", "Ribera del Duero", None, "red"),
-    "Napa Cabernet": ("US", "Napa Valley", None, "red"),
-    "Napa Chardonnay": ("US", "Napa Valley", None, "white"),
-    "Vintage Port": ("PT", "Douro", "Port", "fortified"),
-    "Mosel Riesling": ("DE", "Mosel", None, "white"),
-    "Rheingau": ("DE", "Rheingau", None, "white"),
-}
-
-_DECANTER_REGION_MAP: dict[str, tuple[str, str, Optional[str], str]] = {
-    "Burgundy Red": ("FR", "Burgundy", None, "red"),
-    "Burgundy White": ("FR", "Burgundy", None, "white"),
-    "Bordeaux Red": ("FR", "Bordeaux", None, "red"),
-    "Bordeaux White": ("FR", "Bordeaux", None, "white"),
-    "Champagne": ("FR", "Champagne", None, "sparkling"),
-    "Alsace": ("FR", "Alsace", None, "white"),
-    "Loire Red": ("FR", "Loire", None, "red"),
-    "Loire White": ("FR", "Loire", None, "white"),
-    "Rhône Red": ("FR", "Rhône", None, "red"),
-    "Rhône White": ("FR", "Rhône", None, "white"),
-    "Sauternes/Barsac": ("FR", "Bordeaux", "Sauternes", "sweet"),
-    "Barolo": ("IT", "Piedmont", "Barolo", "red"),
-    "Barbaresco": ("IT", "Piedmont", "Barbaresco", "red"),
-    "Brunello di Montalcino": ("IT", "Tuscany", "Montalcino", "red"),
-    "Rioja": ("ES", "Rioja", None, "red"),
-    "Port": ("PT", "Douro", "Port", "fortified"),
-    "Mosel": ("DE", "Mosel", None, "white"),
-    "Rheingau": ("DE", "Rheingau", None, "white"),
-    "Napa Valley Cabernet Sauvignon": ("US", "Napa Valley", None, "red"),
+# Map of WS region slugs → (country_code, region, subregion, color)
+_WS_REGION_SLUG_MAP: dict[str, tuple[str, str, Optional[str], str]] = {
+    "burgundy-cotes-de-nuits-reds":              ("FR", "Burgundy", "Côte de Nuits", "red"),
+    "burgundy-cotes-de-beaune-reds":             ("FR", "Burgundy", "Côte de Beaune", "red"),
+    "burgundy-white":                            ("FR", "Burgundy", None, "white"),
+    "burgundy-older-vintage-reds":               ("FR", "Burgundy", None, "red"),
+    "bordeaux-left-bank-reds-medoc-pessac-leognan": ("FR", "Bordeaux", "Left Bank", "red"),
+    "bordeaux-right-bank-reds-pomerol-st-emilion":  ("FR", "Bordeaux", "Right Bank", "red"),
+    "bordeaux-sauternes":                        ("FR", "Bordeaux", "Sauternes", "sweet"),
+    "bordeaux-vintage-reds-pre-1995":            ("FR", "Bordeaux", None, "red"),
+    "champagne":                                 ("FR", "Champagne", None, "sparkling"),
+    "alsace":                                    ("FR", "Alsace", None, "white"),
+    "loire":                                     ("FR", "Loire", None, "white"),
+    "rhone-northern":                            ("FR", "Rhône", "Northern", "red"),
+    "rhone-southern":                            ("FR", "Rhône", "Southern", "red"),
 }
 
 
@@ -149,20 +129,26 @@ def _insert_vintage_rating(
         conn.commit()
         result.rows_inserted += 1
     except Exception as exc:
-        _logger.error("DB error inserting vintage rating %s %s %d: %s", region, color, vintage, exc)
+        _logger.error(
+            "DB error inserting vintage rating %s %s %d: %s", region, color, vintage, exc
+        )
         result.rows_dlq += 1
 
 
-def _scrape_wine_spectator(
+def _scrape_ws_region(
     client: "httpx.Client",
     scraper: "VintageRatingsScraper",
+    slug: str,
+    region_info: tuple,
     source_key: int,
     batch_id: str,
     result: ScrapeResult,
     limit: Optional[int],
 ) -> None:
-    """Scrape Wine Spectator vintage charts."""
-    url = _WS_URL
+    """Scrape one Wine Spectator region sub-page and insert vintage ratings."""
+    url = f"{_WS_BASE}/vintage-charts/region/{slug}"
+    country_code, region, subregion, color = region_info
+
     try:
         resp = scraper._fetch(lambda: client.get(url))
         resp.raise_for_status()
@@ -172,206 +158,84 @@ def _scrape_wine_spectator(
         return
 
     if resp.status_code in (401, 403, 429):
-        write_dlq(scraper.conn, source_key, batch_id, "auth_error",
-                   f"Blocked: HTTP {resp.status_code}", {"url": url})
+        write_dlq(
+            scraper.conn, source_key, batch_id, "auth_error",
+            f"Blocked: HTTP {resp.status_code}", {"url": url},
+        )
         result.rows_dlq += 1
         return
 
     tree = HTMLParser(resp.text)
 
-    # WS vintage chart: typically a table or grid with region rows and vintage columns
-    # Look for vintage year headers and score cells
-    # Structure varies; try multiple selectors
-    tables = tree.css("table.vintage-chart, .vintage-chart table, table[class*='chart']")
-    if not tables:
-        tables = tree.css("table")
-
-    for table in tables:
+    # Table rows: td[0]=year, td[1]=score, td[2]=drink, td[3]=description
+    # Each row has an a.font-bold link whose text is the vintage year.
+    rows = tree.css("tr")
+    fetched_here = 0
+    for row in rows:
         if limit is not None and result.rows_inserted >= limit:
             break
 
-        headers = table.css("th")
-        header_texts = [h.text(strip=True) for h in headers]
-
-        # Find vintage year columns (4-digit years in headers)
-        year_cols: list[tuple[int, int]] = []  # (col_index, vintage_year)
-        for i, ht in enumerate(header_texts):
-            m = re.search(r"\b(19\d{2}|20[0-3]\d)\b", ht)
-            if m:
-                year_cols.append((i, int(m.group(1))))
-
-        if not year_cols:
+        tds = row.css("td")
+        if len(tds) < 2:
             continue
 
-        rows = table.css("tr")
-        for row in rows:
-            if limit is not None and result.rows_inserted >= limit:
-                break
-
-            cells = row.css("td")
-            if not cells:
-                continue
-
-            # First cell is typically the region name
-            region_raw = cells[0].text(strip=True)
-            region_info = _WS_REGION_MAP.get(region_raw)
-            if region_info is None:
-                # Try partial match
-                for key, info in _WS_REGION_MAP.items():
-                    if key.lower() in region_raw.lower() or region_raw.lower() in key.lower():
-                        region_info = info
-                        break
-
-            if region_info is None:
-                _logger.debug("WS: unknown region %r — skipping", region_raw)
-                continue
-
-            country_code, region, subregion, color = region_info
-
-            for col_idx, vintage_year in year_cols:
-                if col_idx < len(cells):
-                    cell = cells[col_idx]
-                    cell_text = cell.text(strip=True)
-
-                    # WS scores are /100, sometimes with letters like "93-95" or "NV"
-                    # Take the first number
-                    score_match = re.search(r"\b(\d{2,3})\b", cell_text)
-                    if not score_match:
-                        continue
-
-                    try:
-                        score = float(score_match.group(1))
-                    except ValueError:
-                        continue
-
-                    if not (50 <= score <= 100):
-                        continue
-
-                    scale = "/100"
-                    score_norm = _normalize_score_to_100(score, scale)
-                    if score_norm is None:
-                        continue
-
-                    # Character notes: any non-numeric text in cell
-                    notes_text = re.sub(r"\d+", "", cell_text).strip(" /-")
-                    character_notes = notes_text if notes_text else None
-
-                    result.rows_fetched += 1
-                    _insert_vintage_rating(
-                        scraper.conn, source_key, batch_id,
-                        country_code, region, subregion, color,
-                        vintage_year, score, scale, score_norm,
-                        character_notes, url, result,
-                    )
-
-
-def _scrape_decanter_vintages(
-    client: "httpx.Client",
-    scraper: "VintageRatingsScraper",
-    source_key: int,
-    batch_id: str,
-    result: ScrapeResult,
-    limit: Optional[int],
-) -> None:
-    """Scrape Decanter vintage charts."""
-    url = _DECANTER_URL
-    try:
-        resp = scraper._fetch(lambda: client.get(url))
-        resp.raise_for_status()
-    except Exception as exc:
-        write_dlq(scraper.conn, source_key, batch_id, "network_error", str(exc), {"url": url})
-        result.rows_dlq += 1
-        return
-
-    if resp.status_code in (401, 403, 429):
-        write_dlq(scraper.conn, source_key, batch_id, "auth_error",
-                   f"Blocked: HTTP {resp.status_code}", {"url": url})
-        result.rows_dlq += 1
-        return
-
-    tree = HTMLParser(resp.text)
-
-    # Decanter vintage chart: similar table structure
-    tables = tree.css("table.vintage-chart, .vintage-chart-table, table[class*='vintage']")
-    if not tables:
-        tables = tree.css("table")
-
-    for table in tables:
-        if limit is not None and result.rows_inserted >= limit:
-            break
-
-        headers = table.css("th")
-        header_texts = [h.text(strip=True) for h in headers]
-
-        year_cols: list[tuple[int, int]] = []
-        for i, ht in enumerate(header_texts):
-            m = re.search(r"\b(19\d{2}|20[0-3]\d)\b", ht)
-            if m:
-                year_cols.append((i, int(m.group(1))))
-
-        if not year_cols:
+        year_link = tds[0].css_first("a.font-bold")
+        if not year_link:
             continue
 
-        rows = table.css("tr")
-        for row in rows:
-            if limit is not None and result.rows_inserted >= limit:
-                break
+        year_text = year_link.text(strip=True)
+        try:
+            vintage_year = int(year_text)
+        except ValueError:
+            continue
 
-            cells = row.css("td")
-            if not cells:
-                continue
+        if not (1900 <= vintage_year <= 2030):
+            continue
 
-            region_raw = cells[0].text(strip=True)
-            region_info = _DECANTER_REGION_MAP.get(region_raw)
-            if region_info is None:
-                for key, info in _DECANTER_REGION_MAP.items():
-                    if key.lower() in region_raw.lower() or region_raw.lower() in key.lower():
-                        region_info = info
-                        break
+        # Score cell: text like "Score98" (the h5 mobile label is included in text())
+        # Strip the "Score" prefix
+        score_raw_text = tds[1].text(strip=True)
+        score_raw_text = re.sub(r"^Score\s*", "", score_raw_text, flags=re.I).strip()
+        # Take the first integer (handles "95-97" → 95, or range midpoint)
+        score_match = re.search(r"\b(\d{2,3})\b", score_raw_text)
+        if not score_match:
+            continue
 
-            if region_info is None:
-                _logger.debug("Decanter: unknown region %r — skipping", region_raw)
-                continue
+        try:
+            score = float(score_match.group(1))
+        except ValueError:
+            continue
 
-            country_code, region, subregion, color = region_info
+        if not (50 <= score <= 100):
+            continue
 
-            for col_idx, vintage_year in year_cols:
-                if col_idx < len(cells):
-                    cell = cells[col_idx]
-                    cell_text = cell.text(strip=True)
+        scale = "/100"
+        score_norm = _normalize_score_to_100(score, scale)
+        if score_norm is None:
+            continue
 
-                    # Decanter uses /100 scale for vintage charts
-                    score_match = re.search(r"\b(\d{2,3})\b", cell_text)
-                    if not score_match:
-                        continue
+        # Description (4th td, mobile h5 prefix stripped)
+        character_notes: Optional[str] = None
+        if len(tds) >= 4:
+            desc_text = tds[3].text(strip=True)
+            desc_text = re.sub(r"^Description\s*", "", desc_text, flags=re.I).strip()
+            if desc_text:
+                character_notes = desc_text[:500]
 
-                    try:
-                        score = float(score_match.group(1))
-                    except ValueError:
-                        continue
+        result.rows_fetched += 1
+        fetched_here += 1
+        _insert_vintage_rating(
+            scraper.conn, source_key, batch_id,
+            country_code, region, subregion, color,
+            vintage_year, score, scale, score_norm,
+            character_notes, url, result,
+        )
 
-                    if not (50 <= score <= 100):
-                        continue
-
-                    scale = "/100"
-                    score_norm = _normalize_score_to_100(score, scale)
-                    if score_norm is None:
-                        continue
-
-                    notes_text = re.sub(r"\d+", "", cell_text).strip(" /-")
-                    character_notes = notes_text if notes_text else None
-
-                    result.rows_fetched += 1
-                    _insert_vintage_rating(
-                        scraper.conn, source_key, batch_id,
-                        country_code, region, subregion, color,
-                        vintage_year, score, scale, score_norm,
-                        character_notes, url, result,
-                    )
+    _logger.info("WS slug=%s → %d rows fetched", slug, fetched_here)
 
 
 class VintageRatingsScraper(BaseScraper):
-    # Primary source_code — the class attribute; actual DB lookups use both WS + Decanter
+    # Primary source_code — the class attribute; actual DB lookups use wine_spectator
     source_code = "wine_spectator"
 
     def __init__(self, conn: sqlite3.Connection):
@@ -382,21 +246,23 @@ class VintageRatingsScraper(BaseScraper):
         if not HAS_DEPS:
             return ScrapeResult(error="Missing dependencies: httpx or selectolax not installed")
 
-        batch_id = self.batch_id or f"vintage-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:8]}"
+        batch_id = self.batch_id or (
+            f"vintage-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
+            f"-{uuid.uuid4().hex[:8]}"
+        )
         result = ScrapeResult(batch_id=batch_id)
 
-        # Resolve both source keys
+        # Resolve Wine Spectator source key
         ws_row = self.conn.execute(
             "SELECT source_key FROM dim_source WHERE source_code = 'wine_spectator'"
         ).fetchone()
-        dec_row = self.conn.execute(
-            "SELECT source_key FROM dim_source WHERE source_code = 'decanter'"
-        ).fetchone()
 
-        if not ws_row and not dec_row:
+        if not ws_row:
             return ScrapeResult(
-                error="Neither 'wine_spectator' nor 'decanter' found in dim_source"
+                error="'wine_spectator' not found in dim_source"
             )
+
+        ws_source_key = ws_row[0]
 
         headers = {
             "User-Agent": _USER_AGENT,
@@ -405,20 +271,16 @@ class VintageRatingsScraper(BaseScraper):
         }
 
         with httpx.Client(headers=headers, timeout=30, follow_redirects=True) as client:
-            if ws_row:
-                ws_source_key = ws_row[0]
-                _logger.info("Scraping Wine Spectator vintage charts (source_key=%d)", ws_source_key)
-                _scrape_wine_spectator(client, self, ws_source_key, batch_id, result, limit)
-                time.sleep(2.0)
-            else:
-                _logger.warning("'wine_spectator' not in dim_source — skipping WS vintage charts")
+            for slug, region_info in _WS_REGION_SLUG_MAP.items():
+                if limit is not None and result.rows_inserted >= limit:
+                    break
 
-            if dec_row:
-                dec_source_key = dec_row[0]
-                if limit is None or result.rows_inserted < limit:
-                    _logger.info("Scraping Decanter vintage charts (source_key=%d)", dec_source_key)
-                    _scrape_decanter_vintages(client, self, dec_source_key, batch_id, result, limit)
-            else:
-                _logger.warning("'decanter' not in dim_source — skipping Decanter vintage charts")
+                _logger.info("Scraping Wine Spectator: %s", slug)
+                _scrape_ws_region(
+                    client, self, slug, region_info,
+                    ws_source_key, batch_id, result, limit,
+                )
+                # Polite delay between region pages
+                time.sleep(1.5)
 
         return result

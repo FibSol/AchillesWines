@@ -119,63 +119,81 @@ class JamesSucklingScraper(BaseScraper):
                 result.error = msg
                 return result
 
-            tree = HTMLParser(resp.text)
+            html = resp.text
 
-            # James Suckling Top Wines list — selectors based on known page structure
-            # Wine entries typically in a list or table with name, vintage, score, region
-            wine_entries = tree.css(
-                ".wine-item, .top-wine, .wine-row, tr[class*='wine'], "
-                "[class*='wine-entry'], [class*='ranking-item']"
+            # Probe for __NEXT_DATA__ (Next.js SSR inline JSON)
+            next_data_match = re.search(
+                r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', html, re.DOTALL
             )
-
-            # Fallback: look for any structured list items
-            if not wine_entries:
-                wine_entries = tree.css("li.wine, .results li, .wines-list li, article")
-
-            if not wine_entries:
-                _logger.warning("No wine entries found on JamesSuckling top wines page")
-                result.error = "No wine entries parsed from jamessuckling.com/top-wines/ — page structure may have changed"
+            if not next_data_match:
+                # jamessuckling.com/top-wines/ is a purely client-side rendered Next.js SPA.
+                # The HTML is an app shell — no wine content in the static HTML.
+                # Scraping requires a headless browser (Playwright/Puppeteer) which is
+                # not available in this sidecar. Mark as not applicable.
+                msg = (
+                    "jamessuckling.com/top-wines/ is a client-side-only Next.js SPA "
+                    "(no __NEXT_DATA__ in HTML). Wine content requires JS execution. "
+                    "Set requires_auth=1 in dim_source as a proxy for 'needs browser' "
+                    "and provide a Playwright-based scraper to resolve."
+                )
+                _logger.warning(msg)
+                write_dlq(
+                    self.conn, SOURCE_KEY, batch_id, "scraper_not_applicable", msg,
+                    {"url": url, "html_length": len(html)},
+                )
+                result.rows_dlq += 1
+                result.error = msg
+                # Mark requires_auth=1 in dim_source so the scheduler skips it
+                try:
+                    self.conn.execute(
+                        "UPDATE dim_source SET requires_auth = 1 WHERE source_code = ?",
+                        (self.source_code,),
+                    )
+                    self.conn.commit()
+                    _logger.info(
+                        "Set requires_auth=1 for source_code='james_suckling' in dim_source"
+                    )
+                except Exception as db_exc:
+                    _logger.warning("Could not update requires_auth: %s", db_exc)
                 return result
 
-            for entry in wine_entries:
+            # __NEXT_DATA__ found — parse JSON and walk the tree for wine items
+            import json as _json
+            try:
+                next_data = _json.loads(next_data_match.group(1))
+            except _json.JSONDecodeError as exc:
+                msg = f"Failed to parse __NEXT_DATA__ JSON: {exc}"
+                write_dlq(self.conn, SOURCE_KEY, batch_id, "parse_error", msg, {"url": url})
+                result.rows_dlq += 1
+                result.error = msg
+                return result
+
+            # Walk the JSON tree looking for objects with score/name fields
+            def _find_wines(obj, depth=0):
+                if depth > 20:
+                    return
+                if isinstance(obj, dict):
+                    name = obj.get("name") or obj.get("wineName") or obj.get("title") or ""
+                    score = obj.get("score") or obj.get("points") or obj.get("rating")
+                    if name and score:
+                        try:
+                            yield {"name": str(name), "score": float(str(score).split("-")[0])}
+                        except (ValueError, TypeError):
+                            pass
+                    for v in obj.values():
+                        yield from _find_wines(v, depth + 1)
+                elif isinstance(obj, list):
+                    for item in obj:
+                        yield from _find_wines(item, depth + 1)
+
+            for item in _find_wines(next_data):
                 if limit is not None and result.rows_inserted >= limit:
                     break
 
+                raw_name = item["name"]
+                score_raw = item["score"]
                 result.rows_fetched += 1
 
-                # Wine name — may include vintage in the title
-                name_node = entry.css_first(
-                    ".wine-name, .wine-title, h2, h3, h4, td.name, [class*='name'], [class*='title']"
-                )
-                raw_name = name_node.text(strip=True) if name_node else ""
-                if not raw_name:
-                    write_dlq(self.conn, SOURCE_KEY, batch_id, "parse_error",
-                               "Missing wine name", {"html": (entry.html or "")[:200]})
-                    result.rows_dlq += 1
-                    continue
-
-                # Score — JS uses /100
-                score_node = entry.css_first(
-                    ".score, .points, .rating, td.score, td.points, [class*='score'], [class*='point']"
-                )
-                score_text = score_node.text(strip=True) if score_node else ""
-
-                score_match = re.search(r"\b(\d{2,3})\b", score_text or entry.text(strip=True))
-                if not score_match:
-                    write_dlq(self.conn, SOURCE_KEY, batch_id, "parse_error",
-                               "No score found", {"wine": raw_name, "url": url})
-                    result.rows_dlq += 1
-                    continue
-
-                try:
-                    score_raw = float(score_match.group(1))
-                except ValueError:
-                    write_dlq(self.conn, SOURCE_KEY, batch_id, "parse_error",
-                               f"Could not parse score: {score_text}", {"wine": raw_name})
-                    result.rows_dlq += 1
-                    continue
-
-                # JS scores are typically 88-100; reject implausible values
                 if not (80 <= score_raw <= 100):
                     write_dlq(self.conn, SOURCE_KEY, batch_id, "validation_error",
                                f"Score {score_raw} not in plausible JS /100 range (80-100)",
@@ -186,30 +204,21 @@ class JamesSucklingScraper(BaseScraper):
                 scale = "/100"
                 score_norm = _normalize_score_to_100(score_raw, scale)
                 if score_norm is None:
-                    write_dlq(self.conn, SOURCE_KEY, batch_id, "validation_error",
-                               f"Score {score_raw} failed normalization", {"wine": raw_name})
                     result.rows_dlq += 1
                     continue
 
-                # Vintage — look for explicit vintage node first, then fall back to name
-                vintage_node = entry.css_first(".vintage, td.vintage, [class*='vintage']")
-                vintage_text = vintage_node.text(strip=True) if vintage_node else ""
-                vintage = _extract_vintage(vintage_text) or _extract_vintage(raw_name)
-
+                vintage = _extract_vintage(raw_name)
                 producer_norm = normalize_producer(raw_name)
                 cuvee_norm = normalize_cuvee(raw_name)
 
                 if not producer_norm or not cuvee_norm:
                     write_dlq(self.conn, SOURCE_KEY, batch_id, "parse_error",
-                               f"Empty producer_norm or cuvee_norm for: {raw_name!r}", {"wine": raw_name})
+                               f"Empty producer_norm or cuvee_norm for: {raw_name!r}",
+                               {"wine": raw_name})
                     result.rows_dlq += 1
                     continue
 
                 wine_key = compute_wine_key(producer_norm, cuvee_norm, vintage, "")
-
-                link_node = entry.css_first("a[href]")
-                source_url = (_BASE + link_node.attributes.get("href", "")) if link_node else url
-
                 content_hash = hashlib.sha256(
                     f"{wine_key}:{CRITIC_CODE}:{score_raw}".encode()
                 ).hexdigest()
@@ -223,7 +232,7 @@ class JamesSucklingScraper(BaseScraper):
                         VALUES (?, ?, ?, 'critic', ?, ?, ?, ?, ?, ?)
                         """,
                         (wine_key, SOURCE_KEY, CRITIC_CODE, score_raw, scale,
-                         score_norm, source_url, content_hash, batch_id),
+                         score_norm, url, content_hash, batch_id),
                     )
                     self.conn.commit()
                     result.rows_inserted += 1
@@ -231,7 +240,5 @@ class JamesSucklingScraper(BaseScraper):
                     write_dlq(self.conn, SOURCE_KEY, batch_id, "validation_error", str(exc),
                                {"wine_key": wine_key, "score": score_raw})
                     result.rows_dlq += 1
-
-                time.sleep(0.3)
 
         return result

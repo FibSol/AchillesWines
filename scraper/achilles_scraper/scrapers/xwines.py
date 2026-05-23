@@ -7,9 +7,9 @@ Auth:   None
 Cadence: Annual
 
 Downloads two CSVs from GitHub:
-  - XWines_Full_100K_wines.csv   (wine master: WineID, WineName, WineryName,
+  - XWines_Test_100_wines.csv    (wine master: WineID, WineName, WineryName,
                                    Type, Grapes, Country, RegionName, Vintages)
-  - XWines_Full_21M_ratings.zip  (ratings: RatingID, UserID, WineID, Vintage,
+  - XWines_Test_1K_ratings.csv   (ratings: RatingID, UserID, WineID, Vintage,
                                    Rating[1-5], Date)
 
 Wine matching strategy (no wine_key available in X-Wines):
@@ -27,14 +27,13 @@ Ratings stored in fact_rating with:
   ratingCount   = number of individual user ratings per (WineID, Vintage)
 
 The full dataset (21 M ratings) is large — use --limit to sample.
-The slim dataset (150k ratings, 1k wines) is recommended for initial runs.
+The test dataset (100 wines / ~1K ratings) is used by default from GitHub.
 """
 import csv
 import io
 import sqlite3
 import time
 import uuid
-import zipfile
 from datetime import datetime, timezone
 from collections import defaultdict
 from typing import Optional
@@ -48,14 +47,14 @@ from ..dlq import write_dlq
 
 console = Console()
 
-# Slim dataset — 1 007 wines + 150 000 ratings, fits in memory easily
+# Test dataset — 100 wines + ~1K ratings, plain CSV (no zip)
 _WINES_URL_SLIM = (
     "https://raw.githubusercontent.com/rogerioxavier/X-Wines/main/"
-    "Dataset/last/XWines_Slim_1K_wines.csv"
+    "Dataset/last/XWines_Test_100_wines.csv"
 )
 _RATINGS_URL_SLIM = (
     "https://raw.githubusercontent.com/rogerioxavier/X-Wines/main/"
-    "Dataset/last/XWines_Slim_150K_ratings.zip"
+    "Dataset/last/XWines_Test_1K_ratings.csv"
 )
 
 # Full dataset lives on Google Drive — set XWINES_FULL_WINES_PATH /
@@ -244,24 +243,15 @@ class XWinesScraper(BaseScraper):
         ratings_path = os.environ.get(_ENV_RATINGS_PATH)
         if ratings_path:
             console.print(f"[cyan]xwines[/] loading ratings from local file: {ratings_path}")
-            if ratings_path.endswith(".zip"):
-                with zipfile.ZipFile(ratings_path) as zf:
-                    csv_name = next(n for n in zf.namelist() if n.endswith(".csv"))
-                    with zf.open(csv_name) as fh:
-                        ratings_text = fh.read().decode("utf-8")
-            else:
-                with open(ratings_path, encoding="utf-8") as fh:
-                    ratings_text = fh.read()
+            with open(ratings_path, encoding="utf-8") as fh:
+                ratings_text = fh.read()
         else:
-            console.print("[cyan]xwines[/] downloading slim ratings ZIP from GitHub…")
+            console.print("[cyan]xwines[/] downloading test ratings CSV from GitHub…")
             with httpx.Client(timeout=120, follow_redirects=True) as client:
                 try:
                     resp = self._fetch(lambda: client.get(_RATINGS_URL_SLIM))
                     resp.raise_for_status()
-                    with zipfile.ZipFile(io.BytesIO(resp.content)) as zf:
-                        csv_name = next(n for n in zf.namelist() if n.endswith(".csv"))
-                        with zf.open(csv_name) as fh:
-                            ratings_text = fh.read().decode("utf-8")
+                    ratings_text = resp.text
                 except Exception as exc:
                     result.error = f"Ratings download failed: {exc}"
                     return result

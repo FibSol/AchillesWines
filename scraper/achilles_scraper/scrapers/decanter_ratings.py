@@ -99,6 +99,50 @@ class DecanterRatingsScraper(BaseScraper):
             search_queries = search_queries[:2]
 
         with httpx.Client(headers=headers, timeout=30, follow_redirects=True) as client:
+            # Use the first query URL to detect the Piano paywall
+            url = f"{_SEARCH_URL}?search=burgundy&page=1"
+            try:
+                resp = self._fetch(lambda: client.get(url))
+            except Exception as exc:
+                write_dlq(self.conn, SOURCE_KEY, batch_id, "network_error", str(exc), {"url": url})
+                result.rows_dlq += 1
+                return result
+
+            html = resp.text
+            tree = HTMLParser(html)
+
+            # Piano paywall detection: Decanter search results are gated behind
+            # a Piano subscription. The empty container div is always present.
+            piano_el = tree.css_first(".piano-container-search-results, [class*='piano-container-search']")
+            if piano_el is not None or "piano-container-search-results" in html:
+                msg = (
+                    "Decanter search requires a paid Piano subscription. "
+                    "The response contains an empty 'piano-container-search-results' div. "
+                    "Set requires_auth=1 in dim_source and provide valid Piano credentials "
+                    "to enable this scraper."
+                )
+                _logger.warning(msg)
+                write_dlq(
+                    self.conn, SOURCE_KEY, batch_id, "auth_error", msg,
+                    {"url": url, "status": resp.status_code},
+                )
+                result.rows_dlq += 1
+                result.error = msg
+                # Mark requires_auth=1 so the scheduler skips this source
+                try:
+                    self.conn.execute(
+                        "UPDATE dim_source SET requires_auth = 1 WHERE source_code = ?",
+                        (self.source_code,),
+                    )
+                    self.conn.commit()
+                    _logger.info(
+                        "Set requires_auth=1 for source_code='decanter' in dim_source"
+                    )
+                except Exception as db_exc:
+                    _logger.warning("Could not update requires_auth: %s", db_exc)
+                return result
+
+            # If no paywall detected, attempt to parse results (future-proofing)
             for query in search_queries:
                 if limit is not None and result.rows_inserted >= limit:
                     break
@@ -119,14 +163,10 @@ class DecanterRatingsScraper(BaseScraper):
                     continue
 
                 tree = HTMLParser(resp.text)
-
-                # Decanter search results — CSS selectors based on known page structure
-                # Cards may be .search-result, .wine-card, .review-item
                 cards = tree.css(
                     ".search-result, .wine-review-card, .review-item, "
                     "[class*='search-result'], [class*='wine-card']"
                 )
-
                 if not cards:
                     _logger.debug("No Decanter rating cards found for query=%s", query)
                     continue
@@ -136,9 +176,9 @@ class DecanterRatingsScraper(BaseScraper):
                         break
 
                     result.rows_fetched += 1
-
-                    # Wine name
-                    name_node = card.css_first("h2, h3, h4, .wine-name, .review-title, [class*='title']")
+                    name_node = card.css_first(
+                        "h2, h3, h4, .wine-name, .review-title, [class*='title']"
+                    )
                     raw_name = name_node.text(strip=True) if name_node else ""
                     if not raw_name:
                         write_dlq(self.conn, SOURCE_KEY, batch_id, "parse_error",
@@ -146,12 +186,14 @@ class DecanterRatingsScraper(BaseScraper):
                         result.rows_dlq += 1
                         continue
 
-                    # Score — Decanter uses /100 scale
-                    score_node = card.css_first(".score, .rating, .points, [class*='score'], [class*='point']")
+                    score_node = card.css_first(
+                        ".score, .rating, .points, [class*='score'], [class*='point']"
+                    )
                     score_text = score_node.text(strip=True) if score_node else ""
-
-                    # Try to find a bare number 75-100 or "95 points" pattern
-                    score_match = re.search(r"\b(\d{2,3})\b(?:\s*points?|/100)?", score_text or card.text(strip=True))
+                    score_match = re.search(
+                        r"\b(\d{2,3})\b(?:\s*points?|/100)?",
+                        score_text or card.text(strip=True),
+                    )
                     if not score_match:
                         write_dlq(self.conn, SOURCE_KEY, batch_id, "parse_error",
                                    "No score found", {"wine": raw_name, "url": url})
@@ -161,41 +203,29 @@ class DecanterRatingsScraper(BaseScraper):
                     try:
                         score_raw = float(score_match.group(1))
                     except ValueError:
-                        write_dlq(self.conn, SOURCE_KEY, batch_id, "parse_error",
-                                   f"Could not parse score: {score_text}", {"wine": raw_name})
                         result.rows_dlq += 1
                         continue
 
-                    # Validate score is in a plausible Decanter /100 range (50-100)
                     if not (50 <= score_raw <= 100):
-                        write_dlq(self.conn, SOURCE_KEY, batch_id, "validation_error",
-                                   f"Score {score_raw} not in plausible /100 range", {"wine": raw_name})
                         result.rows_dlq += 1
                         continue
 
                     scale = "/100"
                     score_norm = _normalize_score_to_100(score_raw, scale)
                     if score_norm is None:
-                        write_dlq(self.conn, SOURCE_KEY, batch_id, "validation_error",
-                                   f"Score {score_raw} failed normalization", {"wine": raw_name})
                         result.rows_dlq += 1
                         continue
 
                     vintage = _extract_vintage(raw_name)
                     producer_norm = normalize_producer(raw_name)
                     cuvee_norm = normalize_cuvee(raw_name)
-
                     if not producer_norm or not cuvee_norm:
-                        write_dlq(self.conn, SOURCE_KEY, batch_id, "parse_error",
-                                   f"Empty producer_norm or cuvee_norm for: {raw_name!r}", {"wine": raw_name})
                         result.rows_dlq += 1
                         continue
 
                     wine_key = compute_wine_key(producer_norm, cuvee_norm, vintage, "")
-
                     link_node = card.css_first("a[href]")
                     source_url = (_BASE + link_node.attributes.get("href", "")) if link_node else url
-
                     content_hash = hashlib.sha256(
                         f"{wine_key}:{CRITIC_CODE}:{score_raw}".encode()
                     ).hexdigest()
