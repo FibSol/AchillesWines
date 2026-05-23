@@ -57,6 +57,14 @@ export const dimSource = sqliteTable(
     requiresAuth: integer("requires_auth", { mode: "boolean" }).notNull().default(false),
     lastSuccessAt: integer("last_success_at", { mode: "timestamp" }),
     notes: text("notes"),
+    /** Optimal --limit value as determined by `achilles-scraper benchmark`. */
+    recommendedBatchSize: integer("recommended_batch_size"),
+    /** Unix timestamp of the last benchmark run. */
+    lastBenchmarkAt: integer("last_benchmark_at"),
+    /** Success rate (0–1) at the recommended batch size from last benchmark. */
+    benchmarkSuccessRate: real("benchmark_success_rate"),
+    /** Human-readable notes from the last benchmark (JSON summary). */
+    benchmarkNotes: text("benchmark_notes"),
   },
   (t) => ({
     tierIdx: index("idx_source_tier").on(t.sourceTier),
@@ -333,6 +341,64 @@ export const factVintageRating = sqliteTable(
 );
 
 /* ============================================================================
+ * MARKET & SUPPLY REFERENCE (official statistical sources)
+ * ========================================================================== */
+
+/** EU bulk wine market prices — EC Agri-food API (weekly, €/HL per category). */
+export const factMarketIndex = sqliteTable(
+  "fact_market_index",
+  {
+    marketIndexId: integer("market_index_id").primaryKey({ autoIncrement: true }),
+    sourceKey: integer("source_key")
+      .notNull()
+      .references(() => dimSource.sourceKey),
+    countryCode: text("country_code").notNull(),
+    wineCategory: text("wine_category").notNull(),
+    priceEurHl: real("price_eur_hl").notNull(),
+    weekBeginDate: text("week_begin_date").notNull(),
+    weekEndDate: text("week_end_date").notNull(),
+    batchId: text("batch_id").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (t) => ({
+    countryDateIdx: index("idx_market_country_date").on(t.countryCode, t.weekBeginDate),
+    categoryIdx: index("idx_market_category").on(t.wineCategory),
+    uniqueRow: uniqueIndex("idx_market_unique").on(
+      t.sourceKey, t.countryCode, t.wineCategory, t.weekBeginDate,
+    ),
+  })
+);
+
+/** Annual grape harvest volumes — Eurostat tag00121 (1 000 tonnes by country). */
+export const factHarvestVolume = sqliteTable(
+  "fact_harvest_volume",
+  {
+    harvestId: integer("harvest_id").primaryKey({ autoIncrement: true }),
+    sourceKey: integer("source_key")
+      .notNull()
+      .references(() => dimSource.sourceKey),
+    countryCode: text("country_code").notNull(),
+    year: integer("year").notNull(),
+    cropType: text("crop_type", {
+      enum: ["all_grapes", "wine_grapes", "table_grapes", "raisin_grapes"],
+    }).notNull(),
+    volume1000Tonnes: real("volume_1000_tonnes").notNull(),
+    batchId: text("batch_id").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (t) => ({
+    countryYearIdx: index("idx_harvest_country_year").on(t.countryCode, t.year),
+    uniqueRow: uniqueIndex("idx_harvest_unique").on(
+      t.sourceKey, t.countryCode, t.year, t.cropType,
+    ),
+  })
+);
+
+/* ============================================================================
  * CELLAR (personal storage)
  * ========================================================================== */
 
@@ -585,3 +651,5 @@ export type CellarConsumption = typeof cellarConsumption.$inferSelect;
 export type DeadLetter = typeof opsDeadLetter.$inferSelect;
 export type JobQueue = typeof opsJobQueue.$inferSelect;
 export type ScraperSchedule = typeof opsScraperSchedule.$inferSelect;
+export type MarketIndex = typeof factMarketIndex.$inferSelect;
+export type HarvestVolume = typeof factHarvestVolume.$inferSelect;

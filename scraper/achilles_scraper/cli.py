@@ -1,6 +1,13 @@
+import sys
 import click
 from rich.console import Console
 from rich.table import Table
+
+# Force UTF-8 output on Windows so Rich can render box-drawing and emoji chars.
+if sys.stdout.encoding and sys.stdout.encoding.lower() not in ("utf-8", "utf8"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
+if sys.stderr.encoding and sys.stderr.encoding.lower() not in ("utf-8", "utf8"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
 
 console = Console()
 
@@ -39,6 +46,11 @@ _ALL_SOURCES = [
     "terredevins",
     # --- Vintage chart scrapers (→ fact_vintage_rating) ---
     "vintage_ratings",
+    # --- Official market / statistical sources ---
+    "ec_agrifood",        # EC Agri-food wine API → fact_market_index
+    "eurostat_harvest",   # Eurostat tag00121 → fact_harvest_volume
+    # --- Auction scrapers (→ staging_price_candidates) ---
+    "christies",
 ]
 
 
@@ -77,6 +89,11 @@ def _load_scrapers():
     # Vintage charts
     from .scrapers.vintage_ratings import VintageRatingsScraper
     from .scrapers.wine_searcher import WineSearcherScraper
+    # Official statistical sources
+    from .scrapers.ec_agrifood import EcAgrifoodScraper
+    from .scrapers.eurostat_harvest import EurostatHarvestScraper
+    # Auctions
+    from .scrapers.christies import ChristiesScraper
 
     SCRAPERS["millesima"] = MillesimaScraper
     SCRAPERS["millesima_be"] = MillesimaBeScraper
@@ -106,6 +123,9 @@ def _load_scrapers():
     SCRAPERS["terredevins"] = TerreDeVinsScraper
     SCRAPERS["vintage_ratings"] = VintageRatingsScraper
     SCRAPERS["wine_searcher"] = WineSearcherScraper
+    SCRAPERS["ec_agrifood"] = EcAgrifoodScraper
+    SCRAPERS["eurostat_harvest"] = EurostatHarvestScraper
+    SCRAPERS["christies"] = ChristiesScraper
 
 
 @click.group()
@@ -232,6 +252,197 @@ def run_jobs():
     conn = get_db(config.db_path)
     runner = JobRunner(conn, SCRAPERS)
     runner.run_loop()
+
+
+@cli.command("benchmark")
+@click.option(
+    "--source", required=True,
+    type=click.Choice(_ALL_SOURCES),
+    help="Source to benchmark",
+)
+@click.option(
+    "--levels",
+    default="20,50,100,500,750,1000",
+    help="Comma-separated limit ladder (default: 20,50,100,500,750,1000)",
+)
+def benchmark(source: str, levels: str):
+    """Run incremental scrape ladder to find optimal batch size for a source.
+
+    Runs the scraper at each level sequentially. Because content-hash dedup is
+    applied, each run only INSERTS the marginal rows not yet seen. The success
+    rate at each step is inserted/(inserted+dlq), which measures quality of
+    catalog items at that position range — independent of already-seen skips.
+
+    Writes recommended_batch_size, benchmark_success_rate, and benchmark_notes
+    back to dim_source so the admin UI can prefill the limit field.
+    """
+    import json
+    import time
+    from .config import config
+    from .db import get_db
+    from .job_runner import _make_batch_id, LOG_DIR
+
+    config.ensure_dirs()
+    conn = get_db(config.db_path)
+
+    try:
+        level_list = [int(l.strip()) for l in levels.split(",") if l.strip()]
+    except ValueError:
+        console.print("[red]--levels must be comma-separated integers[/red]")
+        return
+
+    console.rule(f"[bold]Benchmark: {source}[/bold]")
+    console.print(f"Levels: {level_list}")
+    console.print()
+
+    rows = []          # list of dicts per level
+    cumulative_staged = 0
+    cumulative_dlq = 0
+
+    for limit in level_list:
+        console.rule(f"Level {limit}")
+        batch_id = _make_batch_id(f"bench_{source}")
+        LOG_DIR.mkdir(parents=True, exist_ok=True)
+
+        import logging as _logging
+        for _noisy in ("httpcore", "httpx", "hpack", "h2"):
+            _logging.getLogger(_noisy).setLevel(_logging.WARNING)
+        log_path = LOG_DIR / f"{batch_id}.log"
+        fh = _logging.FileHandler(str(log_path), mode="w", encoding="utf-8")
+        fh.setFormatter(_logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+        fh.setLevel(_logging.DEBUG)
+        root = _logging.getLogger()
+        root.addHandler(fh)
+        if root.level == _logging.NOTSET or root.level > _logging.DEBUG:
+            root.setLevel(_logging.DEBUG)
+
+        t0 = time.time()
+        try:
+            scraper = SCRAPERS[source](conn)
+            scraper.batch_id = batch_id
+            result = scraper.run(limit=limit)
+        except Exception as exc:
+            from .scrapers.base import ScrapeResult
+            result = ScrapeResult(error=str(exc), batch_id=batch_id)
+        elapsed = time.time() - t0
+
+        root.removeHandler(fh)
+        fh.close()
+
+        marginal_inserted = result.rows_inserted
+        marginal_dlq = result.rows_dlq
+        denominator = marginal_inserted + marginal_dlq
+        success_rate = (marginal_inserted / denominator) if denominator > 0 else None
+
+        cumulative_staged += marginal_inserted
+        cumulative_dlq += marginal_dlq
+
+        rows.append({
+            "limit": limit,
+            "fetched": result.rows_fetched,
+            "new_inserted": marginal_inserted,
+            "new_dlq": marginal_dlq,
+            "skipped": result.rows_skipped_unchanged,
+            "success_rate": success_rate,
+            "elapsed_s": round(elapsed, 1),
+            "error": result.error,
+        })
+
+        sr_str = f"{success_rate:.0%}" if success_rate is not None else "n/a"
+        color = "green" if (success_rate or 0) >= 0.6 else "yellow" if (success_rate or 0) >= 0.3 else "red"
+        console.print(
+            f"  fetched={result.rows_fetched}  new={marginal_inserted}  dlq={marginal_dlq}"
+            f"  skip={result.rows_skipped_unchanged}  [{color}]rate={sr_str}[/{color}]"
+            f"  {elapsed:.1f}s"
+            + (f"  [red]ERROR: {result.error[:60]}[/red]" if result.error else "")
+        )
+
+        # Stop early if the scraper errored hard (not just DLQ)
+        if result.error and marginal_inserted == 0:
+            console.print(f"[red]Stopping ladder — scraper failed at level {limit}[/red]")
+            break
+
+    # --- Recommendation logic ---
+    MIN_SUCCESS_RATE = 0.50   # below this the scraper is too unreliable at that depth
+    MIN_MARGINAL = 3           # at least 3 new rows to count the level as meaningful
+
+    recommended = None
+    for r in reversed(rows):
+        sr = r["success_rate"]
+        if sr is None:
+            continue
+        if sr >= MIN_SUCCESS_RATE and r["new_inserted"] >= MIN_MARGINAL and not r["error"]:
+            recommended = r["limit"]
+            break
+
+    # Fallback: first level that got any inserts
+    if recommended is None:
+        for r in rows:
+            if r["new_inserted"] > 0:
+                recommended = r["limit"]
+                break
+
+    rec_row = next((r for r in rows if r["limit"] == recommended), None)
+    rec_sr = rec_row["success_rate"] if rec_row else None
+
+    # --- Summary table ---
+    console.print()
+    t = Table(title=f"Benchmark results — {source}")
+    t.add_column("Limit", justify="right")
+    t.add_column("Fetched", justify="right")
+    t.add_column("New ins.", justify="right", style="green")
+    t.add_column("New DLQ", justify="right", style="yellow")
+    t.add_column("Skipped", justify="right")
+    t.add_column("Success%", justify="right")
+    t.add_column("Time", justify="right")
+    t.add_column("Rec?", justify="center")
+    for r in rows:
+        sr = f"{r['success_rate']:.0%}" if r["success_rate"] is not None else "—"
+        t.add_row(
+            str(r["limit"]),
+            str(r["fetched"]),
+            str(r["new_inserted"]),
+            str(r["new_dlq"]),
+            str(r["skipped"]),
+            sr,
+            f"{r['elapsed_s']}s",
+            "[green]REC[/green]" if r["limit"] == recommended else "",
+        )
+    console.print(t)
+
+    if recommended:
+        console.print(
+            f"\n[bold green]Recommended batch size: {recommended}[/bold green]"
+            + (f"  (success rate {rec_sr:.0%})" if rec_sr is not None else "")
+        )
+    else:
+        console.print("\n[red]Could not determine a recommended batch size — all levels had poor results[/red]")
+
+    # --- Persist to dim_source ---
+    notes_json = json.dumps({
+        "levels": rows,
+        "cumulative_staged": cumulative_staged,
+        "cumulative_dlq": cumulative_dlq,
+        "run_at": int(time.time()),
+    }, separators=(",", ":"))
+
+    conn.execute(
+        """UPDATE dim_source
+           SET recommended_batch_size = ?,
+               last_benchmark_at      = ?,
+               benchmark_success_rate = ?,
+               benchmark_notes        = ?
+           WHERE source_code = ?""",
+        (
+            recommended,
+            int(time.time()),
+            rec_sr,
+            notes_json,
+            source,
+        ),
+    )
+    conn.commit()
+    console.print(f"[dim]Saved to dim_source.recommended_batch_size = {recommended}[/dim]")
 
 
 @cli.command("list-sources")
