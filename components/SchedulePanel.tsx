@@ -288,7 +288,7 @@ export function SchedulePanel({ labels }: { labels: ScheduleLabels }) {
 
   const fetchSchedules = useCallback(async () => {
     try {
-      const res = await fetch("/api/schedules");
+      const res = await fetch("/api/schedule");
       if (res.ok) {
         const data = await res.json();
         setSources(data.sources ?? []);
@@ -304,8 +304,8 @@ export function SchedulePanel({ labels }: { labels: ScheduleLabels }) {
 
   const handleSave = useCallback(
     async (sourceCode: string, cronExpr: string | null) => {
-      const res = await fetch("/api/schedules", {
-        method: "PATCH",
+      const res = await fetch("/api/schedule", {
+        method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ sourceCode, cronExpr }),
       });
