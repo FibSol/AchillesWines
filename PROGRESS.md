@@ -5,6 +5,11 @@
 ### Patroclus (Backend)
 - [Patroclus] wdc_be scraper: domain wdc.be confirmed for-sale on Nameshift (NVA Online Advertising B.V., verified via cf.api.nameshift.com API). Wine shop no longer exists. Scraper rewritten to immediately log `source_dead` DLQ entry + set `dim_source.enabled=0`; legacy httpx code preserved in `_run_legacy()` for reference. Also fixed scheduler regression (start_scheduler now only creates BackgroundScheduler when ≥1 valid cron job registered — 2 test failures resolved, 124/124 Python tests pass). · files: scraper/achilles_scraper/scrapers/wdc.py, scraper/achilles_scraper/job_runner.py, NEXT.md
 
+## 2026-05-23 — Sprint 13: wijnendeclerck_be KMO API rewrite
+
+### Patroclus (Backend)
+- [Patroclus] wijnendeclerck_be.py: complete rewrite — previous HTML scraper returned 0 products (Angular SSR SPA, no server-rendered product data). Discovery: back-end REST API at `https://kmo-manager.azurewebsites.net/products/{id}` is publicly accessible (no auth). Strategy: async ID enumeration (IDs 800–5500, concurrency=20) → filter `productGroupIds∋11` (wine) + `Land=Frankrijk` → extract salePrice+BTW (`salePriceWithTaxesAndVat`), vintage (Jaartal), colour (Kleur), appellation (Appellatie), region (Streek) from productOptionItems. `_appellation_from_name()` strips AOP/AOC suffix before DB lookup. Full run: 1,756 French wine products fetched, 1,726 inserted, 0 DLQ, 90s. 26 new multi-source wine_keys promoted to fact_price (total: 2,282). Probe files cleaned up (not committed). · files: scraper/achilles_scraper/scrapers/wijnendeclerck_be.py, PROGRESS.md
+
 ## 2026-05-23 — Sprint 13: hachette_vins_shop full-catalog + ventealapropriete Algolia rewrite
 
 ### Patroclus (Backend)
