@@ -2,13 +2,13 @@
 """
 Hachette Vins guide ratings scraper.
 
-Target: https://www.hachette-vins.com/guide/ (some content free)
-Hachette uses a 0-3 star system:
-  0 stars = not recommended (skip)
-  1 star  = 75/100
-  2 stars = 85/100
-  3 stars = 100/100 (coup de coeur)
-Scores are stored as /100 mapped directly from star count.
+Target: https://www.hachette-vins.com/vins/list/ (public catalogue, 60 wines/page)
+Pagination: /vins/page-{N}/list/
+Hachette uses a text-based rating system in .p-rating-ctn:
+  "Vin exceptionnel" (coup de coeur) = 100/100
+  "Vin très réussi"                   = 85/100
+  "Vin réussi" / "Vin cité"           = 75/100
+  (0-star / unrated wines are silently skipped)
 critic_code = 'Hachette'
 source_code = 'hachette_vins'
 """
@@ -41,58 +41,37 @@ _USER_AGENT = (
 )
 
 _BASE = "https://www.hachette-vins.com"
-_GUIDE_URL = "https://www.hachette-vins.com/guide/"
+_LIST_URL = "https://www.hachette-vins.com/vins/list/"
 
 VALID_CRITIC_CODES = {"WA", "Vinous", "BH", "JMIB", "RVF", "Decanter", "JS", "JG", "WS", "Hachette", "CT"}
 CRITIC_CODE = "Hachette"
 
-# Hachette star → /100 mapping (normalized directly)
-_STAR_TO_SCORE: dict[int, float] = {
-    1: 75.0,
-    2: 85.0,
-    3: 100.0,
+# Hachette rating text → /100 mapping
+_RATING_TEXT_TO_SCORE: dict[str, float] = {
+    "exceptionnel": 100.0,
+    "très réussi": 85.0,
+    "tres reussi": 85.0,
+    "réussi": 75.0,
+    "reussi": 75.0,
+    "cité": 75.0,
+    "cite": 75.0,
 }
 
 
-def _normalize_score_to_100(score: float, scale: str) -> Optional[float]:
-    if scale == "/100":
-        return score if 0 <= score <= 100 else None
-    if scale == "/20":
-        return (score / 20.0) * 100.0 if 0 <= score <= 20 else None
-    if scale == "/5":
-        return (score / 5.0) * 100.0 if 0 <= score <= 5 else None
-    if scale == "stars":
-        return (score / 5.0) * 100.0 if 0 <= score <= 5 else None
+def _score_from_rating_text(text: str) -> Optional[float]:
+    """Extract score from Hachette rating text in .p-rating-ctn."""
+    if not text:
+        return None
+    low = text.lower()
+    for key, score in _RATING_TEXT_TO_SCORE.items():
+        if key in low:
+            return score
     return None
 
 
 def _extract_vintage(text: str) -> Optional[int]:
     m = re.search(r"\b(199\d|20[0-3]\d)\b", text or "")
     return int(m.group(1)) if m else None
-
-
-def _count_stars_from_html(card_html: str) -> Optional[int]:
-    """Count filled star icons from HTML. Returns 1-3 or None."""
-    if not card_html:
-        return None
-    # Common patterns: filled star icons, aria-label="X étoiles", star count attributes
-    # Try aria-label pattern first
-    aria_match = re.search(r"(\d)\s+(?:é|e)toile", card_html, re.I)
-    if aria_match:
-        count = int(aria_match.group(1))
-        return count if 1 <= count <= 3 else None
-
-    # Count filled star SVG/icon elements (★ vs ☆, or class="star filled" vs "star empty")
-    filled_stars = len(re.findall(r'class="[^"]*\bstar[^"]*\bfilled\b[^"]*"', card_html, re.I))
-    if filled_stars:
-        return filled_stars if 1 <= filled_stars <= 3 else None
-
-    # Unicode stars
-    filled_unicode = card_html.count("★")
-    if filled_unicode:
-        return filled_unicode if 1 <= filled_unicode <= 3 else None
-
-    return None
 
 
 class HachetteVinsGuideScraper(BaseScraper):
@@ -123,42 +102,36 @@ class HachetteVinsGuideScraper(BaseScraper):
             "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
         }
 
-        # Search various regions
-        search_terms = ["bourgogne", "bordeaux", "alsace", "champagne", "Loire"]
-        if limit:
-            search_terms = search_terms[:2]
-
         with httpx.Client(headers=headers, timeout=30, follow_redirects=True) as client:
-            for term in search_terms:
+            page = 1
+            while True:
                 if limit is not None and result.rows_inserted >= limit:
                     break
 
-                url = f"{_GUIDE_URL}?q={term}"
+                url = _LIST_URL if page == 1 else f"{_BASE}/vins/page-{page}/list/"
                 try:
-                    resp = self._fetch(lambda: client.get(url))
-                    resp.raise_for_status()
+                    resp = client.get(url)
                 except Exception as exc:
                     write_dlq(self.conn, SOURCE_KEY, batch_id, "network_error", str(exc), {"url": url})
                     result.rows_dlq += 1
-                    continue
+                    break
+
+                if resp.status_code == 404:
+                    _logger.debug("Hachette page %d -> 404, stopping", page)
+                    break
 
                 if resp.status_code in (401, 403, 429):
                     write_dlq(self.conn, SOURCE_KEY, batch_id, "auth_error",
                                f"Blocked: HTTP {resp.status_code}", {"url": url})
                     result.rows_dlq += 1
-                    continue
+                    break
 
                 tree = HTMLParser(resp.text)
-
-                # Hachette wine cards
-                cards = tree.css(
-                    ".wine-card, .vin-card, .guide-item, .result-item, "
-                    "[class*='wine-result'], [class*='vin-item']"
-                )
+                cards = tree.css(".wine-card")
 
                 if not cards:
-                    _logger.debug("No Hachette wine cards found for term=%s", term)
-                    continue
+                    _logger.debug("No .wine-card found on page %d -- stopping", page)
+                    break
 
                 for card in cards:
                     if limit is not None and result.rows_inserted >= limit:
@@ -166,7 +139,8 @@ class HachetteVinsGuideScraper(BaseScraper):
 
                     result.rows_fetched += 1
 
-                    name_node = card.css_first("h2, h3, h4, .wine-name, .vin-nom, [class*='name'], [class*='titre']")
+                    # Name -- itemprop="name" is most reliable
+                    name_node = card.css_first('[itemprop="name"]') or card.css_first("h2, h3, .p-title")
                     raw_name = name_node.text(strip=True) if name_node else ""
                     if not raw_name:
                         write_dlq(self.conn, SOURCE_KEY, batch_id, "parse_error",
@@ -174,40 +148,18 @@ class HachetteVinsGuideScraper(BaseScraper):
                         result.rows_dlq += 1
                         continue
 
-                    # Count stars from card HTML
-                    stars = _count_stars_from_html(card.html or "")
+                    # Rating -- .p-rating-ctn contains text like "Vin exceptionnel", "Vin tres reussi"
+                    rating_node = card.css_first(".p-rating-ctn")
+                    rating_text = rating_node.text(strip=True) if rating_node else ""
+                    score_raw = _score_from_rating_text(rating_text)
 
-                    # Fallback: try text-based star count node
-                    if stars is None:
-                        star_node = card.css_first(".stars, .etoiles, .notation, [class*='star'], [class*='étoile']")
-                        if star_node:
-                            stars = _count_stars_from_html(star_node.html or "")
-
-                    # Second fallback: look for explicit text like "2 étoiles" or "★★"
-                    if stars is None:
-                        card_text = card.text(strip=True)
-                        stars_match = re.search(r"(\d)\s+é?toile", card_text, re.I)
-                        if stars_match:
-                            s = int(stars_match.group(1))
-                            stars = s if 1 <= s <= 3 else None
-                        else:
-                            unicode_count = card_text.count("★")
-                            if 1 <= unicode_count <= 3:
-                                stars = unicode_count
-
-                    if stars is None:
-                        # 0-star wines (not recommended) or undetectable — skip silently
-                        _logger.debug("No stars detected for %r — skipping (0-star or undetected)", raw_name)
-                        continue
-
-                    score_raw = float(_STAR_TO_SCORE.get(stars, 0))
-                    if score_raw == 0:
-                        _logger.debug("Unrecognized star count %d for %r — skipping", stars, raw_name)
+                    if score_raw is None:
+                        # 0-star / unrated wines -- skip silently
+                        _logger.debug("No rating detected for %r (text=%r) -- skipping", raw_name, rating_text)
                         continue
 
                     scale = "/100"
-                    # score_raw is already /100 mapped
-                    score_norm = score_raw  # Already normalized
+                    score_norm = score_raw  # already /100
 
                     vintage = _extract_vintage(raw_name)
                     producer_norm = normalize_producer(raw_name)
@@ -222,7 +174,8 @@ class HachetteVinsGuideScraper(BaseScraper):
                     wine_key = compute_wine_key(producer_norm, cuvee_norm, vintage, "")
 
                     link_node = card.css_first("a[href]")
-                    source_url = (_BASE + link_node.attributes.get("href", "")) if link_node else url
+                    href = link_node.attributes.get("href", "") if link_node else ""
+                    source_url = (href if href.startswith("http") else _BASE + href) if href else url
 
                     content_hash = hashlib.sha256(
                         f"{wine_key}:{CRITIC_CODE}:{score_raw}".encode()
@@ -246,6 +199,7 @@ class HachetteVinsGuideScraper(BaseScraper):
                                    {"wine_key": wine_key, "score": score_raw})
                         result.rows_dlq += 1
 
+                page += 1
                 time.sleep(1.5)
 
         return result

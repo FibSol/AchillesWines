@@ -1,10 +1,14 @@
 # REGISTER_IN_CLI = True
 """
-iDealwine.com scraper — auth-gated retail price ingestion.
+iDealwine.com scraper — auth-gated retail price ingestion via JSON API.
 
-iDealwine is a French wine auction and retail platform. Products are listed
-on a paginated catalogue behind a login wall. This scraper authenticates via
-the form-login endpoint and then crawls the catalogue HTML.
+iDealwine migrated from a server-rendered JSP site to a Next.js SPA backed
+by a Sylius /api/v2 REST API. Authentication uses a JWT bearer token obtained
+from /api/v2/shop/authentication-token. Products are fetched from
+/api/v2/shop/products (paginated, 30/page) and their prices from
+/api/v2/shop/product-variants-by-product/{id}.
+
+Credentials: ACHILLES_AUTH_IDEALWINE_USERNAME / _PASSWORD
 """
 import hashlib
 import json
@@ -18,7 +22,6 @@ from typing import Optional
 
 try:
     import httpx
-    from selectolax.parser import HTMLParser
     HAS_DEPS = True
 except ImportError:
     HAS_DEPS = False
@@ -35,42 +38,26 @@ _USER_AGENT = (
 )
 
 _BASE = "https://www.idealwine.com"
-_LOGIN_URL = f"{_BASE}/fr/account/login.jsp"
-_CATALOGUE_URL = f"{_BASE}/fr/vente-vins/index.jsp"
+_AUTH_URL = f"{_BASE}/api/v2/shop/authentication-token"
+_PRODUCTS_URL = f"{_BASE}/api/v2/shop/products"
+_VARIANTS_URL = f"{_BASE}/api/v2/shop/product-variants-by-product"
 
 _logger = logging.getLogger(__name__)
 
 _COLOR_MAP = {
-    "rouge": "red",
-    "blanc": "white",
-    "rosé": "rosé",
-    "rose": "rosé",
-    "champagne": "sparkling",
-    "effervescent": "sparkling",
-    "liquoreux": "sweet",
-    "moelleux": "sweet",
-    "fortifié": "fortified",
-    "orange": "orange",
+    "RED": "red",
+    "WHITE": "white",
+    "ROSE": "rosé",
+    "ROSÉ": "rosé",
+    "SPARKLING": "sparkling",
+    "SWEET": "sweet",
+    "FORTIFIED": "fortified",
+    "ORANGE": "orange",
 }
 
 
-def _extract_vintage(text: str) -> Optional[int]:
-    m = re.search(r"\b(199\d|20[0-3]\d)\b", text or "")
-    return int(m.group(1)) if m else None
-
-
 def _map_color(raw: str) -> str:
-    return _COLOR_MAP.get((raw or "").lower().strip(), "red")
-
-
-def _parse_price(raw: str) -> Optional[float]:
-    """Extract numeric price from a string like '42,50 €' or '42.50'."""
-    cleaned = re.sub(r"[^\d.,]", "", raw or "")
-    cleaned = cleaned.replace(",", ".")
-    try:
-        return float(cleaned)
-    except ValueError:
-        return None
+    return _COLOR_MAP.get((raw or "").upper().strip(), "red")
 
 
 def _find_appellation_key(conn: sqlite3.Connection, appellation_norm: str) -> Optional[int]:
@@ -176,22 +163,36 @@ class IDealwineScraper(AuthenticatedScraper):
         self.batch_id: Optional[str] = None
 
     def _login(self, client: "httpx.Client", creds: "Credentials") -> bool:
+        """Obtain a JWT bearer token from the Sylius /api/v2 endpoint."""
         resp = client.post(
-            _LOGIN_URL,
-            data={"login": creds.username, "password": creds.password},
-            headers={"User-Agent": _USER_AGENT, "Referer": _LOGIN_URL},
+            _AUTH_URL,
+            json={"email": creds.username, "password": creds.password},
+            headers={
+                "User-Agent": _USER_AGENT,
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
         )
-        # Success: redirect away from login page or session cookie set
-        if resp.status_code in (200, 302):
-            # Check for failure indicators in body
-            if "mot de passe incorrect" in resp.text.lower() or "identifiant incorrect" in resp.text.lower():
-                return False
-            return True
-        return False
+        if resp.status_code == 401:
+            return False
+        if resp.status_code != 200:
+            return False
+        try:
+            token = resp.json().get("token", "")
+        except Exception:
+            return False
+        if not token:
+            return False
+        # Attach JWT to the shared client for all subsequent requests
+        client.headers.update({
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/ld+json",
+        })
+        return True
 
     def run(self, limit: Optional[int] = None) -> ScrapeResult:
         if not HAS_DEPS:
-            return ScrapeResult(error="Missing dependencies: httpx or selectolax not installed")
+            return ScrapeResult(error="Missing dependencies: httpx not installed")
 
         if not has_credentials(self.source_code):
             return ScrapeResult(
@@ -201,7 +202,6 @@ class IDealwineScraper(AuthenticatedScraper):
         batch_id = self.batch_id or f"idealwine-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:8]}"
         result = ScrapeResult(batch_id=batch_id)
 
-        # Dynamic source_key lookup
         source_row = self.conn.execute(
             "SELECT source_key FROM dim_source WHERE source_code = ?", (self.source_code,)
         ).fetchone()
@@ -211,107 +211,147 @@ class IDealwineScraper(AuthenticatedScraper):
 
         headers = {
             "User-Agent": _USER_AGENT,
-            "Accept": "text/html,application/xhtml+xml,*/*",
-            "Accept-Language": "fr-FR,fr;q=0.9",
+            "Accept": "application/ld+json",
         }
 
+        client = None
         try:
-            with self.authenticated_client(headers=headers) as client:
-                page = 1
-                total_fetched = 0
+            client = self.authenticated_client(headers=headers)
+        except AuthMissingError as e:
+            return ScrapeResult(error=str(e))
+        except AuthError as e:
+            return ScrapeResult(error=str(e))
 
-                while True:
-                    url = f"{_CATALOGUE_URL}?page={page}"
+        try:
+            page = 1
+            items_per_page = 30
+            total_fetched = 0
+
+            while True:
+                if limit is not None and total_fetched >= limit:
+                    break
+
+                products_url = f"{_PRODUCTS_URL}?page={page}&itemsPerPage={items_per_page}"
+                try:
+                    resp = self._fetch(lambda u=products_url: client.get(u))
+                    resp.raise_for_status()
+                except Exception as e:
+                    result.error = f"HTTP error on products page {page}: {e}"
+                    write_dlq(self.conn, SOURCE_KEY, batch_id, "network_error", str(e),
+                              {"url": products_url})
+                    result.rows_dlq += 1
+                    break
+
+                try:
+                    data = resp.json()
+                except Exception as e:
+                    result.error = f"JSON parse error: {e}"
+                    break
+
+                products = data.get("hydra:member", [])
+                if not products:
+                    break  # no more pages
+
+                for product in products:
+                    if limit is not None and total_fetched >= limit:
+                        break
+
+                    product_id = product.get("id")
+                    if not product_id:
+                        continue
+
+                    name = product.get("name", "")
+                    if not name:
+                        continue
+
+                    appellation_raw = product.get("appellation", "") or ""
+                    region_raw = product.get("region", "") or ""
+                    owner_raw = product.get("owner", "") or ""
+                    color_raw = product.get("color", "") or ""
+                    color = _map_color(color_raw)
+
+                    # Fetch variants (contains price data)
+                    variants_url = f"{_VARIANTS_URL}/{product_id}"
                     try:
-                        resp = self._fetch(lambda u=url: client.get(u))
-                        resp.raise_for_status()
+                        vresp = self._fetch(
+                            lambda u=variants_url: client.get(u, headers={"Accept": "application/json"})
+                        )
+                        if vresp.status_code == 404:
+                            continue
+                        vresp.raise_for_status()
+                        variants = vresp.json()
                     except Exception as e:
-                        result.error = f"HTTP error on page {page}: {e}"
-                        write_dlq(self.conn, SOURCE_KEY, batch_id, "auth_error", str(e), {"url": url})
+                        write_dlq(self.conn, SOURCE_KEY, batch_id, "network_error", str(e),
+                                  {"url": variants_url})
                         result.rows_dlq += 1
-                        break
+                        continue
 
-                    tree = HTMLParser(resp.text)
-                    products = tree.css(".searchResult") or tree.css(".product-card") or []
+                    if not isinstance(variants, list):
+                        continue
 
-                    if not products:
-                        break
-
-                    page_hash = hashlib.sha256(resp.content).hexdigest()
-
-                    for node in products:
+                    for variant in variants:
                         if limit is not None and total_fetched >= limit:
                             break
 
-                        name_node = node.css_first("h2.wine-name, .product-name, .wine-title, h2, h3")
-                        price_node = node.css_first(".price-main, .price, .product-price")
-
-                        if not name_node or not price_node:
-                            write_dlq(
-                                self.conn, SOURCE_KEY, batch_id,
-                                "parse_error", "Missing name or price node",
-                                {"page": page},
-                            )
-                            result.rows_dlq += 1
+                        # Price: priceByCountry dict, values in cents
+                        price_by_country = variant.get("priceByCountry") or {}
+                        price_cents = price_by_country.get("FR") or price_by_country.get("BE") or (
+                            list(price_by_country.values())[0] if price_by_country else None
+                        )
+                        if not price_cents:
                             continue
+                        price_eur = price_cents / 100.0
 
-                        raw_name = name_node.text(strip=True)
-                        raw_price = price_node.text(strip=True)
-                        price_eur = _parse_price(raw_price)
+                        # Vintage
+                        vintage_raw = variant.get("vintage")
+                        if isinstance(vintage_raw, int) and 1990 <= vintage_raw <= 2035:
+                            vintage: Optional[int] = vintage_raw
+                        else:
+                            vintage = None
 
-                        if not raw_name or price_eur is None:
-                            write_dlq(
-                                self.conn, SOURCE_KEY, batch_id,
-                                "parse_error", f"Empty name or unparseable price: name={raw_name!r} price={raw_price!r}",
-                                {"page": page},
-                            )
-                            result.rows_dlq += 1
-                            continue
+                        # Wine name from variant
+                        variant_name = variant.get("additionalObservations", {}).get("fr", "") or name
+                        if not variant_name:
+                            variant_name = name
 
-                        vintage = _extract_vintage(raw_name)
-                        color = "red"
-                        appellation = ""
-                        region = ""
+                        appellation = variant.get("appellation") or appellation_raw or ""
+                        region = variant.get("region") or region_raw or ""
 
-                        # Try to extract appellation from sub-elements
-                        appellation_node = node.css_first(".appellation, .wine-appellation, .region")
-                        if appellation_node:
-                            appellation = appellation_node.text(strip=True)
-                            region = appellation
-
-                        link_node = node.css_first("a[href]")
-                        source_url = (_BASE + link_node.attrs.get("href", "")) if link_node else _BASE
-
-                        producer_norm = normalize_producer(raw_name)
-                        cuvee_norm = normalize_cuvee(raw_name)
+                        producer_norm = normalize_producer(owner_raw or variant_name)
+                        cuvee_norm = normalize_cuvee(variant_name)
                         appellation_norm = norm_text(appellation) if appellation else ""
 
                         if not producer_norm or not cuvee_norm:
                             write_dlq(
                                 self.conn, SOURCE_KEY, batch_id,
-                                "parse_error", f"Empty producer_norm or cuvee_norm for: {raw_name!r}",
-                                {"raw_name": raw_name},
+                                "parse_error",
+                                f"Empty producer_norm or cuvee_norm for: {variant_name!r}",
+                                {"raw_name": variant_name},
                             )
                             result.rows_dlq += 1
                             continue
 
                         wine_key = compute_wine_key(producer_norm, cuvee_norm, vintage, appellation_norm)
-                        _ensure_producer(self.conn, producer_norm, raw_name)
+                        _ensure_producer(self.conn, producer_norm, owner_raw or variant_name)
 
                         if not _ensure_wine(
-                            self.conn, wine_key, producer_norm, raw_name,
+                            self.conn, wine_key, producer_norm, variant_name,
                             cuvee_norm, appellation, appellation_norm, region, vintage, color,
                         ):
                             write_dlq(
                                 self.conn, SOURCE_KEY, batch_id,
                                 "unresolved_dim", "Could not resolve producer or appellation",
-                                {"raw_name": raw_name, "wine_key": wine_key},
+                                {"raw_name": variant_name, "wine_key": wine_key},
                             )
                             result.rows_dlq += 1
                             continue
 
+                        source_url = f"{_BASE}/fr/acheter-du-vin/{product.get('slug', product_id)}"
                         card_hash = hashlib.sha256(
-                            json.dumps({"name": raw_name, "price": price_eur, "page": page}, sort_keys=True).encode()
+                            json.dumps(
+                                {"wine_key": wine_key, "price": price_eur, "product_id": product_id},
+                                sort_keys=True,
+                            ).encode()
                         ).hexdigest()
 
                         try:
@@ -336,15 +376,18 @@ class IDealwineScraper(AuthenticatedScraper):
                         total_fetched += 1
                         result.rows_fetched += 1
 
-                    if limit is not None and total_fetched >= limit:
-                        break
+                    time.sleep(0.2)
 
-                    page += 1
-                    time.sleep(1.0)
+                # Check if there are more pages
+                total_items = data.get("hydra:totalItems", 0)
+                if page * items_per_page >= total_items:
+                    break
 
-        except AuthMissingError as e:
-            return ScrapeResult(error=str(e))
-        except AuthError as e:
-            return ScrapeResult(error=str(e))
+                page += 1
+                time.sleep(1.0)
+
+        finally:
+            if client is not None:
+                client.close()
 
         return result
