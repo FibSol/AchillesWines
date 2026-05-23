@@ -1,4 +1,4 @@
-FROM node:20-alpine
+FROM node:22-alpine
 
 # Build tools required for better-sqlite3 native module
 RUN apk add --no-cache python3 py3-pip make g++ git
@@ -11,7 +11,7 @@ ARG BRANCH=main
 RUN git clone --depth=1 --branch ${BRANCH} ${REPO} .
 
 # Install Node dependencies and build Next.js (standalone output)
-RUN npm ci && \
+RUN npm install && \
     npm run build && \
     cp -r public .next/standalone/public && \
     cp -r .next/static .next/standalone/.next/static
