@@ -6,9 +6,11 @@ RUN apk add --no-cache python3 py3-pip make g++ git
 WORKDIR /app
 
 # Clone the Achilles Wines repository at build time
+# CACHEBUST forces a fresh clone when the version changes
+ARG CACHEBUST=1.0.2
 ARG REPO=https://github.com/FibSol/AchillesWines.git
 ARG BRANCH=main
-RUN git clone --depth=1 --branch ${BRANCH} ${REPO} .
+RUN echo "cachebust=${CACHEBUST}" && git clone --depth=1 --branch ${BRANCH} ${REPO} .
 
 # Install Node dependencies and build Next.js (standalone output)
 RUN npm install && \
