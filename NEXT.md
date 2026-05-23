@@ -120,6 +120,14 @@ Wine press (E_press_critic → write to fact_rating):
 - [x] **P2 · 2h** [Hector] Scheduler APScheduler dans le job runner Python : lancer automatiquement les scrapers web (millesima, idealwine…) sur un cron configurable (ex. 1×/jour à 3h00) sans intervention manuelle. ✓ 2026-05-22
 - [x] **P2 · 1h** [Patroclus] Scraper email + scraper web en parallèle : lancer `millesima` (web) + `millesima_email` / `idealwine_email` / `lavinia_email` (IMAP) simultanément via `concurrent.futures.ThreadPoolExecutor` dans le job runner, chaque source restant isolée avec son propre batch_id. ✓ 2026-05-22
 
+## Sprint 13 — Full-catalog ingestion + price quality
+
+- [x] **P0 · 3h** [Patroclus] Fix wine_key identity divergence (vintage in producer, appellation in hash, Shopify vendor=shop-name) → first cross-source overlap; full-catalog run: 1752 wine_keys in fact_price ✓ 2026-05-23
+- [ ] **P1 · 1h** [Patroclus] Run wijnhuis unlimited scrape (currently only 500 from benchmark); run promoter after to add BE overlap — [#30](https://github.com/FibSol/AchillesWines/issues/30)
+- [ ] **P1 · 1h** [Patroclus] Add promote button to /admin/jobs UI (POST /api/promote) with stats chip (N pending, M overlap) — [#31](https://github.com/FibSol/AchillesWines/issues/31)
+- [ ] **P2 · 2h** [Patroclus] Run all other retail scrapers (topwijnen_be, wdc_be, vinsbrunin, ventealapropriete, lavinia, idealwine) full-catalog to widen overlap coverage — [#32](https://github.com/FibSol/AchillesWines/issues/32)
+- [ ] **P2 · 1h** [Odysseus] Best Value page: use fact_price for real prices now that rows exist (currently falls back to staging or shows empty) — [#33](https://github.com/FibSol/AchillesWines/issues/33)
+
 ## Sprint 12 — Production data migration
 
 - [ ] **P1 · 1h** [Patroclus] Migrate dev DB → prod RPi once ≥ 80% of scrapers have at least one successful `done` run. Gate: `SELECT COUNT(DISTINCT source_key) FROM ops_job_queue WHERE status='done'` ≥ 80% of enabled sources. Script `scripts/migrate-dev-to-prod.ps1`: dump dim_producer, dim_appellation, dim_wine, bridge_wine_variety, fact_price, fact_rating, fact_vintage_rating, staging_price_candidates, cellar_* from dev; SCP to RPi; stop add-on, apply, restart; print row counts before/after. Do NOT overwrite dim_source, ops_scraper_schedule, ops_* tables on prod. — [#29](https://github.com/FibSol/AchillesWines/issues/29)

@@ -1,5 +1,17 @@
 # Achilles's Wines — Progress Log
 
+## 2026-05-23 — Sprint 13: scraper identity fixes + full-catalog ingestion
+
+### Patroclus (Backend)
+- [Patroclus] identity.py/ts: strip vintage years from producer_norm (prevent year-in-producer wine_key pollution); remove appellation_norm from wine_key hash (different scrapers have wildly different appellation extraction quality — would produce unique keys for same wine); add strip_words param to normalize_cuvee to prevent producer/appellation text leaking into cuvée component. Mirror changes in lib/identity.ts. Root-cause: zero cross-source wine_key overlap before this fix. · files: scraper/achilles_scraper/identity.py, lib/identity.ts
+- [Patroclus] cavissima + cinoco: fix Shopify vendor=shop-name bug — when vendor equals "Cavissima"/"Cinoco" (shop name), split title on " - " to extract real producer name. Add strip_words to normalize_cuvee calls. · files: scrapers/cavissima.py, scrapers/cinoco.py
+- [Patroclus] All retail scrapers: drop cuvee_norm from validation guard — empty cuvee_norm is valid for single-estate château wines (e.g. "Château Pétrus 2010" where the château IS the wine). Keep only producer_norm guard. · files: millesima.py, cavissima.py, cinoco.py, vinatis.py, wijnhuis.py
+- [Patroclus] wijnhuis.py: reorder appellation lookup before cuvee_norm computation; add strip_words=[producer_norm, appellation_norm] to normalize_cuvee call · files: scrapers/wijnhuis.py
+- [Patroclus] millesima.py: add _appellation_from_title fallback (same as cavissima/cinoco) — Champagne NV wines have empty appellation field in millesima JSON, causing _ensure_wine to fail; fallback title-searches dim_appellation · files: scrapers/millesima.py
+- [Patroclus] Benchmark infrastructure: add recommended_batch_size/last_benchmark_at/benchmark_success_rate/benchmark_notes columns to dim_source; CLI `benchmark` command (incremental ladder 20→1000, saves rec to DB); jobs-table UI auto-fills limit from recommendedBatchSize when source selected; /api/sources returns new fields · files: db/schema.ts, db/migrations/0007_benchmark_fields.sql, cli.py, app/api/sources/route.ts, components/jobs-table.tsx
+- [Patroclus] promote CLI command + /api/promote route: tri-source promotion rule (≥2 concordant sources within ±15% of median price → fact_price). CLI shows pending/promoted stats; API exposes GET (stats) + POST (run promotion). · files: cli.py, app/api/promote/route.ts
+- [Patroclus] Full-catalog scrape run: millesima 9255 inserted / cavissima 3973 / cinoco 3155 / vinatis 3296 — 21k staging rows total; 1752 distinct wine_keys promoted to fact_price (3567 price records from ≥2 concordant sources). Data includes Petrus 2004 (€3600-3690), Château Palmer 2021 (3 sources), Margaux/Mouton from 2 sources. · milestone: first real multi-source price data in fact_price
+
 ## 2026-05-23 — Sprint 11: scraper URL fixes + Athena redesign
 
 ### Odysseus (Frontend)
