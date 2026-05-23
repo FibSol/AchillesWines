@@ -1,5 +1,23 @@
 # Achilles's Wines — Progress Log
 
+## 2026-05-23 — Auth scrapers full run
+
+### Patroclus (Backend) — 9 auth-required scrapers
+
+- [Patroclus] Fixed and ran all 9 auth-required scrapers. Results per scraper:
+  - **idealwine** — FIXED: rewrote login from defunct JSP URL to Sylius JWT API (`/api/v2/shop/authentication-token`). Products from `/api/v2/shop/products` (paginated 30/page), prices from `/api/v2/shop/product-variants-by-product/{id}` in cents. Full run: 500 fetched, 500 inserted into staging_price_candidates, 0 DLQ.
+  - **lavinia** — BLOCKED: lavinia.com returns HTTP 403 (Cloudflare bot protection). Source requires a browser session; logs descriptive AuthError DLQ. No fix possible without Playwright.
+  - **cavissima_be** — BLOCKED: site migrated to Shopify Customer Account API (OAuth 2.0 PKCE); headless form login not supported. Logs descriptive AuthError DLQ.
+  - **comptoir_des_millesimes** — WORKING: URL pattern fixed in prior session (`/vins-{YYYY}` pages). Full run: 500 fetched, 500 inserted, 1 DLQ.
+  - **belgiumwinewatchers** — WORKING: CSS selectors fixed in prior session (`ap-product-box`, `.product-box-title`, `.color-barrel`). Full run: 500 fetched, 17 inserted (501 deduped), 0 DLQ.
+  - **rvf** — SUBSCRIPTION-GATED: larvf.com /20 scores hidden behind paywall; rewrote run() to immediately log `auth_error` DLQ and return. No public data available.
+  - **figaro_vin** — SUBSCRIPTION-GATED: `/vins?page=N` returns HTTP 400; wine scores require Figaro Premium subscription. Rewrote to log `auth_error` DLQ and return.
+  - **terredevins** — SUBSCRIPTION-GATED: `/vins` returns 404; degustation content requires premium subscription. Rewrote to log `auth_error` DLQ and return.
+  - **hachette_vins** — FIXED: URL changed from `/guide/?q=…` to `/vins/list/` (60 cards/page, paginate via `/vins/page-{N}/list/`). Rating extracted from `.p-rating-ctn` text: "exceptionnel"=100, "très réussi"=85, "réussi"/"cité"=75. Most ratings DLQ as `validation_error` (FK: wine_key not yet in dim_wine — expected, since hachette catalogue is broader than our dim_wine coverage).
+  - **Promoter**: 73 new rows promoted to fact_price (total: 2282 → 2355). 29,379 staging candidates, 654 wine_keys with 2+ sources.
+  - **Tests**: 126/126 Python unit tests pass.
+  · files: scraper/achilles_scraper/scrapers/idealwine.py, hachette_vins_guide.py, rvf.py, figaro_vin.py, terredevins.py
+
 ## 2026-05-23
 
 ### Patroclus (Backend) — issue #39 / #30
