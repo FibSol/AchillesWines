@@ -1,4 +1,6 @@
+import os
 import sys
+from pathlib import Path
 import click
 from rich.console import Console
 from rich.table import Table
@@ -8,6 +10,26 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() not in ("utf-8", "utf8"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
 if sys.stderr.encoding and sys.stderr.encoding.lower() not in ("utf-8", "utf8"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
+
+
+def _load_dotenv() -> None:
+    """Load .env from the project root (3 levels above this file) if present.
+    Env vars already set in the process take precedence (no override).
+    """
+    env_path = Path(__file__).resolve().parent.parent.parent / ".env"
+    if not env_path.exists():
+        return
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, v = line.split("=", 1)
+        k = k.strip()
+        if k and k not in os.environ:
+            os.environ[k] = v.strip()
+
+
+_load_dotenv()
 
 console = Console()
 
@@ -37,6 +59,7 @@ _ALL_SOURCES = [
     "millesima_email",
     "idealwine_email",
     "lavinia_email",
+    "ventealapropriete_email",
     # --- Press / critic scrapers (→ fact_rating) ---
     "rvf",
     "decanter",
@@ -82,6 +105,7 @@ def _load_scrapers():
         MillesimaEmailScraper,
         IDealwineEmailScraper,
         LaviniaEmailScraper,
+        VenteALaProprieteEmailScraper,
     )
     # Press / critics
     from .scrapers.rvf import RvfScraper
@@ -123,6 +147,7 @@ def _load_scrapers():
     SCRAPERS["millesima_email"] = MillesimaEmailScraper
     SCRAPERS["idealwine_email"] = IDealwineEmailScraper
     SCRAPERS["lavinia_email"] = LaviniaEmailScraper
+    SCRAPERS["ventealapropriete_email"] = VenteALaProprieteEmailScraper
     SCRAPERS["rvf"] = RvfScraper
     SCRAPERS["decanter"] = DecanterRatingsScraper
     SCRAPERS["james_suckling"] = JamesSucklingScraper

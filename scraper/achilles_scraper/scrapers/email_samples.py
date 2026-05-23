@@ -1,28 +1,32 @@
 """
-Sample EmailNewsletterScraper subclasses.
+EmailNewsletterScraper subclasses — one per newsletter sender.
 
-These are stubs — adjust `from_email` to the actual sender domain you
-subscribed to, then register the matching `dim_source` row with the same
-`source_code`. The generic HTML heuristic is enough for many vendors; if
-the layout is exotic, override `_parse_html()`.
+`from_email` is an IMAP FROM substring filter, so a domain fragment like
+"millesima.com" matches any sender address that contains that string
+(e.g. info@news.millesima.com, newsletter@millesima.fr, etc.).
 """
 from .email_newsletter import EmailNewsletterScraper
 
 
 class MillesimaEmailScraper(EmailNewsletterScraper):
     source_code = "millesima_email"
-    # Real value to set in dim_source seed:
-    from_email = "newsletter@millesima.fr"
+    from_email = "millesima.com"
     domain_hints = ("millesima.fr", "millesima.com")
 
 
 class IDealwineEmailScraper(EmailNewsletterScraper):
     source_code = "idealwine_email"
-    from_email = "no-reply@idealwine.com"
+    from_email = "idealwine.com"
     domain_hints = ("idealwine.com", "idealwine.net")
 
 
 class LaviniaEmailScraper(EmailNewsletterScraper):
     source_code = "lavinia_email"
-    from_email = "newsletter@lavinia.fr"
+    from_email = "lavinia.fr"
     domain_hints = ("lavinia.fr", "lavinia.com")
+
+
+class VenteALaProprieteEmailScraper(EmailNewsletterScraper):
+    source_code = "ventealapropriete_email"
+    from_email = "ventealapropriete.com"
+    domain_hints = ("ventealapropriete.com",)
