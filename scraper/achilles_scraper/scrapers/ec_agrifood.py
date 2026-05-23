@@ -2,10 +2,15 @@
 EC Agri-food wine API scraper — EU bulk wine market prices.
 
 Source: https://agridata.ec.europa.eu/extensions/API_Documentation/wine.html
-Base URL: https://api.tech.ec.europa.eu/agrifood/api/wine
 Auth: None (public REST API)
 Cadence: Weekly
 Data: Weekly bulk wine prices (€/HL) by wine category for FR, IT, ES, DE, PT
+
+API endpoint history:
+  - https://api.tech.ec.europa.eu/agrifood  — confirmed working May 2026
+    Returns 404 only when queried date range has no published data yet
+    (data lags ~6-8 months); use a 540-day lookback window to avoid this.
+  - https://agridata.ec.europa.eu/agridata  — Qlik Sense dashboard (400)
 
 Writes to fact_market_index (NOT staging_price_candidates — these are wholesale
 bulk prices per hectoliter, not individual bottle prices).
@@ -25,9 +30,17 @@ from ..dlq import write_dlq
 
 console = Console()
 
-_API_BASE = "https://api.tech.ec.europa.eu/agrifood"
+# Try in order — first working base wins at runtime
+# Note: api.tech.ec.europa.eu returns 404 when the date range has no data
+#       (data lags ~8 months) but works fine with a wide enough lookback window.
+_API_BASES = [
+    "https://api.tech.ec.europa.eu/agrifood",    # primary — confirmed working May 2026
+    "https://agridata.ec.europa.eu/agridata",   # fallback (Qlik Sense, currently 400)
+]
 _MEMBER_STATES = ["FR", "IT", "ES", "DE", "PT"]
-_WINDOW_DAYS = 90
+# EC Agrifood data lags ~6-8 months behind real time; use 540-day window
+# so we always catch the most recent published prices.
+_WINDOW_DAYS = 540
 
 _ENSURE_TABLE_SQL = """
 CREATE TABLE IF NOT EXISTS fact_market_index (
@@ -103,27 +116,45 @@ class EcAgrifoodScraper(BaseScraper):
         console.print(f"[cyan]ec_agrifood[/] fetching {begin_str} → {end_str} for {codes}")
 
         headers = {"Accept": "application/json"}
+        data = None
+        last_error = None
         with httpx.Client(headers=headers, timeout=30, follow_redirects=True) as client:
-            try:
-                resp = self._fetch(
-                    lambda: client.get(
-                        f"{_API_BASE}/api/wine/prices",
-                        params={
-                            "memberStateCodes": codes,
-                            "beginDate": begin_str,
-                            "endDate": end_str,
-                        },
+            for base in _API_BASES:
+                url = f"{base}/api/wine/prices"
+                try:
+                    resp = self._fetch(
+                        lambda u=url: client.get(
+                            u,
+                            params={
+                                "memberStateCodes": codes,
+                                "beginDate": begin_str,
+                                "endDate": end_str,
+                            },
+                        )
                     )
-                )
-                resp.raise_for_status()
-                data = resp.json()
-            except Exception as exc:
-                write_dlq(self.conn, source_key, batch_id, "parse_error", str(exc), {
-                    "begin": begin_str, "end": end_str
-                })
-                result.rows_dlq += 1
-                result.error = str(exc)
-                return result
+                    if resp.status_code == 400:
+                        # Log full response so we can debug parameter issues
+                        console.print(
+                            f"[yellow]ec_agrifood[/] {base} → 400: {resp.text[:300]}"
+                        )
+                        last_error = f"HTTP 400 from {base}: {resp.text[:200]}"
+                        continue
+                    resp.raise_for_status()
+                    data = resp.json()
+                    console.print(f"[cyan]ec_agrifood[/] working endpoint: {base}")
+                    break
+                except Exception as exc:
+                    console.print(f"[yellow]ec_agrifood[/] {base} failed: {exc}")
+                    last_error = str(exc)
+                    continue
+
+        if data is None:
+            write_dlq(self.conn, source_key, batch_id, "parse_error",
+                      f"All endpoints failed. Last: {last_error}",
+                      {"begin": begin_str, "end": end_str, "tried": _API_BASES})
+            result.rows_dlq += 1
+            result.error = last_error
+            return result
 
         records: list[dict] = data if isinstance(data, list) else data.get("data", [])
         console.print(f"[cyan]ec_agrifood[/] {len(records)} records received")

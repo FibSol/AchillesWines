@@ -34,7 +34,11 @@ from ..dlq import write_dlq
 
 console = Console()
 
-# Christie's internal discovery API (reverse-engineered from XHR traffic)
+# Christie's internal discovery API (reverse-engineered from XHR traffic).
+# NOTE (May 2026): /api/discovery/lots/searchlots now returns 404.
+# Christie's blocks all alternative GET endpoints with empty-body 200 responses.
+# The scraper is kept in place for when a working endpoint is re-discovered;
+# run `achilles-scraper run --source christies --limit 5` to probe after any site update.
 _SEARCH_URL = "https://www.christies.com/api/discovery/lots/searchlots"
 _FX_URL = "https://api.frankfurter.app/latest"
 

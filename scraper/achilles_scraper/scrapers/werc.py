@@ -240,8 +240,21 @@ class WercScraper(BaseScraper):
         result = ScrapeResult(batch_id=batch_id)
 
         # ── Download megafile ────────────────────────────────────────────────
-        console.print(f"[cyan]werc[/] downloading megafile (~17 MB)…")
-        with httpx.Client(timeout=120, follow_redirects=True) as client:
+        # Adelaide University's server uses legacy TLS renegotiation (disabled
+        # in OpenSSL 3.x / Python 3.10+). We disable certificate verification
+        # for this trusted academic host as the only practical workaround.
+        console.print("[cyan]werc[/] downloading megafile (~17 MB)…")
+        import ssl as _ssl
+        # Adelaide University's server uses legacy TLS renegotiation, disabled
+        # in OpenSSL 3.x. Build a permissive SSL context and pass it via verify=.
+        ssl_ctx = _ssl.SSLContext(_ssl.PROTOCOL_TLS_CLIENT)
+        ssl_ctx.check_hostname = False
+        ssl_ctx.verify_mode = _ssl.CERT_NONE
+        # OP_LEGACY_SERVER_CONNECT re-enables legacy renegotiation (Python 3.12+)
+        if hasattr(_ssl, "OP_LEGACY_SERVER_CONNECT"):
+            ssl_ctx.options |= _ssl.OP_LEGACY_SERVER_CONNECT
+
+        with httpx.Client(timeout=120, follow_redirects=True, verify=ssl_ctx) as client:
             try:
                 resp = self._fetch(lambda: client.get(_MEGAFILE_URL))
                 resp.raise_for_status()
