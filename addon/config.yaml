@@ -1,0 +1,19 @@
+name: "Achilles's Wines"
+description: "Home wine cellar — multilingual, price tracking & cellar inventory"
+version: "1.0.0"
+slug: "achilles_wines"
+init: false
+arch:
+  - aarch64
+  - amd64
+  - armv7
+startup: application
+boot: auto
+ports:
+  3000/tcp: 3000
+ports_description:
+  3000/tcp: "Achilles Wines web interface"
+map:
+  - data:rw
+options: {}
+schema: {}
