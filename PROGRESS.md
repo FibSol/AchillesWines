@@ -1,5 +1,10 @@
 # Achilles's Wines — Progress Log
 
+## 2026-05-23 — Sprint 11: scraper URL fixes + Athena redesign
+
+### Odysseus (Frontend)
+- [2026-05-23] [Odysseus] Athena design system — replaced Dionysus (aubergine/coral/mint) with noir #0F0E17 · magenta vin #A53860 · crème #F7F4EA · or champagne #E5B25D; wired Fraunces + Inter via next/font (confirmed in computed styles); fixed hardcoded coral rgba values in site-nav; transitioned .btn and .glass-card to explicit CSS transition properties; `:active { transform: scale(0.97) }` on buttons; `@media (hover)` guards; Liquid Glass inner-border on glass cards. Supersedes ADR-002 → ADR-012. · files: app/globals.css, app/layout.tsx, app/[locale]/layout.tsx, components/site-nav.tsx, CLAUDE.md
+
 ## 2026-05-23 — Sprint 11: scraper URL fixes + wine-searcher stub
 
 ### Patroclus (Backend)

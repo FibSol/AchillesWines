@@ -84,7 +84,7 @@ Wine press (E_press_critic → write to fact_rating):
 - [x] **P1 · 0.5h** [Patroclus] Fix cavissima.py catalog URL (404 on `/vins/?p=1`) — [#15](https://github.com/FibSol/AchillesWines/issues/15) ✓ 2026-05-23
 - [x] **P1 · 1h**   [Patroclus] Tune BE shop URL patterns after first live test (wdc, cinoco, wijnhuis, topwijnen_be) — [#16](https://github.com/FibSol/AchillesWines/issues/16) ✓ 2026-05-23
 - [x] **P1 · 0.5h** [Patroclus] Add wine-searcher to dim_source (missed in 0004) + add scraper class — [#17](https://github.com/FibSol/AchillesWines/issues/17) ✓ 2026-05-23
-- [ ] **P1 · 3h**   [Odysseus] Design review: theme consistency, UX polish, empty/loading/error states, mobile — [#23](https://github.com/FibSol/AchillesWines/issues/23)
+- [x] **P1 · 3h**   [Odysseus] Design review + Athena redesign: replaced Dionysus palette/fonts with Athena (noir/magenta/crème/champagne + Fraunces + Inter via next/font) ✓ 2026-05-23 — [#23](https://github.com/FibSol/AchillesWines/issues/23)
 
 ## Sprint 6 — Menu pairing
 

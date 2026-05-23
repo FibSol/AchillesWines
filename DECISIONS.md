@@ -13,12 +13,21 @@
 
 ## ADR-002 — Design Dionysus (bold contemporain) plutôt que Athena/Apollo
 - **Date:** 2026-05-21
-- **Status:** accepted
+- **Status:** superseded by ADR-012
 - **Decision:** Palette aubergine nuit (#1A0B2E) + corail électrique (#FF5C8A) + ivoire (#FAF7F5) + mint (#6FFFE9 hover only). Typographies Migra (titres 800 italic, -12 letter-spacing) + Geist (body). Dark mode par défaut.
 - **Alternatives considered:**
   - Athena : dark luxe sommellerie (magenta vin + or champagne, Fraunces + Inter).
   - Apollo : éditorial chaud lumineux (bordeaux + safran, Cormorant + DM Sans).
 - **Reasoning:** Le brief demande "jeune et dynamique pour le monde du vin", explicitement pas VCF ni Raketman. Dionysus est le plus contrastant des trois et le mieux aligné sur l'identité Achilles (mythologie + audace).
+
+## ADR-012 — Design Athena (dark luxe sommellerie) remplace Dionysus
+- **Date:** 2026-05-23
+- **Status:** accepted
+- **Decision:** Palette Athena : noir profond `#0F0E17` (bg) · magenta vin `#A53860` (primaire) · crème `#F7F4EA` (fg) · or champagne `#E5B25D` (accent secondaire). Typos : Fraunces (titres, italic, variable, via next/font) + Inter (body, via next/font). Vibe : Le Wine Mag édition nuit × Vivino premium. Supersède ADR-002 (Dionysus).
+- **Alternatives considered:**
+  - Conserver Dionysus (aubergine/coral/mint) — rejeté : créait des maux de tête visuels selon retour utilisateur.
+  - Apollo (bordeaux/safran, Cormorant + DM Sans) — non réévalué.
+- **Reasoning:** L'utilisateur a prescrit la palette exacte. Athena était une option dès ADR-002 (déjà documentée comme alternative). La combinaison magenta vin + or champagne est un classique sommellerie (accord couleur/or intentionnel, pas accidentel). Les deux accents servent des rôles distincts : magenta = interactif (boutons, bordures, états actifs), champagne = décoratif/données (valeurs stat cards, badges, le "A." du footer). next/font garantit le chargement réel des fontes (l'ancienne implémentation utilisait des fallbacks CSS sans téléchargement).
 
 ## ADR-003 — Stratégie data strict multi-source obligatoire
 - **Date:** 2026-05-21
