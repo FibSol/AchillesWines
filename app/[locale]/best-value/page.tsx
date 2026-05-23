@@ -23,17 +23,22 @@ interface BestValueRow {
   sourceCount: number;
 }
 
-async function getBestValueWines(): Promise<BestValueRow[]> {
+async function getBestValueWines(): Promise<{ wines: BestValueRow[]; ratingMode: boolean }> {
   try {
-    // Get average price per wine
+    // Get average price + source count per wine from confirmed fact_price
     const prices = await db
       .select({
         wineKey: factPrice.wineKey,
         avgPrice: sql<number>`avg(${factPrice.amountEur})`,
+        minPrice: sql<number>`min(${factPrice.amountEur})`,
+        maxPrice: sql<number>`max(${factPrice.amountEur})`,
+        srcCount: sql<number>`count(distinct ${factPrice.sourceKey})`,
       })
       .from(factPrice)
       .where(and(isNotNull(factPrice.amountEur), gt(factPrice.amountEur, 1)))
       .groupBy(factPrice.wineKey);
+
+    if (prices.length === 0) return { wines: [], ratingMode: false };
 
     // Get average normalized rating + distinct source count per wine
     const ratings = await db
@@ -46,48 +51,72 @@ async function getBestValueWines(): Promise<BestValueRow[]> {
       .where(isNotNull(factRating.scoreNormalized100))
       .groupBy(factRating.wineKey);
 
-    if (prices.length === 0 || ratings.length === 0) {
-      return [];
-    }
-
-    // Build lookup maps
-    const priceMap = new Map(prices.map((p) => [p.wineKey, p.avgPrice]));
+    const hasRatings = ratings.length > 0;
+    const priceMap = new Map(prices.map((p) => [p.wineKey, p]));
     const ratingMap = new Map(ratings.map((r) => [r.wineKey, { avg: r.avgRating, count: r.sourceCount }]));
 
-    // Find wine_keys that have both price and rating
-    const eligibleKeys = [...priceMap.keys()].filter((k) => ratingMap.has(k));
-    if (eligibleKeys.length === 0) return [];
+    // In rating mode: only wines with both price + rating; in price-confidence mode: all price wines
+    const eligibleKeys = hasRatings
+      ? [...priceMap.keys()].filter((k) => ratingMap.has(k))
+      : [...priceMap.keys()];
 
-    // Fetch wine + producer + appellation data for eligible keys
-    const wines = await db
-      .select({
-        wineKey: dimWine.wineKey,
-        canonicalName: dimWine.canonicalName,
-        cuveeName: dimWine.cuveeName,
-        vintage: dimWine.vintage,
-        producerName: dimProducer.producerName,
-        appellationName: dimAppellation.appellationName,
-      })
-      .from(dimWine)
-      .innerJoin(dimProducer, eq(dimWine.producerKey, dimProducer.producerKey))
-      .innerJoin(dimAppellation, eq(dimWine.appellationKey, dimAppellation.appellationKey))
-      .where(sql`${dimWine.wineKey} IN (${sql.raw(eligibleKeys.map(() => "?").join(","))})`)
-      .execute();
+    if (eligibleKeys.length === 0) return { wines: [], ratingMode: false };
+
+    // Fetch wine + producer + appellation data for eligible keys (batched for SQLite)
+    const BATCH = 200;
+    const wineRows: Array<{
+      wineKey: string; canonicalName: string; cuveeName: string;
+      vintage: number | null; producerName: string; appellationName: string;
+    }> = [];
+    for (let i = 0; i < eligibleKeys.length; i += BATCH) {
+      const batch = eligibleKeys.slice(i, i + BATCH);
+      const rows = await db
+        .select({
+          wineKey: dimWine.wineKey,
+          canonicalName: dimWine.canonicalName,
+          cuveeName: dimWine.cuveeName,
+          vintage: dimWine.vintage,
+          producerName: dimProducer.producerName,
+          appellationName: dimAppellation.appellationName,
+        })
+        .from(dimWine)
+        .innerJoin(dimProducer, eq(dimWine.producerKey, dimProducer.producerKey))
+        .innerJoin(dimAppellation, eq(dimWine.appellationKey, dimAppellation.appellationKey))
+        .where(sql`${dimWine.wineKey} IN (${sql.raw(batch.map(() => "?").join(","))})`)
+        .execute();
+      wineRows.push(...rows);
+    }
 
     // Score and sort
-    const scored: BestValueRow[] = wines
+    const scored: BestValueRow[] = wineRows
       .map((w) => {
-        const price = priceMap.get(w.wineKey) ?? 0;
-        const ratingInfo = ratingMap.get(w.wineKey);
-        const rating = ratingInfo?.avg ?? 0;
-        const sourceCount = Number(ratingInfo?.count ?? 0);
-
-        if (price <= 1 || rating === 0) return null;
-
+        const pd = priceMap.get(w.wineKey);
+        if (!pd) return null;
+        const price = pd.avgPrice;
+        if (price <= 1) return null;
         const logPrice = Math.log(price);
         if (logPrice <= 0) return null;
 
-        const score = (rating * rating) / logPrice;
+        let score: number;
+        let ratingNorm100: number;
+        let sourceCount: number;
+
+        if (hasRatings) {
+          const ratingInfo = ratingMap.get(w.wineKey);
+          const rating = ratingInfo?.avg ?? 0;
+          if (rating === 0) return null;
+          ratingNorm100 = rating;
+          sourceCount = Number(ratingInfo?.count ?? 0);
+          score = (rating * rating) / logPrice;
+        } else {
+          // Price-confidence mode: score = sources × (1 - price_spread_pct)
+          // Rewards wines confirmed by multiple retailers with tight price agreement
+          const spread = pd.maxPrice > 0 ? (pd.maxPrice - pd.minPrice) / pd.maxPrice : 0;
+          const priceSources = Number(pd.srcCount ?? 1);
+          score = priceSources * (1 - spread) * 100;
+          ratingNorm100 = 0;
+          sourceCount = priceSources;
+        }
 
         return {
           wineKey: w.wineKey,
@@ -98,7 +127,7 @@ async function getBestValueWines(): Promise<BestValueRow[]> {
           appellationName: w.appellationName,
           score,
           priceEur: price,
-          ratingNorm100: rating,
+          ratingNorm100,
           confidence: deriveConfidence(sourceCount),
           sourceCount,
         } satisfies BestValueRow;
@@ -107,9 +136,9 @@ async function getBestValueWines(): Promise<BestValueRow[]> {
       .sort((a, b) => b.score - a.score)
       .slice(0, 50);
 
-    return scored;
+    return { wines: scored, ratingMode: hasRatings };
   } catch {
-    return [];
+    return { wines: [], ratingMode: false };
   }
 }
 
@@ -137,7 +166,7 @@ export default async function BestValuePage({
   setRequestLocale(locale);
   const t = await getTranslations("bestValue");
 
-  const wines = await getBestValueWines();
+  const { wines, ratingMode } = await getBestValueWines();
 
   const scatterData: BestValuePoint[] = wines.map((w) => ({
     wineKey: w.wineKey,
@@ -148,7 +177,7 @@ export default async function BestValuePage({
   }));
 
   return (
-    <PageShell title={t("title")} subtitle={t("subtitle")} badge="Sprint 4 · P1">
+    <PageShell title={t("title")} subtitle={ratingMode ? t("subtitle") : "Prix confirmés par ≥2 sources indépendantes · classement par confiance prix"} badge="Sprint 4 · P1">
       {wines.length === 0 ? (
         <div className="glass-card p-12 flex flex-col items-center justify-center text-center gap-4">
           <TrendingDown className="size-10 text-[color:var(--color-fg-subtle)]" strokeWidth={1.5} />
