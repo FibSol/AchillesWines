@@ -49,8 +49,12 @@ _ALL_SOURCES = [
     # --- Official market / statistical sources ---
     "ec_agrifood",        # EC Agri-food wine API → fact_market_index
     "eurostat_harvest",   # Eurostat tag00121 → fact_harvest_volume
+    "werc",               # WERC megafile 1835-2024 → fact_werc_stats
     # --- Auction scrapers (→ staging_price_candidates) ---
     "christies",
+    # --- Crowd / user-aggregate ratings (→ fact_rating) ---
+    "xwines",             # X-Wines/Vivino crowd ratings (CC0)
+    "kaggle_reviews",     # WineEnthusiast reviews via Kaggle API
 ]
 
 
@@ -92,8 +96,12 @@ def _load_scrapers():
     # Official statistical sources
     from .scrapers.ec_agrifood import EcAgrifoodScraper
     from .scrapers.eurostat_harvest import EurostatHarvestScraper
+    from .scrapers.werc import WercScraper
     # Auctions
     from .scrapers.christies import ChristiesScraper
+    # Crowd ratings
+    from .scrapers.xwines import XWinesScraper
+    from .scrapers.kaggle_reviews import KaggleReviewsScraper
 
     SCRAPERS["millesima"] = MillesimaScraper
     SCRAPERS["millesima_be"] = MillesimaBeScraper
@@ -125,7 +133,10 @@ def _load_scrapers():
     SCRAPERS["wine_searcher"] = WineSearcherScraper
     SCRAPERS["ec_agrifood"] = EcAgrifoodScraper
     SCRAPERS["eurostat_harvest"] = EurostatHarvestScraper
+    SCRAPERS["werc"] = WercScraper
     SCRAPERS["christies"] = ChristiesScraper
+    SCRAPERS["xwines"] = XWinesScraper
+    SCRAPERS["kaggle_reviews"] = KaggleReviewsScraper
 
 
 @click.group()

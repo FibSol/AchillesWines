@@ -273,7 +273,7 @@ export const factRating = sqliteTable(
       .notNull()
       .references(() => dimSource.sourceKey),
     criticCode: text("critic_code", {
-      enum: ["WA", "Vinous", "BH", "JMIB", "RVF", "Decanter", "JS", "JG", "WS", "Hachette", "CT"],
+      enum: ["WA", "Vinous", "BH", "JMIB", "RVF", "Decanter", "JS", "JG", "WS", "Hachette", "CT", "XW", "WE"],
     }).notNull(),
     reviewerType: text("reviewer_type", {
       enum: ["critic", "user_aggregate"],
@@ -343,6 +343,36 @@ export const factVintageRating = sqliteTable(
 /* ============================================================================
  * MARKET & SUPPLY REFERENCE (official statistical sources)
  * ========================================================================== */
+
+/**
+ * WERC Global Wine Markets megafile — selected metrics in narrow EAV format.
+ * Covers vine area ('000 ha) and wine production (KL) from 1835 to 2024.
+ * Source: https://economics.adelaide.edu.au/wine-economics/databases
+ */
+export const factWercStats = sqliteTable(
+  "fact_werc_stats",
+  {
+    statId: integer("stat_id").primaryKey({ autoIncrement: true }),
+    sourceKey: integer("source_key")
+      .notNull()
+      .references(() => dimSource.sourceKey),
+    countryCode: text("country_code").notNull(),
+    year: integer("year").notNull(),
+    /** e.g. 'vine_area_kha' | 'wine_production_kl' */
+    metric: text("metric").notNull(),
+    value: real("value").notNull(),
+    unit: text("unit").notNull(),
+    batchId: text("batch_id").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (t) => ({
+    uniqueRow: uniqueIndex("idx_werc_unique").on(t.countryCode, t.year, t.metric),
+    countryYearIdx: index("idx_werc_country_year").on(t.countryCode, t.year),
+    metricIdx: index("idx_werc_metric").on(t.metric),
+  })
+);
 
 /** EU bulk wine market prices — EC Agri-food API (weekly, €/HL per category). */
 export const factMarketIndex = sqliteTable(
@@ -658,3 +688,4 @@ export type JobQueue = typeof opsJobQueue.$inferSelect;
 export type ScraperSchedule = typeof opsScraperSchedule.$inferSelect;
 export type MarketIndex = typeof factMarketIndex.$inferSelect;
 export type HarvestVolume = typeof factHarvestVolume.$inferSelect;
+export type WercStat = typeof factWercStats.$inferSelect;
