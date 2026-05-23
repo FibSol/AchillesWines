@@ -172,6 +172,19 @@ def _ensure_producer(conn: sqlite3.Connection, producer_norm: str, producer_name
         return False
 
 
+def _appellation_from_title(conn: sqlite3.Connection, title: str) -> tuple[str, str]:
+    """Match the longest known French appellation in the wine title; falls back to Vin de France."""
+    title_up = title.upper()
+    rows = conn.execute(
+        "SELECT appellation_name, appellation_norm FROM dim_appellation"
+        " WHERE country_code = 'FR' ORDER BY length(appellation_name) DESC"
+    ).fetchall()
+    for name, norm in rows:
+        if name.upper() in title_up:
+            return name, norm
+    return "Vin de France", "vin de france"
+
+
 class WijnhuisScraper(BaseScraper):
     source_code = "wijnhuis"
 
@@ -314,13 +327,14 @@ class WijnhuisScraper(BaseScraper):
                         result.rows_dlq += 1
                         continue
 
-                    appellation_norm = ""
+                    appellation, appellation_norm = _appellation_from_title(self.conn, raw_name)
+                    region = appellation
                     wine_key = compute_wine_key(producer_norm, cuvee_norm, vintage, appellation_norm)
                     _ensure_producer(self.conn, producer_norm, raw_name)
 
                     if not _ensure_wine(
                         self.conn, wine_key, producer_norm, raw_name,
-                        cuvee_norm, "", appellation_norm, "", vintage, color,
+                        cuvee_norm, appellation, appellation_norm, region, vintage, color,
                     ):
                         write_dlq(
                             self.conn, SOURCE_KEY, batch_id,
