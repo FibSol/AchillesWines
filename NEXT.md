@@ -123,10 +123,11 @@ Wine press (E_press_critic → write to fact_rating):
 ## Sprint 13 — Full-catalog ingestion + price quality
 
 - [x] **P0 · 3h** [Patroclus] Fix wine_key identity divergence (vintage in producer, appellation in hash, Shopify vendor=shop-name) → first cross-source overlap; full-catalog run: 1752 wine_keys in fact_price ✓ 2026-05-23
-- [ ] **P1 · 1h** [Patroclus] Run wijnhuis unlimited scrape (currently only 500 from benchmark); run promoter after to add BE overlap — [#30](https://github.com/FibSol/AchillesWines/issues/30)
-- [ ] **P1 · 1h** [Patroclus] Add promote button to /admin/jobs UI (POST /api/promote) with stats chip (N pending, M overlap) — [#31](https://github.com/FibSol/AchillesWines/issues/31)
-- [ ] **P2 · 2h** [Patroclus] Run all other retail scrapers (topwijnen_be, wdc_be, vinsbrunin, ventealapropriete, lavinia, idealwine) full-catalog to widen overlap coverage — [#32](https://github.com/FibSol/AchillesWines/issues/32)
-- [ ] **P2 · 1h** [Odysseus] Best Value page: use fact_price for real prices now that rows exist (currently falls back to staging or shows empty) — [#33](https://github.com/FibSol/AchillesWines/issues/33)
+- [x] **P1 · 1h** [Patroclus] Run wijnhuis unlimited scrape (currently only 500 from benchmark); run promoter after to add BE overlap ✓ 2026-05-23
+- [x] **P1 · 1h** [Patroclus] Add promote button to /admin/jobs UI (POST /api/promote) with stats chip (N pending, M overlap) ✓ 2026-05-23
+- [x] **P2 · 1h** [Odysseus] Best Value page: price-confidence fallback mode when fact_rating empty (shows 1787 wines ranked by multi-source price agreement) ✓ 2026-05-23
+- [ ] **P2 · 2h** [Patroclus] Run all other retail scrapers (topwijnen_be, wdc_be, vinsbrunin, ventealapropriete, lavinia, idealwine) full-catalog to widen overlap coverage
+- [ ] **P2 · 2h** [Patroclus] Force-clear millesima content hashes + re-run to fix ~1092 Champagne/NV wines stuck in DLQ (appellation="" — fix applied but cached pages won't re-trigger)
 
 ## Sprint 12 — Production data migration
 
