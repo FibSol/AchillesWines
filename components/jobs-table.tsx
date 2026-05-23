@@ -67,12 +67,21 @@ function formatTs(ts: string | number | null): string {
   return d.toLocaleString();
 }
 
+interface PromoteStats {
+  pending: number;
+  overlap: number;
+  totalFactPrice: number;
+}
+
 export function JobsTable() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [sources, setSources] = useState<Source[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [launching, setLaunching] = useState(false);
+  const [promoting, setPromoting] = useState(false);
+  const [promoteStats, setPromoteStats] = useState<PromoteStats | null>(null);
+  const [promoteResult, setPromoteResult] = useState<{ promoted: number; pending: number; totalFactPrice: number } | null>(null);
   const [openLogsJob, setOpenLogsJob] = useState<Job | null>(null);
   const sourceRef = useRef<HTMLSelectElement>(null);
   const limitRef = useRef<HTMLInputElement>(null);
@@ -95,6 +104,13 @@ export function JobsTable() {
     }
   };
 
+  const fetchPromoteStats = async () => {
+    fetch("/api/promote")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => j && setPromoteStats(j))
+      .catch(() => {});
+  };
+
   useEffect(() => {
     fetchJobs();
     const id = setInterval(fetchJobs, 5000);
@@ -103,6 +119,7 @@ export function JobsTable() {
       .then((r) => (r.ok ? r.json() : { sources: [] }))
       .then((j: { sources: Source[] }) => setSources(j.sources ?? []))
       .catch(() => setSources([]));
+    fetchPromoteStats();
     return () => clearInterval(id);
   }, []);
 
@@ -134,6 +151,22 @@ export function JobsTable() {
       setError(e instanceof Error ? e.message : "Failed to launch job");
     } finally {
       setLaunching(false);
+    }
+  };
+
+  const handlePromote = async () => {
+    setPromoting(true);
+    setPromoteResult(null);
+    try {
+      const res = await fetch("/api/promote", { method: "POST" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setPromoteResult(data);
+      await fetchPromoteStats();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to run promoter");
+    } finally {
+      setPromoting(false);
     }
   };
 
@@ -205,6 +238,42 @@ export function JobsTable() {
           >
             {launching ? "…" : "🚀 Lancer"}
           </button>
+        </div>
+      </div>
+
+      {/* Promote panel */}
+      <div className="glass-card p-6">
+        <h2 className="text-lg font-semibold mb-4 text-[color:var(--color-fg)]">
+          Promoteur de prix
+        </h2>
+        <div className="flex flex-wrap items-center gap-6">
+          {promoteStats && (
+            <div className="flex gap-4 text-sm">
+              <span className="text-[color:var(--color-fg-muted)]">
+                En attente: <strong className="text-[color:var(--color-fg)]">{promoteStats.pending.toLocaleString()}</strong>
+              </span>
+              <span className="text-[color:var(--color-fg-muted)]">
+                Overlap (≥2 sources): <strong className="text-[color:var(--color-accent)]">{promoteStats.overlap.toLocaleString()}</strong>
+              </span>
+              <span className="text-[color:var(--color-fg-muted)]">
+                fact_price: <strong className="text-[color:var(--color-fg)]">{promoteStats.totalFactPrice.toLocaleString()}</strong>
+              </span>
+            </div>
+          )}
+          <button
+            onClick={handlePromote}
+            disabled={promoting}
+            className="inline-flex items-center gap-2 rounded-lg bg-[color:var(--color-accent)] px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+          >
+            {promoting ? "…" : "✨ Promouvoir"}
+          </button>
+          {promoteResult && (
+            <div className="text-sm text-[color:var(--color-fg-muted)]">
+              <span className="text-emerald-400 font-semibold">+{promoteResult.promoted}</span> promus
+              {" · "}{promoteResult.pending.toLocaleString()} en attente
+              {" · "}{promoteResult.totalFactPrice.toLocaleString()} total fact_price
+            </div>
+          )}
         </div>
       </div>
 
