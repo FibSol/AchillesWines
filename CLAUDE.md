@@ -31,6 +31,7 @@ Working dir: `C:\Claude\achilles-wines` (Windows 11, PowerShell).
 - Use `PageShell` + `glass-card` + `stat-card` from `globals.css`.
 - i18n: any new UI key must be added to all 6 `messages/*.json` files.
 - Data integrity: `fact_price` rows must come from scrapers only (`source_key` = scraper name). Never import prices from burgundy-manager.
+- Naming hygiene: scrapers MUST wrap raw producer / cuvée strings with `clean_producer_display()` and `clean_cuvee_display()` from `scraper/achilles_scraper/identity.py` before insert. The post-batch cleanup pipeline (`scripts/cleanup-producer-names.mjs` → `cleanup-cuvee-noise.mjs` → `cleanup-cuvee-names.mjs` → `dedupe-wines.mjs` → `merge-vin-de-france-ghosts.mjs`) is a safety net, not a substitute. See [docs/NAMING-CLEANUP.md](docs/NAMING-CLEANUP.md) for the convention and ordering.
 
 ## Auto-session launcher
 
