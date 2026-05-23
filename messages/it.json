@@ -92,7 +92,8 @@
       "t4": "Eccellente",
       "t5": "Leggendario"
     },
-    "densityLabel": "vini (nessun punteggio)"
+    "densityLabel": "vini (nessun punteggio)",
+    "backToVintages": "Torna alle annate"
   },
   "map": {
     "title": "Mappa cantine",

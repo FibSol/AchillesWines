@@ -92,7 +92,8 @@
       "t4": "Hervorragend",
       "t5": "Legendär"
     },
-    "densityLabel": "Weine (kein Score)"
+    "densityLabel": "Weine (kein Score)",
+    "backToVintages": "Zurück zu Jahrgängen"
   },
   "map": {
     "title": "Karte der Weingüter",

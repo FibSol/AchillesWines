@@ -92,7 +92,8 @@
       "t4": "Excellent",
       "t5": "Legendary"
     },
-    "densityLabel": "wines (no score)"
+    "densityLabel": "wines (no score)",
+    "backToVintages": "Back to vintages"
   },
   "map": {
     "title": "Producer map",

@@ -92,7 +92,8 @@
       "t4": "Uitstekend",
       "t5": "Legendarisch"
     },
-    "densityLabel": "wijnen (geen score)"
+    "densityLabel": "wijnen (geen score)",
+    "backToVintages": "Terug naar jaargangen"
   },
   "map": {
     "title": "Kaart wijnhuizen",

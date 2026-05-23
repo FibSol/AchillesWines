@@ -92,7 +92,8 @@
       "t4": "Excelente",
       "t5": "Legendario"
     },
-    "densityLabel": "vinos (sin nota)"
+    "densityLabel": "vinos (sin nota)",
+    "backToVintages": "Volver a añadas"
   },
   "map": {
     "title": "Mapa de bodegas",

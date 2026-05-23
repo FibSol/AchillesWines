@@ -16,6 +16,7 @@ async function getHeatmapData(): Promise<{
     // Wine counts per (region, vintage) from the producer registry
     const wineCounts = await db
       .select({
+        countryCode: dimAppellation.countryCode,
         region: dimAppellation.region,
         vintage: dimWine.vintage,
         wineCount: sql<number>`cast(count(*) as integer)`,
@@ -23,22 +24,26 @@ async function getHeatmapData(): Promise<{
       .from(dimWine)
       .innerJoin(dimAppellation, eq(dimWine.appellationKey, dimAppellation.appellationKey))
       .where(and(isNotNull(dimWine.vintage), gte(dimWine.vintage, 1980)))
-      .groupBy(dimAppellation.region, dimWine.vintage);
+      .groupBy(dimAppellation.countryCode, dimAppellation.region, dimWine.vintage);
 
-    // Vintage scores from fact_vintage_rating (may be empty until scrapers run)
+    // Vintage scores from fact_vintage_rating
     const vintageScores = await db
       .select({
+        countryCode: factVintageRating.countryCode,
         region: factVintageRating.region,
         vintage: factVintageRating.vintage,
         avgScore: sql<number>`avg(${factVintageRating.scoreNormalized100})`,
       })
       .from(factVintageRating)
       .where(gte(factVintageRating.vintage, 1980))
-      .groupBy(factVintageRating.region, factVintageRating.vintage);
+      .groupBy(factVintageRating.countryCode, factVintageRating.region, factVintageRating.vintage);
 
-    const scoreMap = new Map<string, number>();
+    const scoreMap = new Map<string, { score: number; countryCode: string }>();
     for (const s of vintageScores) {
-      scoreMap.set(`${s.region}|${s.vintage}`, Number(s.avgScore));
+      scoreMap.set(`${s.region}|${s.vintage}`, {
+        score: Number(s.avgScore),
+        countryCode: s.countryCode,
+      });
     }
 
     const cellMap = new Map<string, VintageCell>();
@@ -47,11 +52,13 @@ async function getHeatmapData(): Promise<{
     for (const r of wineCounts) {
       if (r.vintage === null || !r.region) continue;
       const key = `${r.region}|${r.vintage}`;
+      const sc = scoreMap.get(key);
       cellMap.set(key, {
         region: r.region,
+        countryCode: r.countryCode ?? sc?.countryCode ?? "??",
         vintage: r.vintage,
         wineCount: Number(r.wineCount),
-        avgScore: scoreMap.get(key) ?? null,
+        avgScore: sc?.score ?? null,
       });
     }
 
@@ -61,6 +68,7 @@ async function getHeatmapData(): Promise<{
       if (!cellMap.has(key)) {
         cellMap.set(key, {
           region: s.region,
+          countryCode: s.countryCode,
           vintage: s.vintage,
           wineCount: 0,
           avgScore: Number(s.avgScore),
@@ -96,7 +104,6 @@ export default async function VintagesPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("vintages");
-  const tConf = await getTranslations("confidence");
 
   const { cells, regions, years } = await getHeatmapData();
 
@@ -104,13 +111,13 @@ export default async function VintagesPage({
     noData: t("noData"),
     scoreLabel: t("scoreLabel"),
     clickToExplore: t("clickToExplore"),
-    loadingWines: t("loadingWines"),
-    noWines: t("noWines"),
-    chartTitle: t("chartTitle"),
-    confidence: {
-      verified: tConf.raw("verified") as string,
-      reviewed: tConf("reviewed"),
-      needs_review: tConf("needs_review"),
+    densityLabel: t("densityLabel"),
+    tiers: {
+      t1: t("tiers.t1"),
+      t2: t("tiers.t2"),
+      t3: t("tiers.t3"),
+      t4: t("tiers.t4"),
+      t5: t("tiers.t5"),
     },
   };
 

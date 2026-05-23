@@ -92,7 +92,8 @@
       "t4": "Excellent",
       "t5": "Légendaire"
     },
-    "densityLabel": "vins (sans note)"
+    "densityLabel": "vins (sans note)",
+    "backToVintages": "Retour aux millésimes"
   },
   "map": {
     "title": "Carte des domaines",

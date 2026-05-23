@@ -1,12 +1,8 @@
 "use client";
 
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Cell as RechartsCell,
-} from "recharts";
+import { useRouter, useParams } from "next/navigation";
 import { ChevronRight } from "lucide-react";
-import { ConfidenceBadge, deriveConfidence, type ConfidenceLabels } from "@/components/ConfidenceBadge";
 
 export interface VintageCell {
   region: string;
@@ -28,20 +24,8 @@ export interface HeatmapLabels {
   noData: string;
   scoreLabel: string;
   clickToExplore: string;
-  loadingWines: string;
-  noWines: string;
-  chartTitle: string;
-  confidence: ConfidenceLabels;
   tiers: TierLabels;
   densityLabel: string;
-}
-
-interface WineEntry {
-  wineKey: string;
-  canonicalName: string;
-  producerName: string;
-  cuveeName: string;
-  sourceCount?: number;
 }
 
 interface Props {
@@ -81,9 +65,10 @@ const LABEL_W = 148;
 
 export function VintageHeatmap({ cells, regions, years, labels }: Props) {
   const [selected, setSelected] = useState<{ region: string; vintage: number } | null>(null);
-  const [wines, setWines] = useState<WineEntry[]>([]);
-  const [loadingWines, setLoadingWines] = useState(false);
   const [countryFilter, setCountryFilter] = useState("FR");
+  const router = useRouter();
+  const params = useParams();
+  const locale = (params.locale as string) || "fr";
   const [collapsedCountries, setCollapsedCountries] = useState<Set<string>>(new Set());
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -155,32 +140,12 @@ export function VintageHeatmap({ cells, regions, years, labels }: Props) {
     }
   }, [visibleYears]);
 
-  // Bar chart for selected region
-  const regionBarData = selected
-    ? visibleYears
-        .map(y => ({ vintage: y, count: cellMap.get(`${selected.region}|${y}`)?.wineCount ?? 0 }))
-        .filter(d => d.count > 0)
-    : [];
-
-  const selectedCell = selected ? cellMap.get(`${selected.region}|${selected.vintage}`) : undefined;
-
-  const handleCellClick = useCallback(async (region: string, vintage: number) => {
+  const handleCellClick = useCallback((region: string, vintage: number) => {
     const cell = cellMap.get(`${region}|${vintage}`);
-    if (!cell || cell.wineCount === 0) return;
+    if (!cell || (cell.wineCount === 0 && cell.avgScore === null)) return;
     setSelected({ region, vintage });
-    setWines([]);
-    setLoadingWines(true);
-    try {
-      const resp = await fetch(`/api/vintages/wines?region=${encodeURIComponent(region)}&vintage=${vintage}`);
-      if (resp.ok) {
-        const data = (await resp.json()) as { wines: WineEntry[] };
-        setWines(data.wines);
-      }
-    } finally {
-      setLoadingWines(false);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cells]);
+    router.push(`/${locale}/vintages/${encodeURIComponent(region)}/${vintage}`);
+  }, [cellMap, locale, router]);
 
   if (cells.length === 0) {
     return (
@@ -356,64 +321,7 @@ export function VintageHeatmap({ cells, regions, years, labels }: Props) {
         </div>
       </div>
 
-      {/* Detail panel */}
-      {selected !== null ? (
-        <div className="glass-card p-5 space-y-4">
-          <div className="flex flex-wrap items-baseline gap-2">
-            <h3 className="text-[color:var(--color-coral-400)] font-semibold text-lg font-display">{selected.region}</h3>
-            <span className="font-mono text-[color:var(--color-fg-muted)] text-base">{selected.vintage}</span>
-            {selectedCell?.avgScore != null && (() => {
-              const tier = scoreToTier(selectedCell.avgScore);
-              const s = tierStyle(tier);
-              return (
-                <span className="text-xs px-2 py-0.5 rounded-sm font-semibold" style={{ background: s.bg, color: s.text }}>
-                  {tier}/5 — {tierLabel(tier, labels.tiers)} · {selectedCell.avgScore.toFixed(0)}/100
-                </span>
-              );
-            })()}
-            {selectedCell && <span className="text-xs text-[rgba(250,247,245,0.45)]">{selectedCell.wineCount} wines in registry</span>}
-          </div>
-
-          {regionBarData.length > 0 && (
-            <div>
-              <p className="text-xs text-[rgba(250,247,245,0.45)] mb-2">{labels.chartTitle}</p>
-              <ResponsiveContainer width="100%" height={110}>
-                <BarChart data={regionBarData} margin={{ top: 4, right: 8, bottom: 4, left: -28 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,92,138,0.08)" />
-                  <XAxis dataKey="vintage" tick={{ fill: "rgba(250,247,245,0.4)", fontSize: 10 }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
-                  <YAxis tick={{ fill: "rgba(250,247,245,0.4)", fontSize: 10 }} tickLine={false} axisLine={false} allowDecimals={false} width={28} />
-                  <Tooltip contentStyle={{ background: "rgba(26,11,46,0.95)", border: "1px solid rgba(255,92,138,0.4)", borderRadius: "6px", fontSize: "12px", color: "rgba(250,247,245,0.9)" }} cursor={{ fill: "rgba(255,92,138,0.06)" }} />
-                  <Bar dataKey="count" radius={[2, 2, 0, 0]}>
-                    {regionBarData.map(entry => (
-                      <RechartsCell key={entry.vintage} fill={entry.vintage === selected.vintage ? "#FF5C8A" : "rgba(255,92,138,0.32)"} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-
-          <div>
-            <p className="text-xs text-[rgba(250,247,245,0.45)] mb-2">
-              {loadingWines ? labels.loadingWines : wines.length > 0 ? `${wines.length} wines` : labels.noWines}
-            </p>
-            {wines.length > 0 && (
-              <ul className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
-                {wines.map(w => (
-                  <li key={w.wineKey} className="text-sm text-[color:var(--color-fg-muted)] flex items-center gap-2 flex-wrap">
-                    <span className="text-[color:var(--color-fg)]">{w.producerName}</span>
-                    <span>·</span>
-                    <span className="text-[color:var(--color-coral-400)]">{w.cuveeName}</span>
-                    <ConfidenceBadge confidence={deriveConfidence(w.sourceCount ?? 0)} sourceCount={w.sourceCount ?? 0} labels={labels.confidence} size="sm" iconOnly />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
-      ) : (
-        <p className="text-xs text-[rgba(250,247,245,0.38)] text-center py-1">{labels.clickToExplore}</p>
-      )}
+      <p className="text-xs text-[rgba(250,247,245,0.38)] text-center py-1">{labels.clickToExplore}</p>
     </div>
   );
 }
