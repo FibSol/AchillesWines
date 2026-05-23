@@ -24,7 +24,11 @@ def run_promotion(conn: sqlite3.Connection, batch_id: str | None = None) -> Prom
     TOLERANCE = 0.15
 
     for wine_key, items in by_wine.items():
-        if len(items) < 2:
+        # ADR-003: tri-source rule requires ≥2 *distinct sources* (source_key),
+        # not just ≥2 candidate rows. Without this guard, a single retailer
+        # whose scraper ran twice would self-promote.
+        distinct_sources = {c["source_key"] for c in items}
+        if len(distinct_sources) < 2:
             result.pending += len(items)
             continue
         sorted_items = sorted(items, key=lambda x: x["amount_eur"] or 0)
@@ -33,7 +37,8 @@ def run_promotion(conn: sqlite3.Connection, batch_id: str | None = None) -> Prom
             result.pending += len(items)
             continue
         concordant = [c for c in items if abs((c["amount_eur"] or 0) - median) / median <= TOLERANCE]
-        if len(concordant) >= 2:
+        # The concordant subset must itself span ≥2 distinct sources.
+        if len(concordant) >= 2 and len({c["source_key"] for c in concordant}) >= 2:
             now = int(time.time())
             for c in concordant:
                 conn.execute("""INSERT INTO fact_price

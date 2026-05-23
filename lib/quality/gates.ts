@@ -6,18 +6,26 @@
  */
 import { normalizeScoreTo100, isAppellationAllowed } from "@/lib/identity";
 
+// Kept in sync with VALID_CRITIC_CODES in scraper/achilles_scraper/scrapers/*.py.
+// Any divergence between the two will silently misroute crowd-aggregator rows
+// into the DLQ (or vice versa). Audited 2026-05-23.
 export const CANONICAL_CRITIC_CODES = [
-  "WA",
-  "Vinous",
-  "BH",
-  "JMIB",
-  "RVF",
+  "WA",        // Wine Advocate (Parker)
+  "Vinous",    // Antonio Galloni / Vinous (formerly IWC)
+  "BH",        // Burghound (Meadows)
+  "JMIB",      // Jasper Morris / Inside Burgundy (and JR shares this slot historically)
+  "RVF",       // La Revue du Vin de France
   "Decanter",
-  "JS",
-  "JG",
-  "WS",
-  "Hachette",
-  "CT",
+  "JS",        // James Suckling
+  "JG",        // Jeb Dunnuck (column key 'JG' in CT exports)
+  "WS",        // Wine Spectator
+  "Hachette",  // Guide Hachette des Vins
+  "CT",        // CellarTracker community avg
+  "WE",        // Wine Enthusiast
+  "WAL",       // Wine Align
+  "WD",        // The Wine Doctor
+  "GV",        // Gilbert & Gaillard
+  "Halliday",  // James Halliday Wine Companion
 ] as const;
 
 export type CriticCode = (typeof CANONICAL_CRITIC_CODES)[number];
@@ -25,6 +33,8 @@ export type CriticCode = (typeof CANONICAL_CRITIC_CODES)[number];
 export type ScrapedPriceCandidate = {
   wineKey: string;
   retailer: string;
+  /** dim_source.source_key — used to enforce the ≥2-distinct-sources rule (ADR-003). */
+  sourceKey: number;
   amountLocal: number;
   currencyCode: string;
   amountEur: number;
@@ -113,7 +123,9 @@ export function applyTriSourceRule(opts: {
   const pending: ScrapedPriceCandidate[] = [];
 
   for (const [, candidates] of byWine) {
-    if (candidates.length < minSources) {
+    // ADR-003: require ≥minSources *distinct* sourceKeys, not just rows.
+    const distinctSources = new Set(candidates.map((c) => c.sourceKey));
+    if (distinctSources.size < minSources) {
       pending.push(...candidates);
       continue;
     }
@@ -123,7 +135,8 @@ export function applyTriSourceRule(opts: {
     const concordant = candidates.filter(
       (c) => Math.abs(c.amountEur - median) / median <= tolerance,
     );
-    if (concordant.length >= minSources) {
+    const concordantDistinct = new Set(concordant.map((c) => c.sourceKey));
+    if (concordant.length >= minSources && concordantDistinct.size >= minSources) {
       promoted.push(...concordant);
       const outliers = candidates.filter(
         (c) => !concordant.some((cc) => cc.sourceUrl === c.sourceUrl),
