@@ -4,6 +4,20 @@ import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { setRequestLocale, getMessages } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { SiteNav } from "@/components/site-nav";
+import { Fraunces, Inter } from "next/font/google";
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-fraunces",
+  display: "swap",
+  style: ["normal", "italic"],
+});
+
+const inter = Inter({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -34,7 +48,7 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body className="grain" suppressHydrationWarning>
+      <body className={`${fraunces.variable} ${inter.variable} grain`} suppressHydrationWarning>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <SiteNav />
           <main className="mx-auto max-w-screen-2xl px-4 sm:px-8 py-8">

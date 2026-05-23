@@ -1,18 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Search, X, Filter } from "lucide-react";
 
-export interface CountryRegion {
-  country: string;
-  region: string | null;
-}
-
 export interface DomainesFiltersLabels {
   searchPlaceholder: string;
-  allCountries: string;
-  allRegions: string;
   tier: string;
   allTiers: string;
   clear: string;
@@ -22,53 +15,25 @@ export interface DomainesFiltersLabels {
 }
 
 interface Props {
-  countryRegions: CountryRegion[];
   tiers: number[];
   labels: DomainesFiltersLabels;
   totalShown: number;
   totalMatching: number;
 }
 
-export function DomainesFilters({
-  countryRegions,
-  tiers,
-  labels,
-  totalShown,
-  totalMatching,
-}: Props) {
+export function DomainesFilters({ tiers, labels, totalShown, totalMatching }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
 
-  // Local controlled state for the text input (debounced into the URL).
   const [search, setSearch] = useState(sp.get("q") ?? "");
-  const activeCountry = sp.get("country") ?? "";
-  const activeRegion = sp.get("region") ?? "";
   const activeTier = sp.get("tier") ?? "";
-  const hasAnyFilter = Boolean(sp.get("q") || activeCountry || activeRegion || activeTier);
+  const hasAnyFilter = Boolean(sp.get("q") || activeTier);
 
-  const countries = useMemo(() => {
-    const seen = new Set<string>();
-    for (const cr of countryRegions) seen.add(cr.country);
-    return Array.from(seen).sort();
-  }, [countryRegions]);
-
-  const regions = useMemo(() => {
-    const seen = new Set<string>();
-    for (const cr of countryRegions) {
-      if (!cr.region) continue;
-      if (activeCountry && cr.country !== activeCountry) continue;
-      seen.add(cr.region);
-    }
-    return Array.from(seen).sort();
-  }, [countryRegions, activeCountry]);
-
-  // Debounce the search text → URL.
+  // Debounce search text → URL.
   useEffect(() => {
     if ((sp.get("q") ?? "") === search) return;
-    const timer = setTimeout(() => {
-      pushParam("q", search);
-    }, 300);
+    const timer = setTimeout(() => pushParam("q", search), 300);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
@@ -77,21 +42,24 @@ export function DomainesFilters({
     const next = new URLSearchParams(sp.toString());
     if (value) next.set(key, value);
     else next.delete(key);
-    // When country changes, drop the region filter — it may not exist in the new country.
-    if (key === "country") next.delete("region");
     const qs = next.toString();
     router.push(qs ? `${pathname}?${qs}` : pathname);
   }
 
   function clearAll() {
     setSearch("");
-    router.push(pathname);
+    // Keep country/region from URL, only clear search + tier
+    const next = new URLSearchParams(sp.toString());
+    next.delete("q");
+    next.delete("tier");
+    const qs = next.toString();
+    router.push(qs ? `${pathname}?${qs}` : pathname);
   }
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
-        <div className="md:col-span-5 relative">
+      <div className="flex gap-2">
+        <div className="flex-1 relative">
           <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-[color:var(--color-fg-subtle)] pointer-events-none"
             strokeWidth={2.5}
@@ -115,39 +83,17 @@ export function DomainesFilters({
           )}
         </div>
 
-        <select
-          value={activeCountry}
-          onChange={(e) => pushParam("country", e.target.value)}
-          className="md:col-span-3 px-3 py-2 rounded-md bg-[rgba(13,6,26,0.6)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-coral-400)]"
-        >
-          <option value="">{labels.allCountries}</option>
-          {countries.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-
-        <select
-          value={activeRegion}
-          onChange={(e) => pushParam("region", e.target.value)}
-          className="md:col-span-3 px-3 py-2 rounded-md bg-[rgba(13,6,26,0.6)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-coral-400)] disabled:opacity-40"
-          disabled={regions.length === 0}
-        >
-          <option value="">{labels.allRegions}</option>
-          {regions.map((r) => (
-            <option key={r} value={r}>{r}</option>
-          ))}
-        </select>
-
-        <button
-          type="button"
-          onClick={clearAll}
-          disabled={!hasAnyFilter}
-          className="md:col-span-1 btn btn-ghost text-xs disabled:opacity-30 disabled:cursor-not-allowed"
-          title={labels.clear}
-        >
-          <X className="size-3.5" strokeWidth={2.5} />
-          <span className="hidden md:inline">{labels.clear}</span>
-        </button>
+        {hasAnyFilter && (
+          <button
+            type="button"
+            onClick={clearAll}
+            className="btn btn-ghost text-xs px-3"
+            title={labels.clear}
+          >
+            <X className="size-3.5" strokeWidth={2.5} />
+            <span className="hidden sm:inline">{labels.clear}</span>
+          </button>
+        )}
       </div>
 
       <div className="flex items-center gap-2 flex-wrap">
@@ -175,7 +121,7 @@ export function DomainesFilters({
               activeTier === String(t)
                 ? "border-[color:var(--color-coral-400)] bg-[rgba(255,92,138,0.18)] text-[color:var(--color-coral-400)]"
                 : "border-[color:var(--color-border)] text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)] hover:border-[color:var(--color-coral-400)]"
-            }`}
+          }`}
           >
             T{t}
           </button>

@@ -1,60 +1,59 @@
 @import "tailwindcss";
 
 /* ============================================================================
- * DIONYSUS DESIGN TOKENS
- * Bold, contemporary, audacieux. Dark by default.
+ * ATHENA DESIGN TOKENS
+ * Dark luxe · sommellerie moderne
+ * Le Wine Mag édition nuit × Vivino premium
  * ========================================================================== */
 
 @theme {
   /* Palette */
-  --color-aubergine-950: #0d061a;
-  --color-aubergine-900: #1a0b2e;
-  --color-aubergine-800: #2a1547;
-  --color-aubergine-700: #3d2466;
-  --color-aubergine-600: #553987;
+  --color-noir-950: #09080f;
+  --color-noir-900: #0f0e17;
+  --color-noir-800: #1a1825;
+  --color-noir-700: #272537;
+  --color-noir-600: #3a3750;
 
-  --color-coral-300: #ffb3c8;
-  --color-coral-400: #ff89a6;
-  --color-coral-500: #ff5c8a;
-  --color-coral-600: #e8336d;
-  --color-coral-700: #b71f55;
+  --color-magenta-300: #e07898;
+  --color-magenta-400: #c44472;
+  --color-magenta-500: #a53860;
+  --color-magenta-600: #8a2a4e;
+  --color-magenta-700: #6e1f3d;
 
-  --color-mint-300: #b2fff4;
-  --color-mint-400: #8efeed;
-  --color-mint-500: #6fffe9;
-  --color-mint-600: #46e6ce;
+  --color-champagne-300: #f5d08c;
+  --color-champagne-400: #edc072;
+  --color-champagne-500: #e5b25d;
+  --color-champagne-600: #c99440;
+  --color-champagne-700: #a57530;
 
-  --color-ivory-50: #fefdfc;
-  --color-ivory-100: #faf7f5;
-  --color-ivory-200: #efe8e3;
-  --color-ivory-300: #d8ccc3;
-
-  --color-ink-900: #0f0f0f;
-  --color-ink-700: #2a2a2a;
+  --color-creme-50:  #fdfcf8;
+  --color-creme-100: #f7f4ea;
+  --color-creme-200: #ede8d5;
+  --color-creme-300: #dcd4bc;
 
   /* Semantic */
-  --color-bg: var(--color-aubergine-900);
-  --color-bg-elevated: var(--color-aubergine-800);
-  --color-bg-overlay: rgba(26, 11, 46, 0.85);
-  --color-surface: var(--color-ivory-100);
-  --color-surface-muted: var(--color-ivory-200);
-  --color-primary: var(--color-coral-500);
-  --color-primary-hover: var(--color-coral-400);
-  --color-primary-fg: var(--color-ivory-50);
-  --color-accent: var(--color-mint-500);
-  --color-fg: var(--color-ivory-100);
-  --color-fg-muted: rgba(250, 247, 245, 0.7);
-  --color-fg-subtle: rgba(250, 247, 245, 0.45);
-  --color-border: rgba(255, 92, 138, 0.2);
-  --color-border-strong: rgba(255, 92, 138, 0.4);
-  --color-danger: #ff4d6d;
-  --color-warning: #ffd166;
-  --color-success: var(--color-mint-500);
+  --color-bg:           var(--color-noir-900);
+  --color-bg-elevated:  var(--color-noir-800);
+  --color-bg-overlay:   rgba(15, 14, 23, 0.88);
+  --color-surface:      var(--color-creme-100);
+  --color-surface-muted: var(--color-creme-200);
+  --color-primary:      var(--color-magenta-500);
+  --color-primary-hover: var(--color-magenta-400);
+  --color-primary-fg:   var(--color-creme-100);
+  --color-accent:       var(--color-champagne-500);
+  --color-fg:           var(--color-creme-100);
+  --color-fg-muted:     rgba(247, 244, 234, 0.68);
+  --color-fg-subtle:    rgba(247, 244, 234, 0.42);
+  --color-border:       rgba(165, 56, 96, 0.18);
+  --color-border-strong: rgba(165, 56, 96, 0.42);
+  --color-danger:       #e05555;
+  --color-warning:      var(--color-champagne-500);
+  --color-success:      #5ea87a;
 
-  /* Fonts */
-  --font-display: "Migra", "Fraunces", "Cormorant Garamond", Georgia, serif;
-  --font-sans: "Geist", "Inter", system-ui, -apple-system, sans-serif;
-  --font-mono: "JetBrains Mono", "Geist Mono", "Fira Code", monospace;
+  /* Fonts — plain strings; next/font vars applied directly in @layer base */
+  --font-display: "Fraunces", Georgia, serif;
+  --font-sans:    "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono:    "JetBrains Mono", "Geist Mono", "Fira Code", monospace;
 
   /* Radius */
   --radius-sm: 4px;
@@ -63,8 +62,8 @@
   --radius-xl: 24px;
 
   /* Shadows */
-  --shadow-coral: 0 0 0 1px rgba(255, 92, 138, 0.4), 0 8px 32px -8px rgba(255, 92, 138, 0.3);
-  --shadow-elevated: 0 10px 40px -10px rgba(0, 0, 0, 0.6);
+  --shadow-magenta:  0 0 0 1px rgba(165, 56, 96, 0.32), 0 8px 32px -8px rgba(165, 56, 96, 0.18);
+  --shadow-elevated: 0 10px 40px -10px rgba(0, 0, 0, 0.7);
 }
 
 /* ============================================================================
@@ -84,17 +83,19 @@
   }
 
   body {
-    font-family: var(--font-sans);
-    font-feature-settings: "ss01", "cv11";
+    /* var(--font-inter) is injected on body by next/font at runtime */
+    font-family: var(--font-inter), var(--font-sans);
+    font-feature-settings: "cv11";
     background:
-      radial-gradient(at 20% 0%, rgba(255, 92, 138, 0.08), transparent 50%),
-      radial-gradient(at 80% 100%, rgba(111, 255, 233, 0.05), transparent 50%),
+      radial-gradient(at 20% 0%, rgba(165, 56, 96, 0.07), transparent 50%),
+      radial-gradient(at 80% 100%, rgba(229, 178, 93, 0.04), transparent 50%),
       var(--color-bg);
     min-height: 100svh;
   }
 
   h1, h2, h3, h4, .display {
-    font-family: var(--font-display);
+    /* var(--font-fraunces) is injected on body by next/font at runtime */
+    font-family: var(--font-fraunces), var(--font-display);
     font-weight: 800;
     letter-spacing: -0.04em;
     line-height: 1;
@@ -111,33 +112,28 @@
   a {
     color: var(--color-primary);
     text-decoration: none;
-    transition: color 120ms ease;
+    transition: color 120ms ease-out;
   }
   a:hover {
     color: var(--color-accent);
   }
 
   ::selection {
-    background: var(--color-coral-500);
-    color: var(--color-aubergine-900);
+    background: var(--color-magenta-500);
+    color: var(--color-noir-900);
   }
 
-  /* Native <select> dropdown: the panel that drops down is OS-rendered, so
-   * we can only style it via the <option> element. Without this, the panel
-   * uses system default white background while the <option> text inherits
-   * the dark-theme ivory color from the page → unreadable white-on-white.
-   * (Firefox/Chrome honor this; Safari mostly ignores option styling.) */
   select {
     color-scheme: dark;
   }
   select option,
   select optgroup {
-    background: var(--color-aubergine-900);
+    background: var(--color-noir-900);
     color: var(--color-fg);
   }
   select option:checked,
   select option:hover {
-    background: var(--color-aubergine-700);
+    background: var(--color-noir-700);
     color: var(--color-fg);
   }
   select option:disabled {
@@ -146,12 +142,12 @@
 
   /* Scrollbars */
   ::-webkit-scrollbar { width: 10px; height: 10px; }
-  ::-webkit-scrollbar-track { background: var(--color-aubergine-950); }
+  ::-webkit-scrollbar-track { background: var(--color-noir-950); }
   ::-webkit-scrollbar-thumb {
-    background: var(--color-aubergine-700);
+    background: var(--color-noir-700);
     border-radius: 8px;
   }
-  ::-webkit-scrollbar-thumb:hover { background: var(--color-coral-700); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-magenta-700); }
 }
 
 /* ============================================================================
@@ -160,16 +156,22 @@
 
 @layer components {
   .glass-card {
-    background: rgba(26, 11, 46, 0.5);
-    backdrop-filter: blur(20px) saturate(120%);
+    background: rgba(15, 14, 23, 0.55);
+    backdrop-filter: blur(20px) saturate(130%);
+    /* Liquid glass: 1px border + inner highlight simulates edge refraction */
     border: 1px solid var(--color-border);
+    box-shadow: inset 0 1px 0 rgba(247, 244, 234, 0.04);
     border-radius: var(--radius-lg);
-    transition: border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+    transition: border-color 180ms cubic-bezier(0.23, 1, 0.32, 1),
+                transform 180ms cubic-bezier(0.23, 1, 0.32, 1),
+                box-shadow 180ms cubic-bezier(0.23, 1, 0.32, 1);
   }
-  .glass-card:hover {
-    border-color: var(--color-border-strong);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-coral);
+  @media (hover: hover) and (pointer: fine) {
+    .glass-card:hover {
+      border-color: var(--color-border-strong);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-magenta), inset 0 1px 0 rgba(247, 244, 234, 0.06);
+    }
   }
 
   .gradient-border {
@@ -182,7 +184,7 @@
     inset: 0;
     padding: 1px;
     border-radius: inherit;
-    background: linear-gradient(135deg, var(--color-coral-500), var(--color-mint-500));
+    background: linear-gradient(135deg, var(--color-magenta-500), var(--color-champagne-500));
     -webkit-mask:
       linear-gradient(#fff 0 0) content-box,
       linear-gradient(#fff 0 0);
@@ -198,28 +200,39 @@
     gap: 0.5rem;
     padding: 0.625rem 1.25rem;
     border-radius: var(--radius-md);
+    font-family: var(--font-inter), var(--font-sans);
     font-weight: 600;
     font-size: 0.9375rem;
     line-height: 1;
-    transition: all 160ms ease;
+    /* Explicit properties — never transition: all */
+    transition: background-color 160ms cubic-bezier(0.23, 1, 0.32, 1),
+                border-color 160ms cubic-bezier(0.23, 1, 0.32, 1),
+                color 160ms cubic-bezier(0.23, 1, 0.32, 1),
+                transform 120ms cubic-bezier(0.23, 1, 0.32, 1);
     cursor: pointer;
+  }
+  .btn:active {
+    transform: scale(0.97);
   }
   .btn-primary {
     background: var(--color-primary);
-    color: var(--color-aubergine-900);
+    color: var(--color-noir-900);
   }
-  .btn-primary:hover {
-    background: var(--color-primary-hover);
-    box-shadow: var(--shadow-coral);
+  @media (hover: hover) and (pointer: fine) {
+    .btn-primary:hover {
+      background: var(--color-primary-hover);
+    }
   }
   .btn-ghost {
     background: transparent;
     color: var(--color-fg);
     border: 1px solid var(--color-border);
   }
-  .btn-ghost:hover {
-    border-color: var(--color-border-strong);
-    color: var(--color-primary);
+  @media (hover: hover) and (pointer: fine) {
+    .btn-ghost:hover {
+      border-color: var(--color-border-strong);
+      color: var(--color-primary);
+    }
   }
 
   .badge {
@@ -234,42 +247,44 @@
     letter-spacing: 0.02em;
   }
   .badge-verified {
-    background: rgba(111, 255, 233, 0.12);
-    color: var(--color-mint-400);
-    border: 1px solid rgba(111, 255, 233, 0.3);
+    background: rgba(229, 178, 93, 0.1);
+    color: var(--color-champagne-400);
+    border: 1px solid rgba(229, 178, 93, 0.28);
   }
   .badge-reviewed {
-    background: rgba(255, 209, 102, 0.12);
-    color: var(--color-warning);
-    border: 1px solid rgba(255, 209, 102, 0.3);
+    background: rgba(229, 178, 93, 0.08);
+    color: var(--color-champagne-500);
+    border: 1px solid rgba(229, 178, 93, 0.22);
   }
   .badge-needs-review {
-    background: rgba(255, 92, 138, 0.12);
-    color: var(--color-coral-400);
-    border: 1px solid rgba(255, 92, 138, 0.3);
+    background: rgba(165, 56, 96, 0.1);
+    color: var(--color-magenta-400);
+    border: 1px solid rgba(165, 56, 96, 0.28);
   }
 
   .stat-card {
     padding: 1.5rem;
-    background: rgba(26, 11, 46, 0.5);
+    background: rgba(15, 14, 23, 0.55);
     backdrop-filter: blur(20px);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
-    transition: all 200ms ease;
+    transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1),
+                border-color 200ms cubic-bezier(0.23, 1, 0.32, 1);
   }
-  .stat-card:hover {
-    border-color: var(--color-border-strong);
-    transform: translateY(-2px);
+  @media (hover: hover) and (pointer: fine) {
+    .stat-card:hover {
+      border-color: var(--color-border-strong);
+      transform: translateY(-2px);
+    }
   }
   .stat-card-value {
-    font-family: var(--font-display);
-    font-size: 2.5rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, var(--color-coral-400), var(--color-mint-400));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    /* Numbers in sans — legibility over decoration */
+    font-family: var(--font-inter), var(--font-sans);
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: var(--color-champagne-400);
     line-height: 1;
+    letter-spacing: -0.02em;
   }
   .stat-card-label {
     font-size: 0.8125rem;
@@ -277,6 +292,7 @@
     text-transform: uppercase;
     letter-spacing: 0.06em;
     margin-top: 0.5rem;
+    font-family: var(--font-inter), var(--font-sans);
   }
 }
 
@@ -293,21 +309,23 @@
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, var(--color-coral-500), var(--color-mint-500));
+    background: linear-gradient(135deg, var(--color-magenta-500), var(--color-champagne-500));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
 
+  /* Grain overlay — always on a fixed pseudo-element to avoid GPU repaint */
   .grain {
     position: relative;
   }
   .grain::after {
     content: "";
-    position: absolute;
+    position: fixed;
     inset: 0;
     pointer-events: none;
-    opacity: 0.04;
+    z-index: 50;
+    opacity: 0.035;
     mix-blend-mode: overlay;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }

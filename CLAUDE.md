@@ -7,7 +7,7 @@ Working dir: `C:\Claude\achilles-wines` (Windows 11, PowerShell).
 
 **Stack:** Next.js 16.2.6 · React 19 · Drizzle + better-sqlite3 · Tailwind v4 · next-intl 4 · Recharts  
 **Python sidecar:** `scraper/` — httpx · selectolax · apscheduler · pydantic · rich · click  
-**Theme:** Dionysus — aubergine `#1A0B2E`, coral `#FF5C8A`, ivory `#FAF7F5`  
+**Theme:** Athena — noir `#0F0E17`, magenta vin `#A53860`, crème `#F7F4EA`, or champagne `#E5B25D`  
 **DB:** `data/achilles.db` (SQLite, never commit)
 
 ## Roles
