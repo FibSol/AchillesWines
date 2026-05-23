@@ -445,6 +445,60 @@ def benchmark(source: str, levels: str):
     console.print(f"[dim]Saved to dim_source.recommended_batch_size = {recommended}[/dim]")
 
 
+@cli.command("promote")
+@click.option("--dry-run", is_flag=True, default=False, help="Show what would be promoted without writing to fact_price")
+def promote(dry_run: bool):
+    """Promote concordant staging candidates to fact_price.
+
+    Applies the tri-source promotion rule: wine_keys with ≥2 staging rows whose
+    prices agree within ±15% of the median are promoted to fact_price.  Already-
+    promoted candidates (promoted_at IS NOT NULL) are skipped automatically.
+
+    Use --dry-run to see the counts without committing any rows.
+    """
+    from .config import config
+    from .db import get_db
+    from .promoter import run_promotion
+
+    config.ensure_dirs()
+    conn = get_db(config.db_path)
+
+    # Stats before
+    before_fact = conn.execute("SELECT COUNT(*) FROM fact_price").fetchone()[0]
+    pending = conn.execute(
+        "SELECT COUNT(*) FROM staging_price_candidates WHERE needs_review=1 AND promoted_at IS NULL"
+    ).fetchone()[0]
+    overlap = conn.execute(
+        """SELECT COUNT(*) FROM (
+               SELECT wine_key FROM staging_price_candidates
+               WHERE needs_review=1 AND promoted_at IS NULL
+               GROUP BY wine_key HAVING COUNT(DISTINCT source_key) >= 2
+           )"""
+    ).fetchone()[0]
+
+    console.print(f"[bold]Staging candidates pending:[/bold] {pending}")
+    console.print(f"[bold]Wine keys with 2+ sources:[/bold] {overlap}")
+    console.print(f"[bold]Current fact_price rows:[/bold] {before_fact}")
+    console.print()
+
+    if dry_run:
+        console.print("[yellow]Dry-run mode — no rows will be written.[/yellow]")
+        return
+
+    result = run_promotion(conn)
+
+    after_fact = conn.execute("SELECT COUNT(*) FROM fact_price").fetchone()[0]
+
+    t = Table(title="Promotion result")
+    t.add_column("Metric")
+    t.add_column("Value", justify="right")
+    t.add_row("Promoted to fact_price", str(result.promoted))
+    t.add_row("Still pending (single-source)", str(result.pending))
+    t.add_row("fact_price rows before", str(before_fact))
+    t.add_row("fact_price rows after", str(after_fact))
+    console.print(t)
+
+
 @cli.command("list-sources")
 def list_sources():
     """List all registered scrapers."""

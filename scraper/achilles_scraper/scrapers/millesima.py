@@ -294,6 +294,20 @@ def _ensure_wine(
         return False
 
 
+def _appellation_from_title(conn: sqlite3.Connection, title: str) -> tuple[str, str]:
+    """Match the longest known French appellation in the wine title.
+    Falls back to ('Vin de France', 'vin de france') when nothing matches."""
+    title_up = title.upper()
+    rows = conn.execute(
+        "SELECT appellation_name, appellation_norm FROM dim_appellation"
+        " WHERE country_code = 'FR' ORDER BY length(appellation_name) DESC"
+    ).fetchall()
+    for name, norm in rows:
+        if name.upper() in title_up:
+            return name, norm
+    return "Vin de France", "vin de france"
+
+
 def _ensure_producer(conn: sqlite3.Connection, producer_norm: str, producer_name: str) -> bool:
     """
     Look up producer by producer_norm. If missing, insert as pending_review.
@@ -439,6 +453,11 @@ class MillesimaScraper(BaseScraper):
                     color = card["color"]
                     card_hash = card["card_hash"]
 
+                    # Fall back to title-search when the API returns no appellation
+                    if not appellation:
+                        appellation, _ = _appellation_from_title(self.conn, raw_name)
+                        if not region:
+                            region = appellation
                     producer_norm = normalize_producer(raw_name)
                     appellation_norm = norm_text(appellation) if appellation else ""
                     cuvee_norm = normalize_cuvee(raw_name, strip_words=[producer_norm, appellation_norm])
