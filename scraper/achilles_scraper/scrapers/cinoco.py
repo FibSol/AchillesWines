@@ -33,7 +33,7 @@ _USER_AGENT = (
 )
 
 _BASE = "https://www.cinoco.com"
-_CATALOGUE_URL = f"{_BASE}/collections/les-vins"
+_PRODUCTS_API = f"{_BASE}/collections/les-vins/products.json"
 
 _logger = logging.getLogger(__name__)
 
@@ -168,6 +168,19 @@ def _ensure_producer(conn: sqlite3.Connection, producer_norm: str, producer_name
         return False
 
 
+def _appellation_from_title(conn: sqlite3.Connection, title: str) -> tuple[str, str]:
+    """Match the longest known French appellation in the wine title; falls back to Vin de France."""
+    title_up = title.upper()
+    rows = conn.execute(
+        "SELECT appellation_name, appellation_norm FROM dim_appellation"
+        " WHERE country_code = 'FR' ORDER BY length(appellation_name) DESC"
+    ).fetchall()
+    for name, norm in rows:
+        if name.upper() in title_up:
+            return name, norm
+    return "Vin de France", "vin de france"
+
+
 class CinocoScraper(BaseScraper):
     source_code = "cinoco"
 
@@ -191,63 +204,42 @@ class CinocoScraper(BaseScraper):
 
         headers = {
             "User-Agent": _USER_AGENT,
-            "Accept": "text/html,application/xhtml+xml,*/*",
+            "Accept": "application/json",
             "Accept-Language": "fr-BE,fr;q=0.9,en;q=0.8",
         }
 
         page = 1
         total_fetched = 0
 
+        # Cinoco is a Shopify store — use the products.json API for reliable structured data
         with httpx.Client(headers=headers, timeout=30, follow_redirects=True) as client:
-            def _get(url: str):
-                resp = self._fetch(lambda: client.get(url))
-                resp.raise_for_status()
-                return resp
-
             while True:
-                url = f"{_CATALOGUE_URL}?page={page}"
+                url = f"{_PRODUCTS_API}?limit=250&page={page}"
                 try:
-                    resp = _get(url)
+                    resp = self._fetch(lambda u=url: client.get(u))
+                    resp.raise_for_status()
                 except Exception as e:
                     result.error = f"HTTP error on page {page}: {e}"
                     write_dlq(self.conn, SOURCE_KEY, batch_id, "auth_error", str(e), {"url": url})
                     result.rows_dlq += 1
                     break
 
-                if resp.status_code in (403, 429):
-                    msg = f"Blocked by cinoco.com: HTTP {resp.status_code} on {url}"
-                    write_dlq(self.conn, SOURCE_KEY, batch_id, "auth_error", msg, {"url": url, "status": resp.status_code})
-                    result.rows_dlq += 1
-                    result.error = msg
+                try:
+                    data = resp.json()
+                    products_data = data.get("products") or []
+                except Exception:
                     break
 
-                if resp.status_code != 200:
-                    result.error = f"Unexpected HTTP {resp.status_code} on {url}"
+                if not products_data:
                     break
 
                 page_hash = hashlib.sha256(resp.content).hexdigest()
                 cached = self.conn.execute(
                     "SELECT last_hash FROM ops_content_hashes WHERE url = ?", (url,)
                 ).fetchone()
-
-                tree = HTMLParser(resp.text)
-
-                # Cinoco typically uses .product-title / .product-name for names
-                product_cards = (
-                    tree.css(".product-item")
-                    or tree.css(".product-card")
-                    or tree.css(".product")
-                    or tree.css("article.product")
-                    or tree.css(".wine-card")
-                    or tree.css(".item")
-                )
-
-                if not product_cards:
-                    break  # no more products
-
                 if cached and cached[0] == page_hash:
-                    result.rows_skipped_unchanged += len(product_cards)
-                    if limit is not None and total_fetched + len(product_cards) >= limit:
+                    result.rows_skipped_unchanged += len(products_data)
+                    if limit is not None and total_fetched + len(products_data) >= limit:
                         break
                     page += 1
                     time.sleep(0.5)
@@ -262,80 +254,57 @@ class CinocoScraper(BaseScraper):
                 )
                 self.conn.commit()
 
-                for card in product_cards:
+                for p in products_data:
                     if limit is not None and total_fetched >= limit:
                         break
 
-                    name_node = (
-                        card.css_first(".product-title")
-                        or card.css_first(".product-name")
-                        or card.css_first("h2")
-                        or card.css_first("h3")
-                        or card.css_first(".name")
-                    )
-                    raw_name = name_node.text(strip=True) if name_node else ""
-                    if not raw_name:
-                        result.rows_dlq += 1
-                        continue
+                    raw_name = (p.get("title") or "").strip()
+                    variants = p.get("variants") or []
+                    price_eur = None
+                    if variants:
+                        try:
+                            price_eur = float(variants[0].get("price") or 0) or None
+                        except (TypeError, ValueError):
+                            pass
 
-                    price_node = (
-                        card.css_first(".price")
-                        or card.css_first(".product-price")
-                        or card.css_first("[class*='price']")
-                    )
-                    price_text = price_node.text(strip=True) if price_node else ""
-                    price_eur = _extract_price(price_text)
-                    if price_eur is None:
-                        write_dlq(
-                            self.conn, SOURCE_KEY, batch_id,
-                            "parse_error", f"No price found for: {raw_name!r}",
-                            {"raw_name": raw_name, "url": url},
-                        )
+                    if not raw_name or price_eur is None:
+                        write_dlq(self.conn, SOURCE_KEY, batch_id, "parse_error",
+                                  f"Missing name or price: name={raw_name!r}", {"url": url})
                         result.rows_dlq += 1
                         continue
 
                     vintage = _extract_vintage(raw_name)
+                    product_type = (p.get("product_type") or "").lower()
+                    color = _map_color(product_type + " " + raw_name.lower())
+                    handle = p.get("handle") or ""
+                    source_url = f"{_BASE}/products/{handle}" if handle else _BASE
+                    producer_name = (p.get("vendor") or "").strip()
 
-                    link_node = card.css_first("a[href]")
-                    product_url = url
-                    if link_node:
-                        href = link_node.attributes.get("href", "")
-                        product_url = href if href.startswith("http") else f"{_BASE}{href}"
-
-                    color_text = card.text(strip=True)
-                    color = _map_color(color_text)
-
-                    card_hash = hashlib.sha256(
-                        json.dumps({"name": raw_name, "price": price_eur, "url": product_url}, sort_keys=True).encode()
-                    ).hexdigest()
-
-                    producer_norm = normalize_producer(raw_name)
+                    appellation, appellation_norm = _appellation_from_title(self.conn, raw_name)
+                    region = appellation
+                    producer_norm = normalize_producer(producer_name or raw_name)
                     cuvee_norm = normalize_cuvee(raw_name)
+                    wine_key = compute_wine_key(producer_norm, cuvee_norm, vintage, appellation_norm)
 
                     if not producer_norm or not cuvee_norm:
-                        write_dlq(
-                            self.conn, SOURCE_KEY, batch_id,
-                            "parse_error", f"Empty producer_norm or cuvee_norm for: {raw_name!r}",
-                            {"raw_name": raw_name, "url": product_url},
-                        )
+                        write_dlq(self.conn, SOURCE_KEY, batch_id, "parse_error",
+                                  f"Empty norms: {raw_name!r}", {"raw_name": raw_name})
                         result.rows_dlq += 1
                         continue
 
-                    appellation_norm = ""
-                    wine_key = compute_wine_key(producer_norm, cuvee_norm, vintage, appellation_norm)
-                    _ensure_producer(self.conn, producer_norm, raw_name)
+                    _ensure_producer(self.conn, producer_norm, producer_name or raw_name)
 
-                    if not _ensure_wine(
-                        self.conn, wine_key, producer_norm, raw_name,
-                        cuvee_norm, "", appellation_norm, "", vintage, color,
-                    ):
-                        write_dlq(
-                            self.conn, SOURCE_KEY, batch_id,
-                            "unresolved_dim", "Could not resolve producer or appellation for dim_wine",
-                            {"raw_name": raw_name, "wine_key": wine_key},
-                        )
+                    if not _ensure_wine(self.conn, wine_key, producer_norm, raw_name, cuvee_norm,
+                                        appellation, appellation_norm, region, vintage, color):
+                        write_dlq(self.conn, SOURCE_KEY, batch_id, "unresolved_dim",
+                                  "Could not resolve producer or appellation",
+                                  {"raw_name": raw_name, "wine_key": wine_key})
                         result.rows_dlq += 1
                         continue
+
+                    card_hash = hashlib.sha256(
+                        json.dumps({"name": raw_name, "price": price_eur}, sort_keys=True).encode()
+                    ).hexdigest()
 
                     try:
                         self.conn.execute(
@@ -343,16 +312,14 @@ class CinocoScraper(BaseScraper):
                                (wine_key, source_key, retailer, recorded_at, currency_code,
                                 amount_local, amount_eur, source_url, content_hash, batch_id, needs_review)
                                VALUES (?, ?, 'cinoco', ?, 'EUR', ?, ?, ?, ?, ?, 1)""",
-                            (wine_key, SOURCE_KEY, int(time.time()), price_eur, price_eur, product_url, card_hash, batch_id),
+                            (wine_key, SOURCE_KEY, int(time.time()), price_eur, price_eur,
+                             source_url, card_hash, batch_id),
                         )
                         self.conn.commit()
                         result.rows_inserted += 1
                     except Exception as e:
-                        write_dlq(
-                            self.conn, SOURCE_KEY, batch_id,
-                            "validation_error", str(e),
-                            {"wine_key": wine_key, "price_eur": price_eur, "url": product_url},
-                        )
+                        write_dlq(self.conn, SOURCE_KEY, batch_id, "validation_error", str(e),
+                                  {"wine_key": wine_key, "price_eur": price_eur})
                         result.rows_dlq += 1
 
                     total_fetched += 1

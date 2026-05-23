@@ -33,7 +33,7 @@ _USER_AGENT = (
 )
 
 _BASE = "https://www.wijnhuis.nl"
-_CATALOGUE_URL = f"{_BASE}/wijnen"
+_CATALOGUE_URL = f"{_BASE}/collection/"
 
 _logger = logging.getLogger(__name__)
 
@@ -209,8 +209,8 @@ class WijnhuisScraper(BaseScraper):
                 return resp
 
             while True:
-                # WooCommerce pagination: /wijnen/page/N/ or ?paged=N
-                url = f"{_CATALOGUE_URL}/page/{page}/" if page > 1 else _CATALOGUE_URL
+                # Wijnhuis.nl pagination: /collection/ (page 1), /collection/page{N}.html (page 2+)
+                url = f"{_BASE}/collection/page{page}.html" if page > 1 else _CATALOGUE_URL
                 try:
                     resp = _get(url)
                 except Exception as e:
@@ -241,13 +241,8 @@ class WijnhuisScraper(BaseScraper):
                 tree = HTMLParser(resp.text)
 
                 # WooCommerce: ul.products li.product, or .product-item, etc.
-                product_cards = (
-                    tree.css("ul.products li.product")
-                    or tree.css(".product-item")
-                    or tree.css(".product-card")
-                    or tree.css(".woocommerce-loop-product")
-                    or tree.css(".product")
-                )
+                # Wijnhuis.nl: each product card contains <strong class="p-title"> (name) and <span class="price flex"> (price)
+                product_cards = tree.css(".content-wrapper.full-width")
 
                 if not product_cards:
                     break
@@ -273,23 +268,14 @@ class WijnhuisScraper(BaseScraper):
                     if limit is not None and total_fetched >= limit:
                         break
 
-                    name_node = (
-                        card.css_first(".woocommerce-loop-product__title")
-                        or card.css_first(".product-title")
-                        or card.css_first(".product-name")
-                        or card.css_first("h2")
-                        or card.css_first("h3")
-                    )
+                    # Wijnhuis: name in <strong class="p-title">, price in <span class="price flex">
+                    name_node = card.css_first("strong.p-title")
                     raw_name = name_node.text(strip=True) if name_node else ""
                     if not raw_name:
                         result.rows_dlq += 1
                         continue
 
-                    price_node = (
-                        card.css_first(".price")
-                        or card.css_first(".woocommerce-Price-amount")
-                        or card.css_first("[class*='price']")
-                    )
+                    price_node = card.css_first("span.price")
                     price_text = price_node.text(strip=True) if price_node else ""
                     price_eur = _extract_price(price_text)
                     if price_eur is None:
@@ -303,7 +289,7 @@ class WijnhuisScraper(BaseScraper):
 
                     vintage = _extract_vintage(raw_name)
 
-                    link_node = card.css_first("a[href]")
+                    link_node = card.css_first("a[data-vid]")
                     product_url = url
                     if link_node:
                         href = link_node.attributes.get("href", "")

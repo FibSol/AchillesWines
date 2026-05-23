@@ -7,6 +7,9 @@
 - [Patroclus] Fix cavissima.py: `/vins/` → `/achat-vin/` (live-probed) · closes #15 · files: scraper/achilles_scraper/scrapers/cavissima.py
 - [Patroclus] Fix BE shops: cinoco `/fr/vins` → `/collections/les-vins` (Shopify); wijnhuis.be → wijnhuis.nl/wijnen (wrong domain); topwijnen `/wijnen` → `/nl/stockwijnen`; wdc.be/fr/vins already correct · closes #16 · files: scrapers/cinoco.py, wijnhuis.py, topwijnen_be.py
 - [Patroclus] Add wine-searcher stub: WineSearcherScraper (not implemented, subscription needed) + registered in cli.py · closes #17 · files: scrapers/wine_searcher.py, cli.py
+- [Patroclus] Full Shopify rewrite: cavissima + cinoco both switched to products.json API; `_appellation_from_title()` helper added (longest-match DB lookup, fallback "Vin de France"); cinoco `_ensure_wine` call fixed to pass appellation+region · test: fetched=5 inserted=5 dlq=0 for both
+- [Patroclus] Vinatis GTM rewrite: parse `"products":[...]` from dataLayer `<script>` instead of HTML; structured fields (name, prices.price, features.vintage/appellation/colour, manufacturer_name, link_rewrite) · test: fetched=5 inserted=5 dlq=0
+- [Patroclus] Topwijnen + Wijnhuis: URL fixes confirmed, HTML selectors verified against live sites (5910 cards on topwijnen, 24 on wijnhuis, both returning correct name+price+link)
 
 ## 2026-05-22 — Sprint 5/8/9 scraper ramp-up complete
 

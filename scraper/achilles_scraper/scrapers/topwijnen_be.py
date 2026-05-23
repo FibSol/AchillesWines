@@ -239,14 +239,8 @@ class TopwijnenBeScraper(BaseScraper):
 
                 tree = HTMLParser(resp.text)
 
-                product_cards = (
-                    tree.css(".product-item")
-                    or tree.css(".product-card")
-                    or tree.css("ul.products li.product")
-                    or tree.css(".wine-item")
-                    or tree.css(".product")
-                    or tree.css("article")
-                )
+                # Topwijnen uses a flat product list: each <a class="product-list__item"> is one wine
+                product_cards = tree.css("a.product-list__item")
 
                 if not product_cards:
                     break
@@ -272,23 +266,14 @@ class TopwijnenBeScraper(BaseScraper):
                     if limit is not None and total_fetched >= limit:
                         break
 
-                    name_node = (
-                        card.css_first(".product-title")
-                        or card.css_first(".product-name")
-                        or card.css_first("h2")
-                        or card.css_first("h3")
-                        or card.css_first(".name")
-                    )
+                    # Topwijnen structure: name in .product-list__item--name, price (incl BTW) in .product-list__item--price
+                    name_node = card.css_first(".product-list__item--name")
                     raw_name = name_node.text(strip=True) if name_node else ""
                     if not raw_name:
                         result.rows_dlq += 1
                         continue
 
-                    price_node = (
-                        card.css_first(".price")
-                        or card.css_first(".product-price")
-                        or card.css_first("[class*='price']")
-                    )
+                    price_node = card.css_first(".product-list__item--price")
                     price_text = price_node.text(strip=True) if price_node else ""
                     price_eur = _extract_price(price_text)
                     if price_eur is None:
@@ -302,11 +287,9 @@ class TopwijnenBeScraper(BaseScraper):
 
                     vintage = _extract_vintage(raw_name)
 
-                    link_node = card.css_first("a[href]")
-                    product_url = url
-                    if link_node:
-                        href = link_node.attributes.get("href", "")
-                        product_url = href if href.startswith("http") else f"{_BASE}{href}"
+                    # card itself is the <a> element
+                    href = card.attrs.get("href", "")
+                    product_url = href if href.startswith("http") else (f"{_BASE}{href}" if href else url)
 
                     color_text = card.text(strip=True)
                     color = _map_color(color_text)

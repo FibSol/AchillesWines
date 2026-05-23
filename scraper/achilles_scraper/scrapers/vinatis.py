@@ -210,31 +210,30 @@ class VinatissScraper(BaseScraper):
                     result.error = msg
                     break
 
-                tree = HTMLParser(resp.text)
-                products = (
-                    tree.css(".product-title")
-                    or tree.css("[data-product-name]")
-                    or tree.css(".product-item")
-                    or []
-                )
+                # Vinatis embeds product data as JSON in the GTM dataLayer — parse that directly
+                # rather than scraping HTML, which is JS-rendered.
+                products_data = []
+                for m in re.finditer(r'"products"\s*:\s*(\[(?:[^\[\]]|\[(?:[^\[\]]|\[[^\[\]]*\])*\])*\])', resp.text, re.DOTALL):
+                    try:
+                        candidates = json.loads(m.group(1))
+                        # Keep only entries that look like wine products (have name + prices)
+                        wines = [p for p in candidates if isinstance(p, dict) and p.get("name") and p.get("prices")]
+                        if wines:
+                            products_data = wines
+                            break
+                    except (json.JSONDecodeError, TypeError):
+                        continue
 
-                # Try broader product card containers
-                product_cards = tree.css(".product-card, .product-item-info, article.product") or []
-                if product_cards:
-                    products = product_cards
-
-                if not products:
-                    break
+                if not products_data:
+                    break  # No products on this page → end of catalogue
 
                 page_hash = hashlib.sha256(resp.content).hexdigest()
-
-                # Content-hash check
                 cached = self.conn.execute(
                     "SELECT last_hash FROM ops_content_hashes WHERE url = ?", (url,)
                 ).fetchone()
                 if cached and cached[0] == page_hash:
-                    result.rows_skipped_unchanged += len(products)
-                    if limit is not None and total_fetched + len(products) >= limit:
+                    result.rows_skipped_unchanged += len(products_data)
+                    if limit is not None and total_fetched + len(products_data) >= limit:
                         break
                     page += 1
                     time.sleep(0.5)
@@ -249,84 +248,61 @@ class VinatissScraper(BaseScraper):
                 )
                 self.conn.commit()
 
-                for node in products:
+                for p in products_data:
                     if limit is not None and total_fetched >= limit:
                         break
 
-                    name_node = node.css_first(".product-title, [data-product-name], h2, h3, .name")
-                    price_node = node.css_first(".product-price, .price, .prix")
-
-                    if not name_node or not price_node:
-                        # Try attribute-based name
-                        raw_name = node.attrs.get("data-product-name", "").strip()
-                        if not raw_name:
-                            write_dlq(
-                                self.conn, SOURCE_KEY, batch_id,
-                                "parse_error", "Missing name or price node",
-                                {"page": page},
-                            )
-                            result.rows_dlq += 1
-                            continue
-                        raw_price = price_node.text(strip=True) if price_node else ""
-                    else:
-                        raw_name = name_node.text(strip=True) or node.attrs.get("data-product-name", "").strip()
-                        raw_price = price_node.text(strip=True)
-
-                    price_eur = _parse_price(raw_price)
+                    raw_name = (p.get("name") or "").strip()
+                    price_eur = None
+                    prices_block = p.get("prices") or {}
+                    if isinstance(prices_block, dict):
+                        price_eur = prices_block.get("price")
+                        if price_eur is not None:
+                            try:
+                                price_eur = float(price_eur)
+                            except (TypeError, ValueError):
+                                price_eur = None
 
                     if not raw_name or price_eur is None:
-                        write_dlq(
-                            self.conn, SOURCE_KEY, batch_id,
-                            "parse_error", f"Empty name or unparseable price: name={raw_name!r} price={raw_price!r}",
-                            {"page": page},
-                        )
+                        write_dlq(self.conn, SOURCE_KEY, batch_id, "parse_error",
+                                  f"Missing name or price: name={raw_name!r} price={price_eur!r}", {"url": url})
                         result.rows_dlq += 1
                         continue
 
-                    vintage = _extract_vintage(raw_name)
-                    color = "red"
-                    appellation = ""
-                    region = ""
+                    features = p.get("features") or {}
+                    raw_vintage = features.get("vintage") or features.get("sortable_vintage")
+                    vintage = int(raw_vintage) if raw_vintage and str(raw_vintage).isdigit() else _extract_vintage(raw_name)
+                    appellation = (features.get("appellation") or "").strip()
+                    region = appellation
+                    colour_raw = (features.get("colour") or "").lower()
+                    color = _COLOR_MAP.get(colour_raw, "red")
+                    producer_name = (p.get("manufacturer_name") or "").strip()
+                    slug = p.get("link_rewrite") or ""
+                    source_url = f"{_BASE}/{slug}" if slug else _BASE
 
-                    appellation_node = node.css_first(".appellation, .region, .wine-region")
-                    if appellation_node:
-                        appellation = appellation_node.text(strip=True)
-                        region = appellation
-
-                    link_node = node.css_first("a[href]")
-                    href = (link_node.attrs.get("href", "") if link_node else "") or ""
-                    source_url = href if href.startswith("http") else (_BASE + href if href else _BASE)
-
-                    producer_norm = normalize_producer(raw_name)
+                    producer_norm = normalize_producer(producer_name or raw_name)
                     cuvee_norm = normalize_cuvee(raw_name)
                     appellation_norm = norm_text(appellation) if appellation else ""
 
                     if not producer_norm or not cuvee_norm:
-                        write_dlq(
-                            self.conn, SOURCE_KEY, batch_id,
-                            "parse_error", f"Empty producer_norm or cuvee_norm for: {raw_name!r}",
-                            {"raw_name": raw_name},
-                        )
+                        write_dlq(self.conn, SOURCE_KEY, batch_id, "parse_error",
+                                  f"Empty producer_norm or cuvee_norm: {raw_name!r}", {"raw_name": raw_name})
                         result.rows_dlq += 1
                         continue
 
                     wine_key = compute_wine_key(producer_norm, cuvee_norm, vintage, appellation_norm)
-                    _ensure_producer(self.conn, producer_norm, raw_name)
+                    _ensure_producer(self.conn, producer_norm, producer_name or raw_name)
 
-                    if not _ensure_wine(
-                        self.conn, wine_key, producer_norm, raw_name,
-                        cuvee_norm, appellation, appellation_norm, region, vintage, color,
-                    ):
-                        write_dlq(
-                            self.conn, SOURCE_KEY, batch_id,
-                            "unresolved_dim", "Could not resolve producer or appellation",
-                            {"raw_name": raw_name, "wine_key": wine_key},
-                        )
+                    if not _ensure_wine(self.conn, wine_key, producer_norm, raw_name, cuvee_norm,
+                                        appellation, appellation_norm, region, vintage, color):
+                        write_dlq(self.conn, SOURCE_KEY, batch_id, "unresolved_dim",
+                                  "Could not resolve producer or appellation",
+                                  {"raw_name": raw_name, "wine_key": wine_key})
                         result.rows_dlq += 1
                         continue
 
                     card_hash = hashlib.sha256(
-                        json.dumps({"name": raw_name, "price": price_eur, "page": page}, sort_keys=True).encode()
+                        json.dumps({"name": raw_name, "price": price_eur}, sort_keys=True).encode()
                     ).hexdigest()
 
                     try:
@@ -341,11 +317,8 @@ class VinatissScraper(BaseScraper):
                         self.conn.commit()
                         result.rows_inserted += 1
                     except Exception as e:
-                        write_dlq(
-                            self.conn, SOURCE_KEY, batch_id,
-                            "validation_error", str(e),
-                            {"wine_key": wine_key, "price_eur": price_eur},
-                        )
+                        write_dlq(self.conn, SOURCE_KEY, batch_id, "validation_error", str(e),
+                                  {"wine_key": wine_key, "price_eur": price_eur})
                         result.rows_dlq += 1
 
                     total_fetched += 1
