@@ -107,13 +107,13 @@ export function VintageHeatmap({ cells, regions, years, labels }: Props) {
     return Array.from(s).sort();
   }, [cells]);
 
-  // Regions filtered by country and with at least one data point
+  // Regions filtered by country and with at least one vintage rating score
   const visibleRegions = useMemo(() => {
     return regions.filter(r => {
       if (countryFilter !== "ALL" && regionCountry.get(r) !== countryFilter) return false;
       return years.some(y => {
         const cell = cellMap.get(`${r}|${y}`);
-        return cell && (cell.wineCount > 0 || cell.avgScore !== null);
+        return cell && cell.avgScore !== null;
       });
     });
   }, [regions, countryFilter, regionCountry, years, cellMap]);
