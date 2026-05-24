@@ -238,6 +238,7 @@ def clean_cuvee_display(name: str, producer_name: str | None = None) -> str:
       • parenthesised appellations like "(Saint-Émilion)"
       • generic blend pseudo-cuvées ("Bordeaux-style Red Blend", "Red Blend", "White Blend")
       • a leading copy of the producer name (some scrapers prepend it).
+      • apostrophe-space: "d' Angélus" → "d'Angélus", "l' Église" → "l'Église"
 
     Returns "" when nothing meaningful is left (signals grand-vin).
     """
@@ -250,6 +251,10 @@ def clean_cuvee_display(name: str, producer_name: str | None = None) -> str:
     if producer_name:
         esc = re.escape(producer_name)
         out = re.sub(rf"^\s*{esc}\s+", "", out, flags=re.I)
+    # Fix elision apostrophe-space for French particles: "d' X" → "d'X", "l' X" → "l'X"
+    # Requires the particle to follow a space or start-of-string so mid-word apostrophes
+    # ("C'D'C' Rosso", "Ca' di Mori") are not touched.
+    out = re.sub(r"(^|\s)(d|l|n|j|m|s|c|qu)'\s+([A-Za-zÀ-ÿ])", r"\1\2'\3", out, flags=re.I)
     out = re.sub(r"\s{2,}", " ", out)
     out = re.sub(r"\s*[-–—|]\s*[-–—|]\s*", " - ", out)
     out = re.sub(r"^\s*[,\-–—:]+\s*", "", out)

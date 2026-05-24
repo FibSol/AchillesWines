@@ -170,7 +170,8 @@
     "classification": "Classificatie",
     "alcohol": "Alcohol",
     "bottleSize": "Flesformaat",
-    "canonicalName": "Wijn"
+    "canonicalName": "Wijn",
+    "grandVin": "Grand Vin"
   },
   "cellar": {
     "title": "Mijn kelder",

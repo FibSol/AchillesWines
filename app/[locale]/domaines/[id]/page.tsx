@@ -271,6 +271,11 @@ function ColorDot({ color }: { color: string }) {
   );
 }
 
+function CuveeLabel({ name, grandVinLabel }: { name: string; grandVinLabel: string }) {
+  if (name) return <>{name}</>;
+  return <em style={{ color: "rgba(250,247,245,0.45)", fontStyle: "italic" }}>{grandVinLabel}</em>;
+}
+
 function TierBadge({ tier, labels }: { tier: "flagship" | "normal" | "entry"; labels: { flagship: string; normal: string; entry: string } }) {
   const styles = {
     flagship: { background: "rgba(229,178,93,0.18)", color: "#E5B25D", border: "1px solid rgba(229,178,93,0.4)" },
@@ -554,7 +559,7 @@ export default async function DomainePage({
                             className="font-semibold text-sm"
                             style={{ color: "var(--color-fg)" }}
                           >
-                            {c.cuveeName}
+                            <CuveeLabel name={c.cuveeName} grandVinLabel={t("grandVin")} />
                           </span>
                         </div>
                       </td>
@@ -655,6 +660,7 @@ export default async function DomainePage({
             filterVintageFrom: t("filterVintageFrom"),
             filterVintageTo: t("filterVintageTo"),
             noWinesFilter: t("noWinesFilter"),
+            grandVin: t("grandVin"),
           }}
           colorLabels={colorLabels}
           confidenceLabels={confidenceLabels}

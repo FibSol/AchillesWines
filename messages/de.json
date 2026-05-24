@@ -170,7 +170,8 @@
     "classification": "Klassifizierung",
     "alcohol": "Alkohol",
     "bottleSize": "Flaschengröße",
-    "canonicalName": "Wein"
+    "canonicalName": "Wein",
+    "grandVin": "Grand Vin"
   },
   "cellar": {
     "title": "Mein Keller",

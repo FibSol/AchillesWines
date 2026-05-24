@@ -170,7 +170,8 @@
     "classification": "Clasificación",
     "alcohol": "Alcohol",
     "bottleSize": "Tamaño botella",
-    "canonicalName": "Vino"
+    "canonicalName": "Vino",
+    "grandVin": "Grand Vin"
   },
   "cellar": {
     "title": "Mi bodega",

@@ -43,6 +43,7 @@ interface DomaineDetailTableProps {
     filterVintageFrom: string;
     filterVintageTo: string;
     noWinesFilter: string;
+    grandVin: string;
   };
   colorLabels: Record<string, string>;
   confidenceLabels: {
@@ -61,6 +62,11 @@ const COLOR_DOT: Record<string, string> = {
   fortified: "#553987",
   orange: "#FF5C8A",
 };
+
+function CuveeName({ name, grandVinLabel }: { name: string; grandVinLabel: string }) {
+  if (name) return <>{name}</>;
+  return <em style={{ color: "rgba(250,247,245,0.4)", fontStyle: "italic" }}>{grandVinLabel}</em>;
+}
 
 export function DomaineDetailTable({
   rows,
@@ -109,7 +115,7 @@ export function DomaineDetailTable({
           <option value="__all__">{labels.allCuvees}</option>
           {cuveeNames.map((n) => (
             <option key={n} value={n}>
-              {n}
+              {n || labels.grandVin}
             </option>
           ))}
         </select>
@@ -197,7 +203,9 @@ export function DomaineDetailTable({
                     </td>
                     {/* Cuvée */}
                     <td className="px-4 py-3 max-w-[150px]" style={{ color: "rgba(250,247,245,0.65)" }}>
-                      <p className="truncate text-xs">{row.cuveeName}</p>
+                      <p className="truncate text-xs">
+                        <CuveeName name={row.cuveeName} grandVinLabel={labels.grandVin} />
+                      </p>
                     </td>
                     {/* Vintage */}
                     <td className="px-4 py-3 font-mono text-xs" style={{ color: "rgba(250,247,245,0.6)" }}>
