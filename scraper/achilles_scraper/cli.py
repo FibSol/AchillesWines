@@ -56,6 +56,7 @@ _ALL_SOURCES = [
     "topwijnen_be",
     "wijnendeclerck_be",
     "belgiumwinewatchers",
+    "wine_searcher",         # Wine-Searcher avg prices via Firecrawl search (FIRECRAWL_API_KEY)
     # --- Email newsletter scrapers (→ staging_price_candidates via IMAP) ---
     "millesima_email",
     "idealwine_email",

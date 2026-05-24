@@ -203,8 +203,10 @@ class WineSearcherScraper(BaseScraper):
                 a.appellation_norm
             FROM dim_wine w
             JOIN dim_producer p USING (producer_key)
-            LEFT JOIN dim_appellation a USING (appellation_key)
+            JOIN dim_appellation a USING (appellation_key)
             WHERE p.country_code = 'FR'
+              AND p.coverage_tier IN ('notable', 'mid')
+              AND a.country_code = 'FR'
             ORDER BY
                 CASE p.coverage_tier
                     WHEN 'notable'   THEN 1
