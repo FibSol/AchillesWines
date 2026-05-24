@@ -186,12 +186,8 @@ export function DomaineDetailTable({
                 {filtered.map((row) => (
                   <tr
                     key={row.wineKey}
-                    className="transition-colors"
+                    className="transition-colors hover:bg-[rgba(165,56,96,0.05)]"
                     style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.background = "rgba(165,56,96,0.05)")
-                    }
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                   >
                     {/* Canonical name */}
                     <td className="px-4 py-3 font-semibold max-w-[200px]" style={{ color: "var(--color-fg)" }}>
