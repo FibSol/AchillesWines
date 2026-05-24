@@ -69,6 +69,14 @@ _ALL_SOURCES = [
     "terredevins",
     # --- Vintage chart scrapers (→ fact_vintage_rating) ---
     "vintage_ratings",
+    # --- Official producer / syndicate sources (→ dim_producer) ---
+    "civb",               # CIVB — Bordeaux interprofession → dim_producer
+    "bivb",               # BIVB — Burgundy interprofession → dim_producer
+    "inter_rhone",        # Inter-Rhône → dim_producer
+    "interloire",         # InterLoire → dim_producer
+    "civc",               # CIVC — Champagne interprofession → dim_producer
+    "civa",               # CIVA — Alsace interprofession → dim_producer
+    "civl",               # CIVL — Languedoc interprofession → dim_producer
     # --- Official appellation / dimension sources ---
     "inao",               # INAO French AOC/IGP registry → dim_appellation
     # --- Official market / statistical sources ---
@@ -120,6 +128,16 @@ def _load_scrapers():
     # Vintage charts
     from .scrapers.vintage_ratings import VintageRatingsScraper
     from .scrapers.wine_searcher import WineSearcherScraper
+    # Official producer / syndicate sources
+    from .scrapers.syndicates import (
+        CIVBScraper,
+        BIVBScraper,
+        InterRhoneScraper,
+        InterLoireScraper,
+        CIVCScraper,
+        CIVAScraper,
+        CIVLScraper,
+    )
     # Official appellation / dimension sources
     from .scrapers.inao import INAOScraper
     # Official statistical sources
@@ -161,6 +179,13 @@ def _load_scrapers():
     SCRAPERS["terredevins"] = TerreDeVinsScraper
     SCRAPERS["vintage_ratings"] = VintageRatingsScraper
     SCRAPERS["wine_searcher"] = WineSearcherScraper
+    SCRAPERS["civb"] = CIVBScraper
+    SCRAPERS["bivb"] = BIVBScraper
+    SCRAPERS["inter_rhone"] = InterRhoneScraper
+    SCRAPERS["interloire"] = InterLoireScraper
+    SCRAPERS["civc"] = CIVCScraper
+    SCRAPERS["civa"] = CIVAScraper
+    SCRAPERS["civl"] = CIVLScraper
     SCRAPERS["inao"] = INAOScraper
     SCRAPERS["ec_agrifood"] = EcAgrifoodScraper
     SCRAPERS["eurostat_harvest"] = EurostatHarvestScraper

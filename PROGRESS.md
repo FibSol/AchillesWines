@@ -1,5 +1,10 @@
 # Achilles's Wines — Progress Log
 
+## 2026-05-24
+
+### Patroclus (Backend)
+- [Patroclus] #31 producer registry expansion — 7 French wine syndicate ingestors (CIVB/BIVB/Inter-Rhône/InterLoire/CIVC/CIVA/CIVL): built `scraper/achilles_scraper/scrapers/syndicates.py` with taxonomy of 292 named producers (88 CIVB Bordeaux châteaux + négoce, 45 BIVB Burgundy domaines + maisons, 34 Inter-Rhône, 32 InterLoire, 43 CIVC Champagne houses + growers, 22 CIVA Alsace, 28 CIVL Languedoc); all 7 dim_source rows registered (tier=A_official, cadence=annual); idempotent upsert on producer_norm+country_code (merges allowed_appellations); live API fetch attempted per source (best-effort, fallback to taxonomy on block); all 7 scrapers registered in CLI. Row counts: before 33,445 → after 33,492 (+47 net new producers; 245 existing producers enriched with appellation data). 0 DLQ across all 7 runs. Cleanup script ran (dry-run, existing data already tidy). 126/126 Python tests + 72/72 Vitest all passing. · files: scraper/achilles_scraper/scrapers/syndicates.py, scraper/achilles_scraper/cli.py
+
 ## 2026-05-23 — Low-hanging fruit sprint: docs alignment + coverage tier + coverage dashboard + purge audit
 
 ### Hector (Solution Architect)
