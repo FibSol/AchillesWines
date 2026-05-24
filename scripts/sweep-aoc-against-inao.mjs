@@ -33,7 +33,9 @@ function normText(s) {
     .replace(/[,.'"\/\-()\[\]_&+]/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-const raw = fs.readFileSync(REF_TXT, 'utf8');
+// File is Latin-1 (ISO-8859-1) encoded — reading as 'latin1' preserves accents correctly
+// so normText can strip them predictably. Reading as 'utf8' corrupts high bytes.
+const raw = fs.readFileSync(REF_TXT, 'latin1');
 const inao = []; // { name, bassin, type2 }
 for (const line of raw.split(/\r?\n/)) {
   // Skip header / page-break lines.
@@ -51,11 +53,14 @@ for (const line of raw.split(/\r?\n/)) {
   const signe = cells[idx]; idx++;
   if (signe !== 'AOC-AOP') continue;     // skip AOR (regional eaux-de-vie etc.)
   const bassin = cells[idx]; idx++;
-  const name = cells[idx];
-  if (!name) continue;
+  const rawName = cells[idx];
+  if (!rawName) continue;
+  // Strip " ou <alternative>" synonyms (e.g. "Hermitage ou L'Hermitage ou Ermitage")
+  // — we keep only the primary name; alternatives are handled by normText matching.
+  const name = rawName.split(/ ou /i)[0].trim();
   // Skip non-wine appellations the file lists (eg. "Crémant", "Vin jaune" included as actual AOCs)
   // — these ARE wine AOCs, we keep them.
-  inao.push({ name: name.trim(), bassin: bassin?.trim() || '', type2 });
+  inao.push({ name, bassin: bassin?.trim() || '', type2 });
 }
 
 // Dedup INAO list (some appellations appear twice for different bassins via
