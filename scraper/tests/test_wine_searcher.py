@@ -1,26 +1,33 @@
 """
-Unit tests for the Wine-Searcher Pro API scraper.
+Unit tests for the Wine-Searcher scraper (Firecrawl search approach).
 
-Tests use an in-memory SQLite DB and mock httpx so no real HTTP calls are made.
+All tests use an in-memory SQLite DB and mock httpx — no real HTTP calls.
 
 Covered:
-  1.  No API key → single scraper_not_applicable DLQ row, 0 fetched
+  1.  No FIRECRAWL_API_KEY → scraper_not_applicable DLQ, 0 fetched
   2.  Missing dim_source row → ScrapeResult.error set, no crash
-  3.  401 response → auth_error DLQ
-  4.  403 response → auth_error DLQ
-  5.  429 response → auth_error DLQ
-  6.  Non-success 5xx → network_error DLQ
-  7.  Malformed JSON → parse_error DLQ
-  8.  Empty price_list → rows_skipped_unchanged, no DLQ
-  9.  Valid offers → staging candidates inserted, deduplication on second insert
-  10. Non-EUR currency offers are skipped
+  3.  Firecrawl 401 → auth_error DLQ
+  4.  Firecrawl 429 → auth_error DLQ
+  5.  Firecrawl 5xx → network_error DLQ
+  6.  Malformed JSON response → parse_error DLQ
+  7.  Empty search results → rows_skipped_unchanged
+  8.  Description with no price pattern → rows_skipped_unchanged
+  9.  USD avg price → EUR conversion + staging insert
+  10. EUR avg price → direct insert (no FX call needed)
+  11. Deduplication: same content_hash → skipped on second run
+  12. FX unavailable → validation_error DLQ
+  13. _parse_avg_price: USD, EUR, GBP, no-match, formatted thousands
+  14. _build_query: producer+cuvee+vintage, NV wine, no cuvee
 """
 import os
 import sqlite3
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 
-from achilles_scraper.scrapers.wine_searcher import WineSearcherScraper, _build_url, _parse_price_list
+from achilles_scraper.scrapers.wine_searcher import (
+    WineSearcherScraper,
+    _parse_avg_price,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -30,7 +37,7 @@ from achilles_scraper.scrapers.wine_searcher import WineSearcherScraper, _build_
 def _make_db() -> sqlite3.Connection:
     conn = sqlite3.connect(":memory:")
     conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = OFF")   # relaxed for unit tests
+    conn.execute("PRAGMA foreign_keys = OFF")
     conn.executescript("""
         CREATE TABLE dim_source (
             source_key  INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,16 +60,16 @@ def _make_db() -> sqlite3.Connection:
             country_code     TEXT NOT NULL DEFAULT 'FR'
         );
         CREATE TABLE dim_wine (
-            wine_key       TEXT PRIMARY KEY,
-            producer_key   INTEGER NOT NULL,
+            wine_key        TEXT PRIMARY KEY,
+            producer_key    INTEGER NOT NULL,
             appellation_key INTEGER,
-            cuvee_name     TEXT,
-            cuvee_norm     TEXT,
-            color          TEXT,
-            vintage        INTEGER,
-            is_non_vintage INTEGER DEFAULT 0,
-            bottle_ml      INTEGER DEFAULT 750,
-            canonical_name TEXT
+            cuvee_name      TEXT,
+            cuvee_norm      TEXT,
+            color           TEXT,
+            vintage         INTEGER,
+            is_non_vintage  INTEGER DEFAULT 0,
+            bottle_ml       INTEGER DEFAULT 750,
+            canonical_name  TEXT
         );
         CREATE TABLE staging_price_candidates (
             candidate_id   INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -81,83 +88,92 @@ def _make_db() -> sqlite3.Connection:
         CREATE UNIQUE INDEX uix_staging_wine_source_hash
             ON staging_price_candidates (wine_key, source_key, content_hash);
         CREATE TABLE ops_dead_letter (
-            dlq_key        INTEGER PRIMARY KEY AUTOINCREMENT,
-            source_key     INTEGER,
-            batch_id       TEXT,
-            error_class    TEXT,
-            error_message  TEXT,
-            raw_record     TEXT,
+            dlq_key         INTEGER PRIMARY KEY AUTOINCREMENT,
+            source_key      INTEGER,
+            batch_id        TEXT,
+            error_class     TEXT,
+            error_message   TEXT,
+            raw_record      TEXT,
             source_record_id TEXT,
             raw_object_path  TEXT,
-            created_at     INTEGER
+            created_at      INTEGER
         );
     """)
-    # Seed: wine_searcher source + one notable French wine
     conn.execute("INSERT INTO dim_source (source_code) VALUES ('wine_searcher')")
     conn.execute(
         "INSERT INTO dim_producer (producer_name, producer_norm, country_code, coverage_tier) "
         "VALUES ('Chateau Margaux', 'chateau margaux', 'FR', 'notable')"
     )
     conn.execute(
-        "INSERT INTO dim_appellation (appellation_norm, appellation_name, country_code) "
-        "VALUES ('margaux', 'Margaux', 'FR')"
+        "INSERT INTO dim_appellation (appellation_norm, appellation_name) "
+        "VALUES ('margaux', 'Margaux')"
     )
     conn.execute(
-        "INSERT INTO dim_wine (wine_key, producer_key, appellation_key, cuvee_name, "
-        "cuvee_norm, color, vintage) "
+        "INSERT INTO dim_wine (wine_key, producer_key, appellation_key, "
+        "cuvee_name, cuvee_norm, color, vintage) "
         "VALUES ('abc123def456abc1', 1, 1, 'Chateau Margaux', 'chateau margaux', 'red', 2015)"
     )
     conn.commit()
     return conn
 
 
-def _make_resp(status: int, body: str | dict | None = None) -> MagicMock:
+def _fc_resp(status: int, data: list | None = None) -> MagicMock:
+    """Build a mock Firecrawl search response."""
     resp = MagicMock()
     resp.status_code = status
     resp.is_success = (200 <= status < 300)
-    if isinstance(body, dict):
-        resp.json.return_value = body
-        resp.text = str(body)
-    elif isinstance(body, str):
-        resp.json.side_effect = ValueError("bad json")
-        resp.text = body
-    else:
-        resp.json.return_value = {}
-        resp.text = ""
+    resp.json.return_value = {"success": True, "data": data or []}
+    resp.text = ""
     return resp
 
 
+def _fx_resp(rate: float) -> MagicMock:
+    resp = MagicMock()
+    resp.is_success = True
+    resp.json.return_value = {"rates": {"EUR": rate}}
+    return resp
+
+
+def _ws_result(description: str, url: str = "https://www.wine-searcher.com/find/x/2015") -> dict:
+    return {"url": url, "title": "WS title", "description": description}
+
+
 # ---------------------------------------------------------------------------
-# URL + parser helpers
+# _parse_avg_price unit tests
 # ---------------------------------------------------------------------------
 
-class BuildUrlTests(unittest.TestCase):
-    def test_vintage_encoded(self):
-        url = _build_url("Chateau Margaux", "", 2015, "TESTKEY")
-        self.assertIn("Chateau+Margaux", url)
-        self.assertIn("/2015/", url)
-        self.assertIn("apikey=TESTKEY", url)
+class ParseAvgPriceTests(unittest.TestCase):
 
-    def test_nv_wine(self):
-        url = _build_url("Krug", "Grande Cuvee", None, "KEY")
-        self.assertIn("/NV/", url)
+    def test_usd_price(self):
+        price, cur = _parse_avg_price(
+            "Avg Price (ex-tax) $1,851 / 750ml. Find the best price."
+        )
+        self.assertAlmostEqual(price, 1851.0)
+        self.assertEqual(cur, "USD")
 
-    def test_format_json_present(self):
-        url = _build_url("X", "Y", 2020, "K")
-        self.assertIn("format=json", url)
+    def test_eur_price(self):
+        price, cur = _parse_avg_price("Avg Price (ex-tax) €550 / 750ml")
+        self.assertAlmostEqual(price, 550.0)
+        self.assertEqual(cur, "EUR")
 
+    def test_gbp_price(self):
+        price, cur = _parse_avg_price("Avg Price (ex-tax) £320 / 750ml")
+        self.assertAlmostEqual(price, 320.0)
+        self.assertEqual(cur, "GBP")
 
-class ParsePriceListTests(unittest.TestCase):
-    def test_top_level_price_list(self):
-        raw = {"price_list": [{"store_name": "A", "price": 10}]}
-        self.assertEqual(len(_parse_price_list(raw)), 1)
+    def test_no_match_returns_none(self):
+        price, cur = _parse_avg_price("Find the best price near you.")
+        self.assertIsNone(price)
+        self.assertEqual(cur, "EUR")
 
-    def test_nested_product_price_list(self):
-        raw = {"product": {"price_list": [{"store_name": "B", "price": 20}]}}
-        self.assertEqual(len(_parse_price_list(raw)), 1)
+    def test_empty_description(self):
+        price, _ = _parse_avg_price("")
+        self.assertIsNone(price)
 
-    def test_empty_raw(self):
-        self.assertEqual(_parse_price_list({}), [])
+    def test_formatted_thousands(self):
+        price, cur = _parse_avg_price("Avg Price (ex-tax) $12,345.50 / 750ml")
+        self.assertAlmostEqual(price, 12345.50)
+        self.assertEqual(cur, "USD")
 
 
 # ---------------------------------------------------------------------------
@@ -165,6 +181,7 @@ class ParsePriceListTests(unittest.TestCase):
 # ---------------------------------------------------------------------------
 
 class WineSearcherScraperTests(unittest.TestCase):
+
     def setUp(self):
         self.conn = _make_db()
 
@@ -173,18 +190,20 @@ class WineSearcherScraperTests(unittest.TestCase):
         s.batch_id = "batch_test"
         return s
 
+    def _env(self, **extra):
+        """Return env without FIRECRAWL_API_KEY, then add extras."""
+        base = {k: v for k, v in os.environ.items() if k != "FIRECRAWL_API_KEY"}
+        base.update(extra)
+        return base
+
     # 1. No API key
     def test_no_api_key_logs_not_applicable(self):
-        env = {k: v for k, v in os.environ.items() if k != "ACHILLES_WINESEARCHER_API_KEY"}
-        with patch.dict(os.environ, env, clear=True):
+        with patch.dict(os.environ, self._env(), clear=True):
             result = self._scraper().run(limit=10)
         self.assertEqual(result.rows_dlq, 1)
         self.assertEqual(result.rows_fetched, 0)
-        dlq_row = self.conn.execute(
-            "SELECT error_class FROM ops_dead_letter"
-        ).fetchone()
-        self.assertIsNotNone(dlq_row)
-        self.assertEqual(dlq_row[0], "scraper_not_applicable")
+        row = self.conn.execute("SELECT error_class FROM ops_dead_letter").fetchone()
+        self.assertEqual(row[0], "scraper_not_applicable")
 
     # 2. Missing dim_source row
     def test_missing_dim_source_returns_error(self):
@@ -194,16 +213,17 @@ class WineSearcherScraperTests(unittest.TestCase):
         )
         conn.commit()
         s = WineSearcherScraper(conn)
-        with patch.dict(os.environ, {"ACHILLES_WINESEARCHER_API_KEY": "KEY"}):
+        with patch.dict(os.environ, {"FIRECRAWL_API_KEY": "KEY"}):
             result = s.run()
         self.assertIsNotNone(result.error)
 
-    # 3. 401 → auth_error DLQ
+    # 3. Firecrawl 401
     def test_401_logs_auth_error(self):
-        resp = _make_resp(401)
-        with patch("httpx.Client") as MockClient, \
-             patch.dict(os.environ, {"ACHILLES_WINESEARCHER_API_KEY": "BADKEY"}):
-            MockClient.return_value.__enter__.return_value.get.return_value = resp
+        resp = _fc_resp(401)
+        with patch("httpx.Client") as MC, \
+             patch.dict(os.environ, self._env(FIRECRAWL_API_KEY="BAD")):
+            MC.return_value.__enter__.return_value.post.return_value = resp
+            MC.return_value.__enter__.return_value.get.return_value = _fx_resp(0.92)
             result = self._scraper().run(limit=1)
         self.assertGreater(result.rows_dlq, 0)
         row = self.conn.execute(
@@ -211,106 +231,137 @@ class WineSearcherScraperTests(unittest.TestCase):
         ).fetchone()
         self.assertIsNotNone(row)
 
-    # 4. 403 → auth_error DLQ
-    def test_403_logs_auth_error(self):
-        resp = _make_resp(403)
-        with patch("httpx.Client") as MockClient, \
-             patch.dict(os.environ, {"ACHILLES_WINESEARCHER_API_KEY": "KEY"}):
-            MockClient.return_value.__enter__.return_value.get.return_value = resp
+    # 4. Firecrawl 429
+    def test_429_logs_auth_error(self):
+        resp = _fc_resp(429)
+        with patch("httpx.Client") as MC, \
+             patch.dict(os.environ, self._env(FIRECRAWL_API_KEY="KEY")):
+            MC.return_value.__enter__.return_value.post.return_value = resp
+            MC.return_value.__enter__.return_value.get.return_value = _fx_resp(0.92)
             result = self._scraper().run(limit=1)
         self.assertGreater(result.rows_dlq, 0)
 
-    # 5. 429 → auth_error DLQ
-    def test_429_logs_rate_limit(self):
-        resp = _make_resp(429)
-        with patch("httpx.Client") as MockClient, \
-             patch.dict(os.environ, {"ACHILLES_WINESEARCHER_API_KEY": "KEY"}):
-            MockClient.return_value.__enter__.return_value.get.return_value = resp
-            result = self._scraper().run(limit=1)
-        self.assertGreater(result.rows_dlq, 0)
-
-    # 6. 5xx → network_error DLQ
+    # 5. Firecrawl 5xx
     def test_5xx_logs_network_error(self):
-        resp = _make_resp(503)
-        with patch("httpx.Client") as MockClient, \
-             patch.dict(os.environ, {"ACHILLES_WINESEARCHER_API_KEY": "KEY"}):
-            MockClient.return_value.__enter__.return_value.get.return_value = resp
+        resp = _fc_resp(503)
+        with patch("httpx.Client") as MC, \
+             patch.dict(os.environ, self._env(FIRECRAWL_API_KEY="KEY")):
+            MC.return_value.__enter__.return_value.post.return_value = resp
+            MC.return_value.__enter__.return_value.get.return_value = _fx_resp(0.92)
             result = self._scraper().run(limit=1)
-        row = self.conn.execute(
-            "SELECT error_class FROM ops_dead_letter"
-        ).fetchone()
+        row = self.conn.execute("SELECT error_class FROM ops_dead_letter").fetchone()
         self.assertEqual(row[0], "network_error")
 
-    # 7. Malformed JSON → parse_error DLQ
+    # 6. Malformed JSON
     def test_malformed_json_logs_parse_error(self):
-        resp = _make_resp(200, "NOT JSON {{{{")
-        with patch("httpx.Client") as MockClient, \
-             patch.dict(os.environ, {"ACHILLES_WINESEARCHER_API_KEY": "KEY"}):
-            MockClient.return_value.__enter__.return_value.get.return_value = resp
+        resp = MagicMock()
+        resp.status_code = 200
+        resp.is_success = True
+        resp.json.side_effect = ValueError("bad json")
+        resp.text = "NOT JSON"
+        with patch("httpx.Client") as MC, \
+             patch.dict(os.environ, self._env(FIRECRAWL_API_KEY="KEY")):
+            MC.return_value.__enter__.return_value.post.return_value = resp
+            MC.return_value.__enter__.return_value.get.return_value = _fx_resp(0.92)
             result = self._scraper().run(limit=1)
-        row = self.conn.execute(
-            "SELECT error_class FROM ops_dead_letter"
-        ).fetchone()
+        row = self.conn.execute("SELECT error_class FROM ops_dead_letter").fetchone()
         self.assertEqual(row[0], "parse_error")
 
-    # 8. Empty price_list → skipped, no DLQ
-    def test_empty_price_list_skipped(self):
-        resp = _make_resp(200, {"price_list": []})
-        with patch("httpx.Client") as MockClient, \
-             patch.dict(os.environ, {"ACHILLES_WINESEARCHER_API_KEY": "KEY"}):
-            MockClient.return_value.__enter__.return_value.get.return_value = resp
+    # 7. Empty search results
+    def test_empty_results_skipped(self):
+        resp = _fc_resp(200, data=[])
+        with patch("httpx.Client") as MC, \
+             patch.dict(os.environ, self._env(FIRECRAWL_API_KEY="KEY")):
+            MC.return_value.__enter__.return_value.post.return_value = resp
+            MC.return_value.__enter__.return_value.get.return_value = _fx_resp(0.92)
             result = self._scraper().run(limit=1)
         self.assertEqual(result.rows_dlq, 0)
         self.assertEqual(result.rows_inserted, 0)
         self.assertGreater(result.rows_skipped_unchanged, 0)
 
-    # 9. Valid offers → inserted; second run → deduped
-    def test_valid_offer_inserted_and_deduped(self):
-        payload = {
-            "price_list": [
-                {"store_name": "Chateau Direct", "price": 550.00, "currency": "EUR",
-                 "link": "https://example.com/bottle"},
-                {"store_name": "Le Sommelier", "price": 570.00, "currency": "EUR",
-                 "link": "https://example2.com/bottle"},
-            ]
-        }
-        resp = _make_resp(200, payload)
-        env = {"ACHILLES_WINESEARCHER_API_KEY": "KEY"}
-        with patch("httpx.Client") as MockClient, patch.dict(os.environ, env):
-            MockClient.return_value.__enter__.return_value.get.return_value = resp
-            result1 = self._scraper().run(limit=1)
+    # 8. No price in description
+    def test_no_price_in_description_skipped(self):
+        resp = _fc_resp(200, data=[_ws_result("Find stores near you.")])
+        with patch("httpx.Client") as MC, \
+             patch.dict(os.environ, self._env(FIRECRAWL_API_KEY="KEY")):
+            MC.return_value.__enter__.return_value.post.return_value = resp
+            MC.return_value.__enter__.return_value.get.return_value = _fx_resp(0.92)
+            result = self._scraper().run(limit=1)
+        self.assertEqual(result.rows_inserted, 0)
+        self.assertEqual(result.rows_dlq, 0)
 
-        self.assertEqual(result1.rows_inserted, 2)
-        self.assertEqual(result1.rows_dlq, 0)
+    # 9. USD price → EUR conversion + insert
+    def test_usd_price_converted_and_inserted(self):
+        desc = "Avg Price (ex-tax) $2,000 / 750ml. Find the best price."
+        resp = _fc_resp(200, data=[_ws_result(desc)])
+        fx = _fx_resp(0.9)   # 1 USD = 0.9 EUR → 2000 * 0.9 = 1800 EUR
+        with patch("httpx.Client") as MC, \
+             patch.dict(os.environ, self._env(FIRECRAWL_API_KEY="KEY")):
+            MC.return_value.__enter__.return_value.post.return_value = resp
+            MC.return_value.__enter__.return_value.get.return_value = fx
+            result = self._scraper().run(limit=1)
+        self.assertEqual(result.rows_inserted, 1)
+        self.assertEqual(result.rows_dlq, 0)
+        row = self.conn.execute(
+            "SELECT amount_eur, currency_code, retailer FROM staging_price_candidates"
+        ).fetchone()
+        self.assertAlmostEqual(row[0], 1800.0)
+        self.assertEqual(row[1], "EUR")
+        self.assertEqual(row[2], "wine-searcher.com")
 
-        # Second run — same hash → deduped
-        with patch("httpx.Client") as MockClient, patch.dict(os.environ, env):
-            MockClient.return_value.__enter__.return_value.get.return_value = resp
-            result2 = self._scraper().run(limit=1)
+    # 10. EUR price → no FX call, direct insert
+    def test_eur_price_no_fx_conversion(self):
+        desc = "Avg Price (ex-tax) €550 / 750ml"
+        resp = _fc_resp(200, data=[_ws_result(desc)])
+        with patch("httpx.Client") as MC, \
+             patch.dict(os.environ, self._env(FIRECRAWL_API_KEY="KEY")):
+            mock_client = MC.return_value.__enter__.return_value
+            mock_client.post.return_value = resp
+            result = self._scraper().run(limit=1)
+        self.assertEqual(result.rows_inserted, 1)
+        # No GET call should have been made (no FX needed for EUR)
+        mock_client.get.assert_not_called()
+        row = self.conn.execute(
+            "SELECT amount_eur FROM staging_price_candidates"
+        ).fetchone()
+        self.assertAlmostEqual(row[0], 550.0)
 
-        self.assertEqual(result2.rows_inserted, 0)
-        self.assertEqual(result2.rows_skipped_unchanged, 2)
+    # 11. Deduplication
+    def test_deduplication_on_second_run(self):
+        desc = "Avg Price (ex-tax) €550 / 750ml"
+        resp = _fc_resp(200, data=[_ws_result(desc)])
+        env = self._env(FIRECRAWL_API_KEY="KEY")
+        with patch("httpx.Client") as MC, patch.dict(os.environ, env):
+            MC.return_value.__enter__.return_value.post.return_value = resp
+            r1 = self._scraper().run(limit=1)
+        with patch("httpx.Client") as MC, patch.dict(os.environ, env):
+            MC.return_value.__enter__.return_value.post.return_value = resp
+            r2 = self._scraper().run(limit=1)
+        self.assertEqual(r1.rows_inserted, 1)
+        self.assertEqual(r2.rows_inserted, 0)
+        self.assertEqual(r2.rows_skipped_unchanged, 1)
         total = self.conn.execute(
             "SELECT COUNT(*) FROM staging_price_candidates"
         ).fetchone()[0]
-        self.assertEqual(total, 2)
+        self.assertEqual(total, 1)
 
-    # 10. Non-EUR currency → skipped
-    def test_non_eur_currency_skipped(self):
-        payload = {
-            "price_list": [
-                {"store_name": "US Store", "price": 600.00, "currency": "USD",
-                 "link": "https://us.example.com"},
-            ]
-        }
-        resp = _make_resp(200, payload)
-        with patch("httpx.Client") as MockClient, \
-             patch.dict(os.environ, {"ACHILLES_WINESEARCHER_API_KEY": "KEY"}):
-            MockClient.return_value.__enter__.return_value.get.return_value = resp
+    # 12. FX unavailable → validation_error DLQ
+    def test_fx_unavailable_logs_validation_error(self):
+        desc = "Avg Price (ex-tax) $500 / 750ml"
+        resp = _fc_resp(200, data=[_ws_result(desc)])
+        fx = MagicMock()
+        fx.is_success = False
+        fx.json.return_value = {}
+        with patch("httpx.Client") as MC, \
+             patch.dict(os.environ, self._env(FIRECRAWL_API_KEY="KEY")):
+            MC.return_value.__enter__.return_value.post.return_value = resp
+            MC.return_value.__enter__.return_value.get.return_value = fx
             result = self._scraper().run(limit=1)
-        self.assertEqual(result.rows_inserted, 0)
-        self.assertEqual(result.rows_dlq, 0)
-        self.assertGreater(result.rows_skipped_unchanged, 0)
+        self.assertGreater(result.rows_dlq, 0)
+        row = self.conn.execute(
+            "SELECT error_class FROM ops_dead_letter WHERE error_class='validation_error'"
+        ).fetchone()
+        self.assertIsNotNone(row)
 
 
 if __name__ == "__main__":
