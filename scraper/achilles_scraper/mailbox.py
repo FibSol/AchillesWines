@@ -202,8 +202,13 @@ class Mailbox:
         return data[0].split()
 
     def fetch(self, uid: bytes) -> FetchedMessage:
-        """Fetch the full RFC822 source for a UID."""
-        typ, data = self.conn.uid("FETCH", uid, "(RFC822)")
+        """Fetch the full message source without marking it \\Seen.
+
+        RFC822 would implicitly set \\Seen on any IMAP server; BODY.PEEK[]
+        is identical but suppresses the flag so failed-parse messages stay
+        UNSEEN and are retried on the next scraper run.
+        """
+        typ, data = self.conn.uid("FETCH", uid, "(BODY.PEEK[])")
         if typ != "OK" or not data or data[0] is None:
             raise MailboxError(f"FETCH {uid!r} failed: {typ}")
         # imaplib returns a list of (header, body) tuples or bare bytes
