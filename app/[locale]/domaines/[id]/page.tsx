@@ -6,45 +6,49 @@ import {
   dimProducer,
   dimWine,
   dimAppellation,
-  dimSource,
+  dimVariety,
+  bridgeWineVariety,
+  cellarInventory,
   factPrice,
   factRating,
 } from "@/db/schema";
-import { eq, inArray, asc } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { PageShell } from "@/components/page-shell";
-import {
-  PriceHistoryChart,
-  RatingsByCriticChart,
-  DrinkingWindowBand,
-  type PricePoint,
-  type RatingPoint,
-} from "@/components/ProducerCharts";
 import { ConfidenceBadge, deriveConfidence } from "@/components/ConfidenceBadge";
-import { ArrowLeft, MapPin, Globe } from "lucide-react";
+import { CuveeEvolutionChart, type CuveeYearPoint } from "@/components/DomaineCharts";
+import { DomaineDetailTable, type DetailRow } from "@/components/DomaineDetailTable";
+import { ArrowLeft, MapPin, Globe, Grape, Award } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-interface CuveeRow {
-  wineKey: string;
+/* ─── Types ─────────────────────────────────────────────────────────────── */
+
+interface VarietyInfo {
+  varietyName: string;
+  colorFamily: string;
+}
+
+interface CuveeSummary {
   cuveeName: string;
-  canonicalName: string;
-  vintage: number | null;
   appellationName: string;
   color: string;
+  vintageCount: number;
   bestRating: number | null;
   priceMin: number | null;
   priceMax: number | null;
   sourceCount: number;
+  tier: "flagship" | "normal" | "entry";
 }
 
 interface LoadedData {
   producer: typeof dimProducer.$inferSelect;
-  cuvees: CuveeRow[];
-  pricePoints: PricePoint[];
-  priceSources: string[];
-  ratingPoints: RatingPoint[];
-  drinkingWindow: { drinkFrom: number; drinkTo: number } | null;
+  varieties: VarietyInfo[];
+  cuveeSummaries: CuveeSummary[];
+  cuveeYearPoints: CuveeYearPoint[];
+  detailRows: DetailRow[];
 }
+
+/* ─── Data loading ───────────────────────────────────────────────────────── */
 
 async function loadProducerDetail(producerKey: number): Promise<LoadedData | null> {
   const producerRows = await db
@@ -56,14 +60,17 @@ async function loadProducerDetail(producerKey: number): Promise<LoadedData | nul
   const producer = producerRows[0];
   if (!producer) return null;
 
-  // All wines for this producer with their appellation
   const wines = await db
     .select({
       wineKey: dimWine.wineKey,
       cuveeName: dimWine.cuveeName,
       canonicalName: dimWine.canonicalName,
       vintage: dimWine.vintage,
+      isNonVintage: dimWine.isNonVintage,
       color: dimWine.color,
+      classification: dimWine.classification,
+      alcoholPct: dimWine.alcoholPct,
+      bottleMl: dimWine.bottleMl,
       appellationName: dimAppellation.appellationName,
     })
     .from(dimWine)
@@ -72,34 +79,35 @@ async function loadProducerDetail(producerKey: number): Promise<LoadedData | nul
 
   const wineKeys = wines.map((w) => w.wineKey);
 
-  let prices: (typeof factPrice.$inferSelect)[] = [];
-  let ratings: (typeof factRating.$inferSelect)[] = [];
-  let sources: (typeof dimSource.$inferSelect)[] = [];
-
-  if (wineKeys.length > 0) {
-    [prices, ratings] = await Promise.all([
-      db
-        .select()
-        .from(factPrice)
-        .where(inArray(factPrice.wineKey, wineKeys))
-        .orderBy(asc(factPrice.recordedAt)),
-      db
-        .select()
-        .from(factRating)
-        .where(inArray(factRating.wineKey, wineKeys)),
-    ]);
-
-    const sourceKeys = Array.from(
-      new Set<number>([...prices.map((p) => p.sourceKey), ...ratings.map((r) => r.sourceKey)]),
-    );
-    if (sourceKeys.length > 0) {
-      sources = await db.select().from(dimSource).where(inArray(dimSource.sourceKey, sourceKeys));
-    }
+  if (wineKeys.length === 0) {
+    return { producer, varieties: [], cuveeSummaries: [], cuveeYearPoints: [], detailRows: [] };
   }
 
-  const sourceCodeByKey = new Map(sources.map((s) => [s.sourceKey, s.sourceCode]));
+  const [prices, ratings, varietyRows, cellarRows] = await Promise.all([
+    db.select().from(factPrice).where(inArray(factPrice.wineKey, wineKeys)),
+    db.select().from(factRating).where(inArray(factRating.wineKey, wineKeys)),
+    db
+      .select({
+        wineKey: bridgeWineVariety.wineKey,
+        varietyName: dimVariety.varietyName,
+        colorFamily: dimVariety.colorFamily,
+      })
+      .from(bridgeWineVariety)
+      .innerJoin(dimVariety, eq(bridgeWineVariety.varietyKey, dimVariety.varietyKey))
+      .where(inArray(bridgeWineVariety.wineKey, wineKeys)),
+    db
+      .select({ wineKey: cellarInventory.wineKey, qty: cellarInventory.qty })
+      .from(cellarInventory)
+      .where(inArray(cellarInventory.wineKey, wineKeys)),
+  ]);
 
-  // Build cuvée aggregates
+  // Index prices and ratings by wineKey
+  const pricesByWine = new Map<string, typeof prices>();
+  for (const p of prices) {
+    const arr = pricesByWine.get(p.wineKey) ?? [];
+    arr.push(p);
+    pricesByWine.set(p.wineKey, arr);
+  }
   const ratingsByWine = new Map<string, typeof ratings>();
   for (const r of ratings) {
     const arr = ratingsByWine.get(r.wineKey) ?? [];
@@ -107,106 +115,143 @@ async function loadProducerDetail(producerKey: number): Promise<LoadedData | nul
     ratingsByWine.set(r.wineKey, arr);
   }
 
-  const pricesByWine = new Map<string, typeof prices>();
-  for (const p of prices) {
-    const arr = pricesByWine.get(p.wineKey) ?? [];
-    arr.push(p);
-    pricesByWine.set(p.wineKey, arr);
+  // Cellar qty aggregated by wineKey
+  const cellarQty = new Map<string, number>();
+  for (const row of cellarRows) {
+    cellarQty.set(row.wineKey, (cellarQty.get(row.wineKey) ?? 0) + row.qty);
   }
 
-  const cuvees: CuveeRow[] = wines
-    .map((w) => {
-      const wineRatings = ratingsByWine.get(w.wineKey) ?? [];
-      const winePrices = pricesByWine.get(w.wineKey) ?? [];
-      const ratingScores = wineRatings.map((r) => r.scoreNormalized100);
-      const priceValues = winePrices
-        .map((p) => p.amountEur)
-        .filter((v): v is number => typeof v === "number" && v > 0);
-      const sourceCount = new Set([
-        ...winePrices.map((p) => p.sourceKey),
-        ...wineRatings.map((r) => r.sourceKey),
-      ]).size;
-      return {
-        wineKey: w.wineKey,
-        cuveeName: w.cuveeName,
-        canonicalName: w.canonicalName,
-        vintage: w.vintage,
-        appellationName: w.appellationName,
-        color: w.color,
-        bestRating: ratingScores.length > 0 ? Math.max(...ratingScores) : null,
-        priceMin: priceValues.length > 0 ? Math.min(...priceValues) : null,
-        priceMax: priceValues.length > 0 ? Math.max(...priceValues) : null,
-        sourceCount,
-      } satisfies CuveeRow;
-    })
-    .sort((a, b) => {
-      const ar = a.bestRating ?? -1;
-      const br = b.bestRating ?? -1;
-      if (br !== ar) return br - ar;
-      return a.cuveeName.localeCompare(b.cuveeName);
-    });
-
-  // Price history: latest per (source, recordedAt bucket). Group by source as separate series.
-  const seenSources = new Set<string>();
-  const pointMap = new Map<number, PricePoint>();
-  for (const p of prices) {
-    if (typeof p.amountEur !== "number" || p.amountEur <= 0) continue;
-    const src = sourceCodeByKey.get(p.sourceKey);
-    if (!src) continue;
-    seenSources.add(src);
-    const ts = p.recordedAt instanceof Date ? Math.floor(p.recordedAt.getTime() / 1000) : 0;
-    const existing = pointMap.get(ts) ?? { recordedAt: ts };
-    existing[src] = p.amountEur;
-    pointMap.set(ts, existing);
-  }
-  const pricePoints = Array.from(pointMap.values()).sort((a, b) => a.recordedAt - b.recordedAt);
-  const priceSources = Array.from(seenSources).sort();
-
-  // Ratings by critic: average score per critic_code
-  const ratingsByCritic = new Map<string, number[]>();
-  for (const r of ratings) {
-    const arr = ratingsByCritic.get(r.criticCode) ?? [];
-    arr.push(r.scoreNormalized100);
-    ratingsByCritic.set(r.criticCode, arr);
-  }
-  const ratingPoints: RatingPoint[] = Array.from(ratingsByCritic.entries())
-    .map(([criticCode, scores]) => ({
-      criticCode,
-      score: scores.reduce((a, b) => a + b, 0) / scores.length,
-    }))
-    .sort((a, b) => b.score - a.score);
-
-  // Drinking window — fact_rating may carry optional drink_from/drink_to in future. Try to read
-  // them via JSON column not present in current schema; for now we look for any non-null pair
-  // attached to the row through an unstructured probe. Returns null if data isn't available.
-  let drinkingWindow: { drinkFrom: number; drinkTo: number } | null = null;
-  const drinkFroms: number[] = [];
-  const drinkTos: number[] = [];
-  for (const r of ratings) {
-    const raw = r as Record<string, unknown>;
-    const from = raw.drinkFrom ?? raw.drink_from;
-    const to = raw.drinkTo ?? raw.drink_to;
-    if (typeof from === "number" && typeof to === "number" && to >= from) {
-      drinkFroms.push(from);
-      drinkTos.push(to);
+  // Unique varieties across all wines of this producer
+  const seenVarieties = new Map<string, VarietyInfo>();
+  for (const v of varietyRows) {
+    if (!seenVarieties.has(v.varietyName)) {
+      seenVarieties.set(v.varietyName, { varietyName: v.varietyName, colorFamily: v.colorFamily });
     }
   }
-  if (drinkFroms.length > 0 && drinkTos.length > 0) {
-    drinkingWindow = {
-      drinkFrom: Math.min(...drinkFroms),
-      drinkTo: Math.max(...drinkTos),
+  const varieties = Array.from(seenVarieties.values());
+
+  /* ── Cuvée summaries (aggregated — no vintage) ── */
+  const cuveeMap = new Map<
+    string,
+    {
+      cuveeName: string;
+      appellationName: string;
+      color: string;
+      vintages: Set<number>;
+      allRatings: number[];
+      allPrices: number[];
+      sources: Set<number>;
+    }
+  >();
+
+  for (const w of wines) {
+    const existing = cuveeMap.get(w.cuveeName) ?? {
+      cuveeName: w.cuveeName,
+      appellationName: w.appellationName,
+      color: w.color,
+      vintages: new Set(),
+      allRatings: [],
+      allPrices: [],
+      sources: new Set<number>(),
     };
+    if (w.vintage) existing.vintages.add(w.vintage);
+
+    for (const p of pricesByWine.get(w.wineKey) ?? []) {
+      if (typeof p.amountEur === "number" && p.amountEur > 0) existing.allPrices.push(p.amountEur);
+      existing.sources.add(p.sourceKey);
+    }
+    for (const r of ratingsByWine.get(w.wineKey) ?? []) {
+      existing.allRatings.push(r.scoreNormalized100);
+      existing.sources.add(r.sourceKey);
+    }
+    cuveeMap.set(w.cuveeName, existing);
   }
 
-  return {
-    producer,
-    cuvees,
-    pricePoints,
-    priceSources,
-    ratingPoints,
-    drinkingWindow,
-  };
+  const cuveeSummaries: CuveeSummary[] = Array.from(cuveeMap.values())
+    .map((c) => {
+      const bestRating = c.allRatings.length > 0 ? Math.max(...c.allRatings) : null;
+      const tier: "flagship" | "normal" | "entry" =
+        bestRating === null ? "entry" : bestRating >= 94 ? "flagship" : bestRating >= 88 ? "normal" : "entry";
+      return {
+        cuveeName: c.cuveeName,
+        appellationName: c.appellationName,
+        color: c.color,
+        vintageCount: c.vintages.size,
+        bestRating,
+        priceMin: c.allPrices.length > 0 ? Math.min(...c.allPrices) : null,
+        priceMax: c.allPrices.length > 0 ? Math.max(...c.allPrices) : null,
+        sourceCount: c.sources.size,
+        tier,
+      };
+    })
+    .sort((a, b) => (b.bestRating ?? -1) - (a.bestRating ?? -1));
+
+  /* ── Chart data: one point per (cuveeName, vintage) ── */
+  const cuveeYearPoints: CuveeYearPoint[] = [];
+  for (const w of wines) {
+    if (!w.vintage) continue;
+    const wPrices = (pricesByWine.get(w.wineKey) ?? [])
+      .map((p) => p.amountEur)
+      .filter((v): v is number => typeof v === "number" && v > 0);
+    const wRatings = (ratingsByWine.get(w.wineKey) ?? []).map((r) => r.scoreNormalized100);
+    cuveeYearPoints.push({
+      cuveeName: w.cuveeName,
+      vintage: w.vintage,
+      avgPrice: wPrices.length > 0 ? wPrices.reduce((a, b) => a + b) / wPrices.length : null,
+      bestRating: wRatings.length > 0 ? Math.max(...wRatings) : null,
+    });
+  }
+
+  /* ── Detail rows: one per wine entity ── */
+  const detailRows: DetailRow[] = wines
+    .map((w) => {
+      const wPrices = pricesByWine.get(w.wineKey) ?? [];
+      const wRatings = ratingsByWine.get(w.wineKey) ?? [];
+      const priceValues = wPrices
+        .map((p) => p.amountEur)
+        .filter((v): v is number => typeof v === "number" && v > 0);
+      const ratingScores = wRatings.map((r) => r.scoreNormalized100);
+
+      const criticBest = new Map<string, number>();
+      for (const r of wRatings) {
+        const prev = criticBest.get(r.criticCode) ?? 0;
+        if (r.scoreNormalized100 > prev) criticBest.set(r.criticCode, r.scoreNormalized100);
+      }
+      const criticBreakdown = Array.from(criticBest.entries())
+        .map(([criticCode, score]) => ({ criticCode, score }))
+        .sort((a, b) => b.score - a.score);
+
+      return {
+        wineKey: w.wineKey,
+        canonicalName: w.canonicalName,
+        cuveeName: w.cuveeName,
+        vintage: w.vintage,
+        isNonVintage: w.isNonVintage,
+        appellationName: w.appellationName,
+        color: w.color,
+        classification: w.classification,
+        alcoholPct: w.alcoholPct,
+        bottleMl: w.bottleMl,
+        bestRating: ratingScores.length > 0 ? Math.max(...ratingScores) : null,
+        criticBreakdown,
+        priceMin: priceValues.length > 0 ? Math.min(...priceValues) : null,
+        priceMax: priceValues.length > 0 ? Math.max(...priceValues) : null,
+        inCellar: cellarQty.get(w.wineKey) ?? 0,
+        sourceCount: new Set([
+          ...wPrices.map((p) => p.sourceKey),
+          ...wRatings.map((r) => r.sourceKey),
+        ]).size,
+      } satisfies DetailRow;
+    })
+    .sort((a, b) => {
+      if (a.cuveeName !== b.cuveeName) return a.cuveeName.localeCompare(b.cuveeName);
+      return (b.vintage ?? 0) - (a.vintage ?? 0);
+    });
+
+  return { producer, varieties, cuveeSummaries, cuveeYearPoints, detailRows };
 }
+
+/* ─── Sub-components ─────────────────────────────────────────────────────── */
 
 function ColorDot({ color }: { color: string }) {
   const map: Record<string, string> = {
@@ -222,10 +267,27 @@ function ColorDot({ color }: { color: string }) {
     <span
       className="inline-block size-2 rounded-full shrink-0"
       style={{ background: map[color] ?? "#FAF7F5" }}
-      aria-label={color}
     />
   );
 }
+
+function TierBadge({ tier, labels }: { tier: "flagship" | "normal" | "entry"; labels: { flagship: string; normal: string; entry: string } }) {
+  const styles = {
+    flagship: { background: "rgba(229,178,93,0.18)", color: "#E5B25D", border: "1px solid rgba(229,178,93,0.4)" },
+    normal: { background: "rgba(250,247,245,0.08)", color: "rgba(250,247,245,0.7)", border: "1px solid rgba(255,255,255,0.15)" },
+    entry: { background: "rgba(255,255,255,0.04)", color: "rgba(250,247,245,0.4)", border: "1px solid rgba(255,255,255,0.08)" },
+  };
+  return (
+    <span
+      className="inline-block text-[9px] font-semibold uppercase tracking-[0.08em] px-1.5 py-0.5 rounded-full"
+      style={styles[tier]}
+    >
+      {labels[tier]}
+    </span>
+  );
+}
+
+/* ─── Page ───────────────────────────────────────────────────────────────── */
 
 export default async function DomainePage({
   params,
@@ -237,6 +299,7 @@ export default async function DomainePage({
   const t = await getTranslations("domaine");
   const tCommon = await getTranslations("common");
   const tConf = await getTranslations("confidence");
+  const tColors = await getTranslations("colors");
 
   const producerKey = Number.parseInt(id, 10);
   if (!Number.isFinite(producerKey)) notFound();
@@ -244,33 +307,93 @@ export default async function DomainePage({
   const data = await loadProducerDetail(producerKey);
   if (!data) notFound();
 
-  const { producer, cuvees, pricePoints, priceSources, ratingPoints, drinkingWindow } = data;
+  const { producer, varieties, cuveeSummaries, cuveeYearPoints, detailRows } = data;
+
+  // Aggregate stats
+  const totalVintages = new Set(detailRows.map((r) => r.vintage).filter(Boolean)).size;
+  const allRatings = detailRows.flatMap((r) => (r.bestRating !== null ? [r.bestRating] : []));
+  const globalBestRating = allRatings.length > 0 ? Math.max(...allRatings) : null;
+  const allPrices = detailRows.flatMap((r) =>
+    r.priceMin !== null ? [r.priceMin] : [],
+  );
+  const globalPriceMin = allPrices.length > 0 ? Math.min(...allPrices) : null;
+  const allPricesMax = detailRows.flatMap((r) =>
+    r.priceMax !== null ? [r.priceMax] : [],
+  );
+  const globalPriceMax = allPricesMax.length > 0 ? Math.max(...allPricesMax) : null;
+
+  const cuveeNames = cuveeSummaries.map((c) => c.cuveeName);
+  const hasVintageData = cuveeYearPoints.length > 0;
+
+  const colorLabels: Record<string, string> = {
+    red: tColors("red"),
+    white: tColors("white"),
+    "rosé": tColors("rosé"),
+    sparkling: tColors("sparkling"),
+    sweet: tColors("sweet"),
+    fortified: tColors("fortified"),
+    orange: tColors("orange"),
+  };
+
+  const tierLabels = {
+    flagship: t("tierFlagship"),
+    normal: t("tierNormal"),
+    entry: t("tierEntry"),
+  };
+
+  const confidenceLabels = {
+    verified: tConf.raw("verified") as string,
+    reviewed: tConf("reviewed"),
+    needs_review: tConf("needs_review"),
+  };
+
+  const coverageTierColor: Record<string, string> = {
+    notable: "#6fffe9",
+    mid: "#FFD166",
+    long_tail: "rgba(250,247,245,0.4)",
+  };
 
   return (
     <PageShell
       title={producer.producerName}
-      subtitle={[producer.region, producer.subregion, producer.countryCode]
-        .filter(Boolean)
-        .join(" · ")}
-      badge={producer.tier ? `T${producer.tier} · ${cuvees.length} ${t("cuvees").toLowerCase()}` : `${cuvees.length} ${t("cuvees").toLowerCase()}`}
+      subtitle={[producer.region, producer.subregion, producer.countryCode].filter(Boolean).join(" · ")}
+      badge={
+        producer.coverageTier
+          ? producer.coverageTier.charAt(0).toUpperCase() + producer.coverageTier.slice(1).replace("_", " ")
+          : undefined
+      }
     >
-      {/* Header / back link */}
+      {/* Back link */}
       <div className="flex items-center justify-between mb-6">
         <Link
           href={`/${locale}/domaines`}
-          className="inline-flex items-center gap-1.5 text-xs text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-coral-400)] transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs transition-colors"
+          style={{ color: "rgba(250,247,245,0.45)" }}
         >
           <ArrowLeft className="size-3.5" strokeWidth={2.5} />
           {t("backToList")}
         </Link>
+        {producer.coverageTier && (
+          <span
+            className="text-[10px] font-mono px-2 py-0.5 rounded-full border"
+            style={{
+              color: coverageTierColor[producer.coverageTier] ?? "rgba(250,247,245,0.5)",
+              borderColor: coverageTierColor[producer.coverageTier] ?? "rgba(255,255,255,0.15)",
+              background: "rgba(255,255,255,0.04)",
+            }}
+          >
+            {producer.coverageTier}
+          </span>
+        )}
       </div>
 
-      {/* Producer meta */}
-      <section className="glass-card p-6 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm text-[color:var(--color-fg-muted)]">
-              <MapPin className="size-4" strokeWidth={2.5} />
+      {/* ── 1. Info card ──────────────────────────────────────────────────── */}
+      <section className="glass-card p-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Left: location + website + notes */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm" style={{ color: "rgba(250,247,245,0.65)" }}>
+              <MapPin className="size-4 shrink-0" strokeWidth={2.5} />
               <span>
                 {producer.region}
                 {producer.subregion && ` · ${producer.subregion}`}
@@ -279,133 +402,199 @@ export default async function DomainePage({
             </div>
             {producer.website && (
               <div className="flex items-center gap-2 text-sm">
-                <Globe className="size-4 text-[color:var(--color-fg-muted)]" strokeWidth={2.5} />
+                <Globe className="size-4 shrink-0" strokeWidth={2.5} style={{ color: "rgba(250,247,245,0.4)" }} />
                 <a
                   href={producer.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[color:var(--color-coral-400)] hover:text-[color:var(--color-accent)] truncate"
+                  className="truncate transition-colors"
+                  style={{ color: "var(--color-accent)" }}
                 >
                   {producer.website.replace(/^https?:\/\//, "")}
                 </a>
               </div>
             )}
             {producer.aliases && producer.aliases.length > 0 && (
-              <p className="text-xs text-[color:var(--color-fg-subtle)] mt-2">
+              <p className="text-xs" style={{ color: "rgba(250,247,245,0.4)" }}>
                 <span className="uppercase tracking-[0.06em] mr-2">{t("aliases")}:</span>
-                <span className="font-mono">{producer.aliases.join(" · ")}</span>
+                {producer.aliases.join(" · ")}
+              </p>
+            )}
+            {producer.notes && (
+              <p className="text-xs leading-relaxed mt-1" style={{ color: "rgba(250,247,245,0.55)" }}>
+                {producer.notes}
               </p>
             )}
           </div>
+
+          {/* Center: grape varieties */}
           <div>
-            <p className="text-xs uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)] mb-2">
+            <p
+              className="text-[10px] uppercase tracking-[0.08em] mb-2 flex items-center gap-1.5"
+              style={{ color: "rgba(250,247,245,0.4)" }}
+            >
+              <Grape className="size-3.5" strokeWidth={2.5} />
+              {t("varieties")}
+            </p>
+            {varieties.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {varieties.map((v) => (
+                  <span
+                    key={v.varietyName}
+                    className="text-[10px] px-2 py-0.5 rounded-full border"
+                    style={{
+                      borderColor: "rgba(255,255,255,0.15)",
+                      color: "rgba(250,247,245,0.65)",
+                      background: "rgba(255,255,255,0.04)",
+                    }}
+                  >
+                    {v.varietyName}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs italic" style={{ color: "rgba(250,247,245,0.3)" }}>
+                {tCommon("empty")}
+              </p>
+            )}
+          </div>
+
+          {/* Right: appellations */}
+          <div>
+            <p
+              className="text-[10px] uppercase tracking-[0.08em] mb-2"
+              style={{ color: "rgba(250,247,245,0.4)" }}
+            >
               {t("allowedAppellations")}
             </p>
             {producer.allowedAppellations && producer.allowedAppellations.length > 0 ? (
               <div className="flex flex-wrap gap-1.5">
                 {producer.allowedAppellations.map((app) => (
-                  <span
-                    key={app}
-                    className="badge badge-verified text-[10px] py-0.5"
-                    title={app}
-                  >
+                  <span key={app} className="badge badge-verified text-[9px] py-0.5" title={app}>
                     {app}
                   </span>
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-[color:var(--color-fg-subtle)] italic">{tCommon("empty")}</p>
+              <p className="text-xs italic" style={{ color: "rgba(250,247,245,0.3)" }}>
+                {tCommon("empty")}
+              </p>
             )}
           </div>
         </div>
       </section>
 
-      {/* Drinking window band — only if data present */}
-      {drinkingWindow && (
-        <section className="mb-8">
-          <DrinkingWindowBand
-            drinkFrom={drinkingWindow.drinkFrom}
-            drinkTo={drinkingWindow.drinkTo}
-            label={t("drinkingWindow")}
-          />
-        </section>
-      )}
+      {/* ── 2. KPI strip ─────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+        {[
+          { label: t("cuvees"), value: cuveeSummaries.length },
+          { label: t("vintageCount"), value: totalVintages > 0 ? totalVintages : "—" },
+          {
+            label: t("bestRating"),
+            value: globalBestRating !== null ? `${globalBestRating.toFixed(1)}/100` : "—",
+          },
+          {
+            label: t("priceRange"),
+            value:
+              globalPriceMin !== null && globalPriceMax !== null
+                ? globalPriceMin === globalPriceMax
+                  ? `€${globalPriceMin.toFixed(0)}`
+                  : `€${globalPriceMin.toFixed(0)} – ${globalPriceMax.toFixed(0)}`
+                : "—",
+          },
+        ].map((s) => (
+          <div key={s.label} className="stat-card">
+            <p className="stat-card-value">{s.value}</p>
+            <p className="stat-card-label">{s.label}</p>
+          </div>
+        ))}
+      </div>
 
-      {/* Cuvées table */}
+      {/* ── 3. Cuvées summary table ───────────────────────────────────────── */}
       <section className="mb-10">
-        <h2 className="text-xl font-display mb-4 text-[color:var(--color-fg)]">{t("cuvees")}</h2>
-        {cuvees.length === 0 ? (
-          <div className="glass-card p-8 text-center text-[color:var(--color-fg-subtle)] text-sm">
+        <h2 className="text-xl font-display mb-4" style={{ color: "var(--color-fg)" }}>
+          {t("cuvees")}
+        </h2>
+        {cuveeSummaries.length === 0 ? (
+          <div
+            className="glass-card p-8 text-center text-sm"
+            style={{ color: "rgba(250,247,245,0.4)" }}
+          >
             {t("noCuvees")}
           </div>
         ) : (
           <div className="glass-card overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="border-b border-[color:var(--color-border)]">
-                  <tr className="text-left text-xs uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)]">
+                <thead style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                  <tr
+                    className="text-left text-[10px] uppercase tracking-[0.06em]"
+                    style={{ color: "rgba(250,247,245,0.4)" }}
+                  >
                     <th className="px-4 py-3 font-semibold">{t("cuvee")}</th>
                     <th className="px-4 py-3 font-semibold">{tCommon("appellation")}</th>
+                    <th className="px-4 py-3 font-semibold">{t("tier")}</th>
+                    <th className="px-4 py-3 font-semibold text-right">{t("vintageCount")}</th>
                     <th className="px-4 py-3 font-semibold text-right">{t("bestRating")}</th>
                     <th className="px-4 py-3 font-semibold text-right">{t("priceRange")}</th>
                     <th className="px-4 py-3 font-semibold text-right">{t("sources")}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {cuvees.map((c) => (
+                  {cuveeSummaries.map((c) => (
                     <tr
-                      key={c.wineKey}
-                      className="border-b border-[color:var(--color-border)] last:border-b-0 hover:bg-[rgba(255,92,138,0.04)] transition-colors"
+                      key={c.cuveeName}
+                      className="transition-colors hover:bg-[rgba(165,56,96,0.05)]"
+                      style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <ColorDot color={c.color} />
-                          <div className="min-w-0">
-                            <p className="font-semibold text-[color:var(--color-fg)] leading-tight">
-                              {c.cuveeName}
-                              {c.vintage && (
-                                <span className="ml-2 text-[color:var(--color-fg-muted)] font-mono text-xs">
-                                  {c.vintage}
-                                </span>
-                              )}
-                            </p>
-                          </div>
+                          <span
+                            className="font-semibold text-sm"
+                            style={{ color: "var(--color-fg)" }}
+                          >
+                            {c.cuveeName}
+                          </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-[color:var(--color-fg-muted)]">
+                      <td className="px-4 py-3 text-sm" style={{ color: "rgba(250,247,245,0.6)" }}>
                         {c.appellationName}
+                      </td>
+                      <td className="px-4 py-3">
+                        <TierBadge tier={c.tier} labels={tierLabels} />
+                      </td>
+                      <td className="px-4 py-3 text-right font-mono text-sm" style={{ color: "rgba(250,247,245,0.6)" }}>
+                        {c.vintageCount > 0 ? c.vintageCount : "—"}
                       </td>
                       <td className="px-4 py-3 text-right font-mono">
                         {c.bestRating !== null ? (
-                          <span className="text-[color:var(--color-accent)] font-semibold">
+                          <span
+                            className="font-semibold"
+                            style={{ color: "var(--color-accent)" }}
+                          >
                             {c.bestRating.toFixed(1)}/100
                           </span>
                         ) : (
-                          <span className="text-[color:var(--color-fg-subtle)]">—</span>
+                          <span style={{ color: "rgba(250,247,245,0.25)" }}>—</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-right font-mono">
+                      <td className="px-4 py-3 text-right font-mono text-sm" style={{ color: "var(--color-fg)" }}>
                         {c.priceMin !== null && c.priceMax !== null ? (
                           c.priceMin === c.priceMax ? (
-                            <span className="text-[color:var(--color-fg)]">€{c.priceMin.toFixed(2)}</span>
+                            `€${c.priceMin.toFixed(0)}`
                           ) : (
-                            <span className="text-[color:var(--color-fg)]">
-                              €{c.priceMin.toFixed(2)} – €{c.priceMax.toFixed(2)}
-                            </span>
+                            `€${c.priceMin.toFixed(0)} – ${c.priceMax.toFixed(0)}`
                           )
                         ) : (
-                          <span className="text-[color:var(--color-fg-subtle)]">—</span>
+                          <span style={{ color: "rgba(250,247,245,0.25)" }}>—</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <ConfidenceBadge
                           confidence={deriveConfidence(c.sourceCount)}
                           sourceCount={c.sourceCount}
-                          labels={{
-                            verified: tConf.raw("verified") as string,
-                            reviewed: tConf("reviewed"),
-                            needs_review: tConf("needs_review"),
-                          }}
+                          labels={confidenceLabels}
                           size="sm"
                         />
                       </td>
@@ -418,33 +607,58 @@ export default async function DomainePage({
         )}
       </section>
 
-      {/* Charts */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div>
-          <h2 className="text-xl font-display mb-4 text-[color:var(--color-fg)]">
-            {t("priceOverTime")}
+      {/* ── 4. Evolution chart ────────────────────────────────────────────── */}
+      {hasVintageData && (
+        <section className="mb-10">
+          <h2 className="text-xl font-display mb-4" style={{ color: "var(--color-fg)" }}>
+            {t("evolution")}
           </h2>
-          <PriceHistoryChart
-            data={pricePoints}
-            sources={priceSources}
+          <CuveeEvolutionChart
+            data={cuveeYearPoints}
+            cuveeNames={cuveeNames}
             labels={{
+              metricPrice: t("metricPrice"),
+              metricRating: t("metricRating"),
+              allCuvees: t("allCuvees"),
               noData: t("noPriceData"),
               priceAxis: t("priceAxis"),
+              ratingAxis: t("ratingAxis"),
+              evolution: t("evolution"),
             }}
           />
-        </div>
-        <div>
-          <h2 className="text-xl font-display mb-4 text-[color:var(--color-fg)]">
-            {t("ratingsByCritic")}
-          </h2>
-          <RatingsByCriticChart
-            data={ratingPoints}
-            labels={{
-              noData: t("noRatingData"),
-              scoreAxis: t("ratingAxis"),
-            }}
-          />
-        </div>
+        </section>
+      )}
+
+      {/* ── 5. Detailed wine table ────────────────────────────────────────── */}
+      <section className="mb-6">
+        <h2 className="text-xl font-display mb-4" style={{ color: "var(--color-fg)" }}>
+          {t("detailedWines")}
+        </h2>
+        <DomaineDetailTable
+          rows={detailRows}
+          cuveeNames={cuveeNames}
+          labels={{
+            canonicalName: t("canonicalName"),
+            cuvee: t("cuvee"),
+            vintage: tCommon("vintage"),
+            appellation: tCommon("appellation"),
+            color: tCommon("color"),
+            classification: t("classification"),
+            alcohol: t("alcohol"),
+            bottleSize: t("bottleSize"),
+            bestRating: t("bestRating"),
+            priceRange: t("priceRange"),
+            inCellar: t("inCellar"),
+            sources: t("sources"),
+            allCuvees: t("allCuvees"),
+            allColors: t("allColors"),
+            filterVintageFrom: t("filterVintageFrom"),
+            filterVintageTo: t("filterVintageTo"),
+            noWinesFilter: t("noWinesFilter"),
+          }}
+          colorLabels={colorLabels}
+          confidenceLabels={confidenceLabels}
+        />
       </section>
     </PageShell>
   );
