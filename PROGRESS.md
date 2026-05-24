@@ -3,6 +3,9 @@
 ## 2026-05-24
 
 ### Patroclus (Backend)
+- [Patroclus] #34 Wine-Searcher Pro API scraper: replaced stub with full implementation. Reads `ACHILLES_WINESEARCHER_API_KEY` from env; logs `scraper_not_applicable` DLQ cleanly if absent. Iterates `dim_wine` (coverage_tier='notable' first), builds `?format=json&apikey=` search URLs, parses `price_list` offers (top-level or nested under `product`), inserts each merchant as a `staging_price_candidate`. Handles 401/403/429/5xx/malformed JSON with DLQ entries. Skips non-EUR currencies. `_build_url()` and `_parse_price_list()` extracted as testable helpers. 16 new tests in `test_wine_searcher.py`. 203/203 Python tests passing. `.env.example` updated with `ACHILLES_WINESEARCHER_API_KEY` docs. · files: scraper/achilles_scraper/scrapers/wine_searcher.py, scraper/tests/test_wine_searcher.py, .env.example
+
+### Patroclus (Backend)
 - [Patroclus] #20 per-vendor email parsers: added block-first `_parse_html()` overrides to MillesimaEmailScraper, IDealwineEmailScraper, and LaviniaEmailScraper. New `_block_offer()` helper walks up to a containing block (TD/DIV/LI) and finds the wine title from heading-like elements (h1–h4 / strong / b) rather than relying on anchor text alone — fixes 0-offer failures on image anchors and short CTA text ("Voir", "Acheter", "Enchérir"). `_is_product_url()` applies domain + path-keyword gates per vendor. Generic `parse_newsletter_html` kept as fallback. 22 new tests in `test_email_samples.py` (5 helper tests + 5 Millesima + 6 iDealwine + 6 Lavinia). 187/187 Python tests passing. · files: scraper/achilles_scraper/scrapers/email_samples.py, scraper/tests/test_email_samples.py
 
 
