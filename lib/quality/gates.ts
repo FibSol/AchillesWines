@@ -26,6 +26,7 @@ export const CANONICAL_CRITIC_CODES = [
   "WD",        // The Wine Doctor
   "GV",        // Gilbert & Gaillard
   "Halliday",  // James Halliday Wine Companion
+  "VI",        // Vivino community average (tiebreaker only — ADR-013)
 ] as const;
 
 export type CriticCode = (typeof CANONICAL_CRITIC_CODES)[number];

@@ -41,6 +41,7 @@ _ALL_SOURCES = [
     "millesima",
     "millesima_be",
     "idealwine",
+    "idealwine_auctions",
     "lavinia",
     "vinatis",
     "cavissima",
@@ -83,7 +84,8 @@ _ALL_SOURCES = [
     "ec_agrifood",        # EC Agri-food wine API → fact_market_index
     "eurostat_harvest",   # Eurostat tag00121 → fact_harvest_volume
     "werc",               # WERC megafile 1835-2024 → fact_werc_stats
-    # --- Crowd / user-aggregate ratings (→ fact_rating) ---
+    # --- Crowd / user-aggregate ratings (→ staging_rating_candidates / fact_rating) ---
+    "vivino",             # Vivino community ratings (tiebreaker-only → staging, ADR-013)
     "xwines",             # X-Wines/Vivino crowd ratings (CC0)
     "kaggle_reviews",     # WineEnthusiast reviews via Kaggle API (v2, 130k, has title)
     "kaggle_reviews_v1",  # WineEnthusiast reviews via Kaggle API (v1, 150k, NV only)
@@ -96,7 +98,7 @@ def _load_scrapers():
     # Web retail
     from .scrapers.millesima import MillesimaScraper
     from .scrapers.millesima_be import MillesimaBeScraper
-    from .scrapers.idealwine import IDealwineScraper
+    from .scrapers.idealwine import IDealwineScraper, IDealwineAuctionsScraper
     from .scrapers.lavinia import LaviniaScraper
     from .scrapers.vinatis import VinatissScraper
     from .scrapers.cavissima import CavissimaScraper
@@ -145,6 +147,7 @@ def _load_scrapers():
     from .scrapers.eurostat_harvest import EurostatHarvestScraper
     from .scrapers.werc import WercScraper
     # Crowd ratings
+    from .scrapers.vivino import VivinoScraper
     from .scrapers.xwines import XWinesScraper
     from .scrapers.kaggle_reviews import KaggleReviewsScraper, KaggleReviewsV1Scraper
     from .scrapers.cellartracker import CellarTrackerScraper
@@ -153,6 +156,7 @@ def _load_scrapers():
     SCRAPERS["millesima"] = MillesimaScraper
     SCRAPERS["millesima_be"] = MillesimaBeScraper
     SCRAPERS["idealwine"] = IDealwineScraper
+    SCRAPERS["idealwine_auctions"] = IDealwineAuctionsScraper
     SCRAPERS["lavinia"] = LaviniaScraper
     SCRAPERS["vinatis"] = VinatissScraper
     SCRAPERS["cavissima"] = CavissimaScraper
@@ -190,6 +194,7 @@ def _load_scrapers():
     SCRAPERS["ec_agrifood"] = EcAgrifoodScraper
     SCRAPERS["eurostat_harvest"] = EurostatHarvestScraper
     SCRAPERS["werc"] = WercScraper
+    SCRAPERS["vivino"] = VivinoScraper
     SCRAPERS["xwines"] = XWinesScraper
     SCRAPERS["kaggle_reviews"] = KaggleReviewsScraper
     SCRAPERS["kaggle_reviews_v1"] = KaggleReviewsV1Scraper
@@ -581,7 +586,7 @@ def promote_ratings(dry_run: bool):
     """
     from .config import config
     from .db import get_db
-    from .promoter import promote_ratings as _promote_ratings
+    from .promoter import promote_ratings as _promote_ratings, promote_vivino_tiebreakers as _promote_vivino
 
     config.ensure_dirs()
     conn = get_db(config.db_path)
@@ -595,12 +600,19 @@ def promote_ratings(dry_run: bool):
         """SELECT COUNT(*) FROM (
                SELECT wine_key FROM staging_rating_candidates
                WHERE needs_review=1 AND promoted_at IS NULL
+               AND source_key NOT IN (SELECT source_key FROM dim_source WHERE source_code='vivino')
                GROUP BY wine_key HAVING COUNT(DISTINCT source_key) >= 2
            )"""
+    ).fetchone()[0]
+    vivino_pending = conn.execute(
+        "SELECT COUNT(*) FROM staging_rating_candidates src "
+        "JOIN dim_source ds ON ds.source_key = src.source_key "
+        "WHERE ds.source_code = 'vivino' AND src.promoted_at IS NULL"
     ).fetchone()[0]
 
     console.print(f"[bold]Staging rating candidates pending:[/bold] {pending}")
     console.print(f"[bold]Wine keys with 2+ critic sources:[/bold] {multi_source}")
+    console.print(f"[bold]Vivino tiebreaker rows pending:[/bold] {vivino_pending}")
     console.print(f"[bold]Current fact_rating rows:[/bold] {before_fact}")
     console.print()
 
@@ -609,14 +621,17 @@ def promote_ratings(dry_run: bool):
         return
 
     result = _promote_ratings(conn)
+    vivino_result = _promote_vivino(conn)
 
     after_fact = conn.execute("SELECT COUNT(*) FROM fact_rating").fetchone()[0]
 
     t = Table(title="Rating promotion result")
     t.add_column("Metric")
     t.add_column("Value", justify="right")
-    t.add_row("Promoted to fact_rating", str(result.promoted))
-    t.add_row("Still pending (single-source)", str(result.pending))
+    t.add_row("Promoted to fact_rating (critics)", str(result.promoted))
+    t.add_row("Still pending critics (single-source)", str(result.pending))
+    t.add_row("Vivino tiebreakers promoted", str(vivino_result.promoted))
+    t.add_row("Vivino tiebreakers still pending", str(vivino_result.pending))
     t.add_row("fact_rating rows before", str(before_fact))
     t.add_row("fact_rating rows after", str(after_fact))
     console.print(t)

@@ -2,6 +2,9 @@
 
 ## 2026-05-24
 
+### Patroclus (Backend)
+- [Patroclus] #37 Vivino tiebreaker scraper: `scraper/achilles_scraper/scrapers/vivino.py` — public explore API (6 wine types, FR-only, ratings_count≥10), inserts into `staging_rating_candidates` with `needs_review=1`, critic_code='VI', scale='/5'. Migration 0015 adds 'VI' to critic_code CHECK in fact_rating + staging_rating_candidates (rebuild pattern) + seeds vivino dim_source (D_user_aggregate, weekly). `promote_vivino_tiebreakers()` in promoter.py promotes Vivino staging rows only when ≥2 non-Vivino sources exist in fact_rating for same wine_key. `promote_ratings()` excludes Vivino rows (defensive vivino_sk lookup). `promote-ratings` CLI updated to show Vivino stats + call both promoters. 'VI' added to CANONICAL_CRITIC_CODES (gates.ts) and both enum fields in schema.ts. 10 new pytest tests (test_vivino.py). Also completed partially-applied migration 0014 (staging_rating_candidates_new rename). 145/145 Python + 72/72 Vitest passing. · files: scraper/achilles_scraper/scrapers/vivino.py, scraper/achilles_scraper/promoter.py, scraper/achilles_scraper/cli.py, scraper/tests/test_vivino.py, db/migrations/0015_vivino_source.sql, db/schema.ts, lib/quality/gates.ts
+
 ### Cassandra (Data Steward)
 - [Cassandra] #33 rating promoter gate: added `staging_rating_candidates` table (migration 0014 + Drizzle schema), `promote_ratings()` in `promoter.py` (requires ≥2 distinct `source_key` values per `wine_key` before promoting to `fact_rating`; mono-source rows stay with `needs_review=1`; idempotent upsert via `content_hash`), `promote-ratings` CLI command, 9 pytest unit tests covering mono-source gate, bi-source promotion, and idempotent second pass. 135/135 Python tests + 72/72 Vitest all passing. `npx tsc --noEmit` clean. · files: db/migrations/0014_staging_rating_candidates.sql, db/schema.ts, scraper/achilles_scraper/promoter.py, scraper/achilles_scraper/cli.py, scraper/tests/test_promoter_ratings.py
 

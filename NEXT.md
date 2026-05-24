@@ -103,7 +103,7 @@ Wine press (E_press_critic → write to fact_rating):
 ## Sprint 9 — Email newsletter ingestion (ADR-011)
 
 - [x] **P2 · 4h** [Patroclus + Cassandra] Email newsletter scraper: IMAP mailbox client + generic HTML parser + EmailNewsletterScraper base + .eml replay + 40 unit tests + docs/EMAIL.md ✓ 2026-05-22 (ADR-011)
-- [ ] **P2 · 1h** [Patroclus] Set `from_email` to the real subscriber address for each `*_email` row in dim_source after the user subscribes the mailbox — [#19](https://github.com/FibSol/AchillesWines/issues/19)
+- [ ] **P4 · 1h** [Patroclus] Set `from_email` to the real subscriber address for each `*_email` row in dim_source after the user subscribes the mailbox — [#19](https://github.com/FibSol/AchillesWines/issues/19)
 - [ ] **P3 · 2h** [Patroclus] Per-vendor `_parse_html()` overrides as the generic heuristic shows holes per source — [#20](https://github.com/FibSol/AchillesWines/issues/20)
 - [ ] **P3 · 3h** [Patroclus] Optional LLM fallback parser (Claude API) for emails the heuristic can't handle — gated behind a per-source `use_llm_fallback` flag to keep API costs predictable — [#21](https://github.com/FibSol/AchillesWines/issues/21)
 
@@ -144,7 +144,7 @@ Wine press (E_press_critic → write to fact_rating):
 - [ ] **P5 · 4h** [Patroclus] 🅿 PARKING — Scraper Wine-Searcher (déjà dans `dim_source` depuis Sprint 11) — auth requise, fourchettes de prix multi-shop, cuvée + millésime + appellation. Élargit fortement la couverture cuvées. — [#34](https://github.com/FibSol/AchillesWines/issues/34)
 - [ ] **P1 · 3h** [Patroclus] Élargir iDealwine au catalogue ventes aux enchères (historique) en plus des ventes fixes → couverture millésimes anciens. — [#35](https://github.com/FibSol/AchillesWines/issues/35)
 - [x] **P1 · 2h** [Odysseus] Page `/admin/coverage` : dashboard KPI ADR-013. Afficher `coverage_score` calculé live + breakdown par région + producers manquants par tier. Cible 60 % visible en gauge. — [#36](https://github.com/FibSol/AchillesWines/issues/36) ✓ 2026-05-23
-- [ ] **P2 · 4h** [Patroclus] Scraper Vivino — gated : insert dans `staging` uniquement, et la ligne ne peut promouvoir à `fact_rating` que si ≥2 critiques pro existent déjà pour le même `wine_key`. Vivino = tiebreaker, jamais source unique. — [#37](https://github.com/FibSol/AchillesWines/issues/37)
+- [x] **P4 · 4h** [Patroclus] Scraper Vivino — gated : insert dans `staging` uniquement, et la ligne ne peut promouvoir à `fact_rating` que si ≥2 critiques pro existent déjà pour le même `wine_key`. Vivino = tiebreaker, jamais source unique. — [#37](https://github.com/FibSol/AchillesWines/issues/37) ✓ 2026-05-24
 - [x] **P2 · 2h** [Cassandra] Audit purge : supprimer toute ligne `fact_price` avec une seule source distincte (`COUNT(DISTINCT source_key) = 1` par `wine_key`). Conforme rétroactivement à ADR-003 + ADR-013. Log avant/après dans PROGRESS. — [#38](https://github.com/FibSol/AchillesWines/issues/38) ✓ 2026-05-23 (1,778 rows — all clean, 0 mono-source)
 
 ## Sprint 12 — Production data migration

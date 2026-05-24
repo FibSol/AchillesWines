@@ -70,11 +70,28 @@ def promote_ratings(conn: sqlite3.Connection, batch_id: str | None = None) -> Ra
     source_key values in staging before any of its candidates are promoted.
     A single critic source that ingested twice must NOT self-promote.
 
+    Vivino rows (source_code='vivino') are excluded — they are handled
+    separately by promote_vivino_tiebreakers() per ADR-013.
+
     Mono-source rows: needs_review stays 1, rows stay in staging.
     Multi-source rows: inserted into fact_rating (idempotent upsert via
     content_hash) and marked with promoted_at in staging.
     """
-    where = "WHERE needs_review = 1 AND promoted_at IS NULL"
+    # Exclude Vivino rows — they follow a different promotion gate (ADR-013).
+    # Look up the vivino source_key defensively (test DBs may have no source_code column).
+    vivino_sk: int | None = None
+    try:
+        vivino_row = conn.execute(
+            "SELECT source_key FROM dim_source WHERE source_code = 'vivino'"
+        ).fetchone()
+        vivino_sk = vivino_row[0] if vivino_row else None
+    except Exception:
+        pass
+
+    if vivino_sk is not None:
+        where = f"WHERE needs_review = 1 AND promoted_at IS NULL AND source_key != {vivino_sk}"
+    else:
+        where = "WHERE needs_review = 1 AND promoted_at IS NULL"
     params: list = []
     if batch_id:
         where += " AND batch_id = ?"
@@ -151,4 +168,76 @@ def promote_ratings(conn: sqlite3.Connection, batch_id: str | None = None) -> Ra
         conn.commit()
         result.promoted += len(items)
 
+    return result
+
+
+def promote_vivino_tiebreakers(conn: sqlite3.Connection) -> RatingPromotionResult:
+    """Promote Vivino staging rows when ≥2 pro critic sources already exist in fact_rating.
+
+    Vivino is a tiebreaker — never a sole source (ADR-013).  A Vivino staging
+    row is eligible for promotion only when fact_rating already contains ≥2
+    distinct non-Vivino source_keys for the same wine_key.
+    """
+    vivino_row = conn.execute(
+        "SELECT source_key FROM dim_source WHERE source_code = 'vivino'"
+    ).fetchone()
+    if not vivino_row:
+        return RatingPromotionResult()
+    vivino_source_key = vivino_row[0]
+
+    candidates = conn.execute(
+        "SELECT * FROM staging_rating_candidates "
+        "WHERE source_key = ? AND promoted_at IS NULL",
+        (vivino_source_key,),
+    ).fetchall()
+
+    result = RatingPromotionResult()
+    now = int(time.time())
+
+    for c in candidates:
+        wine_key = c["wine_key"]
+        pro_count = conn.execute(
+            "SELECT COUNT(DISTINCT source_key) FROM fact_rating "
+            "WHERE wine_key = ? AND source_key != ?",
+            (wine_key, vivino_source_key),
+        ).fetchone()[0]
+
+        if pro_count < 2:
+            result.pending += 1
+            continue
+
+        existing = None
+        if c["content_hash"]:
+            existing = conn.execute(
+                "SELECT rating_event_key FROM fact_rating "
+                "WHERE wine_key = ? AND source_key = ? AND content_hash = ?",
+                (c["wine_key"], c["source_key"], c["content_hash"]),
+            ).fetchone()
+
+        if existing:
+            fact_key = existing["rating_event_key"]
+        else:
+            conn.execute(
+                """INSERT INTO fact_rating
+                    (wine_key, source_key, critic_code, reviewer_type, score, scale,
+                     score_normalized_100, rating_count, recorded_at, source_url,
+                     content_hash, batch_id)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    c["wine_key"], c["source_key"], c["critic_code"], c["reviewer_type"],
+                    c["score"], c["scale"], c["score_normalized_100"], c["rating_count"],
+                    c["recorded_at"], c["source_url"], c["content_hash"], c["batch_id"],
+                ),
+            )
+            fact_key = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+
+        conn.execute(
+            "UPDATE staging_rating_candidates "
+            "SET promoted_to_fact_rating_key = ?, promoted_at = ?, needs_review = 0 "
+            "WHERE candidate_id = ?",
+            (fact_key, now, c["candidate_id"]),
+        )
+        result.promoted += 1
+
+    conn.commit()
     return result
