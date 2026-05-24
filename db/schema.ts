@@ -628,6 +628,61 @@ export const stagingPriceCandidates = sqliteTable(
   })
 );
 
+/**
+ * Staging area for rating candidates that don't yet have ≥2 distinct
+ * source_key values for their wine_key.  Mirrors fact_rating columns plus
+ * needs_review and promotion tracking fields (analogous to
+ * staging_price_candidates).  Promoted to fact_rating by promote_ratings().
+ */
+export const stagingRatingCandidates = sqliteTable(
+  "staging_rating_candidates",
+  {
+    candidateId: integer("candidate_id").primaryKey({ autoIncrement: true }),
+    wineKey: text("wine_key")
+      .notNull()
+      .references(() => dimWine.wineKey),
+    sourceKey: integer("source_key")
+      .notNull()
+      .references(() => dimSource.sourceKey),
+    criticCode: text("critic_code", {
+      enum: ["WA", "Vinous", "BH", "JMIB", "RVF", "Decanter", "JS", "JG", "WS", "Hachette", "CT", "XW", "WE"],
+    }).notNull(),
+    reviewerType: text("reviewer_type", {
+      enum: ["critic", "user_aggregate"],
+    }).notNull(),
+    score: real("score").notNull(),
+    scale: text("scale", {
+      enum: ["/100", "/20", "/5", "stars"],
+    }).notNull(),
+    /** Score normalized to /100 for cross-source comparison. */
+    scoreNormalized100: real("score_normalized_100").notNull(),
+    ratingCount: integer("rating_count"),
+    recordedAt: integer("recorded_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    sourceUrl: text("source_url"),
+    contentHash: text("content_hash"),
+    batchId: text("batch_id").notNull(),
+    /** Set to 1 until the wine_key has ≥2 distinct source_key values. */
+    needsReview: integer("needs_review", { mode: "boolean" })
+      .notNull()
+      .default(true),
+    promotedToFactRatingKey: integer("promoted_to_fact_rating_key"),
+    promotedAt: integer("promoted_at", { mode: "timestamp" }),
+  },
+  (t) => ({
+    wineIdx: index("idx_staging_rating_wine").on(t.wineKey),
+    reviewIdx: index("idx_staging_rating_review").on(t.needsReview, t.recordedAt),
+    dedupeIdx: uniqueIndex("uix_staging_rating_wine_source_hash").on(
+      t.wineKey, t.sourceKey, t.contentHash
+    ),
+    scoreCheck: check(
+      "chk_staging_rating_normalized",
+      sql`${t.scoreNormalized100} BETWEEN 0 AND 100`,
+    ),
+  })
+);
+
 /** Per-source cron schedules configured from the admin UI. */
 export const opsScraperSchedule = sqliteTable(
   "ops_scraper_schedule",
@@ -689,6 +744,7 @@ export type CellarConsumption = typeof cellarConsumption.$inferSelect;
 export type DeadLetter = typeof opsDeadLetter.$inferSelect;
 export type JobQueue = typeof opsJobQueue.$inferSelect;
 export type ScraperSchedule = typeof opsScraperSchedule.$inferSelect;
+export type StagingRatingCandidate = typeof stagingRatingCandidates.$inferSelect;
 export type MarketIndex = typeof factMarketIndex.$inferSelect;
 export type HarvestVolume = typeof factHarvestVolume.$inferSelect;
 export type WercStat = typeof factWercStats.$inferSelect;

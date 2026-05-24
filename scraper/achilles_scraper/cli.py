@@ -568,6 +568,60 @@ def promote(dry_run: bool):
     console.print(t)
 
 
+@cli.command("promote-ratings")
+@click.option("--dry-run", is_flag=True, default=False, help="Show what would be promoted without writing to fact_rating")
+def promote_ratings(dry_run: bool):
+    """Promote staging rating candidates to fact_rating.
+
+    Applies the multi-source gate: wine_keys with ≥2 distinct source_key values
+    in staging_rating_candidates are promoted to fact_rating.  Mono-source rows
+    stay in staging with needs_review=1.
+
+    Use --dry-run to see the counts without committing any rows.
+    """
+    from .config import config
+    from .db import get_db
+    from .promoter import promote_ratings as _promote_ratings
+
+    config.ensure_dirs()
+    conn = get_db(config.db_path)
+
+    # Stats before
+    before_fact = conn.execute("SELECT COUNT(*) FROM fact_rating").fetchone()[0]
+    pending = conn.execute(
+        "SELECT COUNT(*) FROM staging_rating_candidates WHERE needs_review=1 AND promoted_at IS NULL"
+    ).fetchone()[0]
+    multi_source = conn.execute(
+        """SELECT COUNT(*) FROM (
+               SELECT wine_key FROM staging_rating_candidates
+               WHERE needs_review=1 AND promoted_at IS NULL
+               GROUP BY wine_key HAVING COUNT(DISTINCT source_key) >= 2
+           )"""
+    ).fetchone()[0]
+
+    console.print(f"[bold]Staging rating candidates pending:[/bold] {pending}")
+    console.print(f"[bold]Wine keys with 2+ critic sources:[/bold] {multi_source}")
+    console.print(f"[bold]Current fact_rating rows:[/bold] {before_fact}")
+    console.print()
+
+    if dry_run:
+        console.print("[yellow]Dry-run mode — no rows will be written.[/yellow]")
+        return
+
+    result = _promote_ratings(conn)
+
+    after_fact = conn.execute("SELECT COUNT(*) FROM fact_rating").fetchone()[0]
+
+    t = Table(title="Rating promotion result")
+    t.add_column("Metric")
+    t.add_column("Value", justify="right")
+    t.add_row("Promoted to fact_rating", str(result.promoted))
+    t.add_row("Still pending (single-source)", str(result.pending))
+    t.add_row("fact_rating rows before", str(before_fact))
+    t.add_row("fact_rating rows after", str(after_fact))
+    console.print(t)
+
+
 @cli.command("list-sources")
 def list_sources():
     """List all registered scrapers."""
