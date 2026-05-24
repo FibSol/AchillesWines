@@ -234,7 +234,7 @@ class LaviniaScraper(AuthenticatedScraper):
         }
 
         try:
-            with self.authenticated_client(headers=headers) as client:
+            with self.authenticated_client(headers=headers, conn=self.conn) as client:
                 page = 1
                 total_fetched = 0
 

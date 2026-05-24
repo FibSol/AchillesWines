@@ -9,6 +9,16 @@ from /api/v2/shop/authentication-token. Products are fetched from
 /api/v2/shop/product-variants-by-product/{id}.
 
 Credentials: ACHILLES_AUTH_IDEALWINE_USERNAME / _PASSWORD
+
+Auction extension (IDealwineAuctionsScraper / source_code='idealwine_auctions'):
+  iDealwine hosts live auction sales (ventes aux enchères) alongside its fixed-price
+  e-caviste shop. Active auction catalogs are listed at
+  /api/v2/shop/auction-catalogs (60 catalogs per cycle). Each product variant
+  exposes a `saleType` field: AUCTION or DIRECT_PURCHASE. The auction scraper
+  iterates all products, collects variants with saleType=AUCTION, and records the
+  current bid/estimate price (priceByCountry, in cents) as a staging candidate
+  under the 'idealwine_auctions' source. This produces a separate dim_source row
+  so auction prices and fixed-price retail prices are never conflated in fact_price.
 """
 import hashlib
 import json
@@ -28,8 +38,8 @@ except ImportError:
 
 from .base import BaseScraper, ScrapeResult
 from ..auth import AuthenticatedScraper, has_credentials, AuthMissingError, AuthError, Credentials
-from ..identity import normalize_producer, normalize_cuvee, compute_wine_key, norm_text
-from ..dlq import write_dlq
+from ..identity import normalize_producer, normalize_cuvee, compute_wine_key, norm_text, clean_producer_display, clean_cuvee_display
+from ..dlq import write_dlq, insert_staging_candidate
 
 _USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -41,6 +51,7 @@ _BASE = "https://www.idealwine.com"
 _AUTH_URL = f"{_BASE}/api/v2/shop/authentication-token"
 _PRODUCTS_URL = f"{_BASE}/api/v2/shop/products"
 _VARIANTS_URL = f"{_BASE}/api/v2/shop/product-variants-by-product"
+_AUCTION_CATALOGS_URL = f"{_BASE}/api/v2/shop/auction-catalogs"
 
 _logger = logging.getLogger(__name__)
 
@@ -155,6 +166,196 @@ def _ensure_producer(conn: sqlite3.Connection, producer_norm: str, producer_name
         return False
 
 
+def _get_jwt_client(source_code: str, headers: Optional[dict] = None) -> "httpx.Client":
+    """Authenticate with the Sylius JWT endpoint and return an authorized httpx.Client.
+
+    The caller is responsible for closing the client.
+
+    Raises:
+        AuthMissingError: env vars not set.
+        AuthError:        credentials rejected or HTTP error.
+    """
+    from ..auth import get_credentials, AuthMissingError as _AMe, AuthError as _AE
+
+    creds = get_credentials(source_code)
+    h = {"User-Agent": _USER_AGENT, "Accept": "application/ld+json"}
+    if headers:
+        h.update(headers)
+    client = httpx.Client(headers=h, timeout=30.0, follow_redirects=True)
+    try:
+        resp = client.post(
+            _AUTH_URL,
+            json={"email": creds.username, "password": creds.password},
+            headers={
+                "User-Agent": _USER_AGENT,
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
+        )
+    except Exception as e:
+        client.close()
+        raise _AE(f"JWT request failed: {e}") from e
+
+    if resp.status_code == 401:
+        client.close()
+        raise _AE(f"JWT login rejected for {source_code} (bad credentials?)")
+    if resp.status_code != 200:
+        client.close()
+        raise _AE(f"JWT endpoint returned HTTP {resp.status_code}")
+
+    try:
+        token = resp.json().get("token", "")
+    except Exception as e:
+        client.close()
+        raise _AE(f"JWT response parse error: {e}") from e
+
+    if not token:
+        client.close()
+        raise _AE(f"JWT response contained no token for {source_code}")
+
+    client.headers.update({
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/ld+json",
+    })
+    return client
+
+
+def _process_variant(
+    conn: sqlite3.Connection,
+    source_key: int,
+    batch_id: str,
+    result: "ScrapeResult",
+    product: dict,
+    variant: dict,
+    retailer: str,
+    *,
+    sale_type_filter: Optional[str] = None,
+) -> bool:
+    """Process one product variant: normalize, ensure dim rows, insert staging candidate.
+
+    Returns True if a staging row was inserted, False otherwise.
+    The result counters (rows_fetched, rows_inserted, rows_dlq) are mutated in place.
+    """
+    # Optional saleType filter (e.g. only AUCTION or only DIRECT_PURCHASE)
+    if sale_type_filter and variant.get("saleType") != sale_type_filter:
+        return False
+
+    product_id = product.get("id")
+    name = product.get("name", "")
+    appellation_raw = product.get("appellation", "") or ""
+    region_raw = product.get("region", "") or ""
+    owner_raw = product.get("owner", "") or ""
+    color_raw = product.get("color", "") or ""
+    color = _map_color(color_raw)
+
+    # Price: priceByCountry dict, values in cents
+    price_by_country = variant.get("priceByCountry") or {}
+    price_cents = price_by_country.get("FR") or price_by_country.get("BE") or (
+        list(price_by_country.values())[0] if price_by_country else None
+    )
+    if not price_cents:
+        return False
+    price_eur = price_cents / 100.0
+
+    # Vintage — accept a wide range for auction (older bottles are the point)
+    vintage_raw = variant.get("vintage")
+    if isinstance(vintage_raw, int) and 1850 <= vintage_raw <= 2035:
+        vintage: Optional[int] = vintage_raw
+    else:
+        vintage = None
+
+    # Wine name from variant (prefer French translation)
+    variant_name_raw = variant.get("additionalObservations", {}).get("fr", "") or name
+    if not variant_name_raw:
+        variant_name_raw = name
+
+    # Apply display-name cleanup before normalization
+    producer_raw = owner_raw or variant_name_raw
+    variant_name = clean_cuvee_display(variant_name_raw, producer_name=owner_raw or None)
+    if not variant_name:
+        variant_name = variant_name_raw
+    producer_display = clean_producer_display(producer_raw)
+    if not producer_display:
+        producer_display = producer_raw
+
+    appellation = variant.get("appellation") or appellation_raw or ""
+    region = variant.get("region") or region_raw or ""
+
+    producer_norm = normalize_producer(producer_display)
+    cuvee_norm = normalize_cuvee(variant_name)
+    appellation_norm = norm_text(appellation) if appellation else ""
+
+    if not producer_norm or not cuvee_norm:
+        write_dlq(
+            conn, source_key, batch_id,
+            "parse_error",
+            f"Empty producer_norm or cuvee_norm for: {variant_name_raw!r}",
+            {"raw_name": variant_name_raw},
+        )
+        result.rows_dlq += 1
+        return False
+
+    wine_key = compute_wine_key(producer_norm, cuvee_norm, vintage, appellation_norm)
+    _ensure_producer(conn, producer_norm, producer_display)
+
+    if not _ensure_wine(
+        conn, wine_key, producer_norm, variant_name,
+        cuvee_norm, appellation, appellation_norm, region, vintage, color,
+    ):
+        write_dlq(
+            conn, source_key, batch_id,
+            "unresolved_dim", "Could not resolve producer or appellation",
+            {"raw_name": variant_name_raw, "wine_key": wine_key},
+        )
+        result.rows_dlq += 1
+        return False
+
+    source_url = f"{_BASE}/fr/acheter-du-vin/{product.get('slug', product_id)}"
+    # For auction lots, include variant ID in hash so per-lot dedup works correctly
+    variant_id = variant.get("id") or variant.get("code") or ""
+    card_hash = hashlib.sha256(
+        json.dumps(
+            {
+                "wine_key": wine_key,
+                "price": price_eur,
+                "product_id": product_id,
+                "variant_id": variant_id,
+                "retailer": retailer,
+            },
+            sort_keys=True,
+        ).encode()
+    ).hexdigest()
+
+    try:
+        inserted = insert_staging_candidate(
+            conn,
+            wine_key=wine_key,
+            source_key=source_key,
+            retailer=retailer,
+            recorded_at=int(time.time()),
+            currency_code="EUR",
+            amount_local=price_eur,
+            amount_eur=price_eur,
+            source_url=source_url,
+            content_hash=card_hash,
+            batch_id=batch_id,
+        )
+        result.rows_fetched += 1
+        if inserted:
+            result.rows_inserted += 1
+        else:
+            result.rows_skipped_unchanged += 1
+        return inserted
+    except Exception as e:
+        write_dlq(
+            conn, source_key, batch_id,
+            "validation_error", str(e),
+            {"wine_key": wine_key, "price_eur": price_eur},
+        )
+        result.rows_dlq += 1
+        return False
+
+
 class IDealwineScraper(AuthenticatedScraper):
     source_code = "idealwine"
 
@@ -190,6 +391,99 @@ class IDealwineScraper(AuthenticatedScraper):
         })
         return True
 
+    def _run_products(
+        self,
+        client: "httpx.Client",
+        source_key: int,
+        batch_id: str,
+        result: "ScrapeResult",
+        limit: Optional[int],
+    ) -> None:
+        """Iterate fixed-price shop products and insert staging candidates."""
+        page = 1
+        items_per_page = 30
+        total_fetched = 0
+
+        while True:
+            if limit is not None and total_fetched >= limit:
+                break
+
+            products_url = f"{_PRODUCTS_URL}?page={page}&itemsPerPage={items_per_page}"
+            try:
+                resp = self._fetch(lambda u=products_url: client.get(u))
+                resp.raise_for_status()
+            except Exception as e:
+                result.error = f"HTTP error on products page {page}: {e}"
+                write_dlq(self.conn, source_key, batch_id, "network_error", str(e),
+                          {"url": products_url})
+                result.rows_dlq += 1
+                break
+
+            try:
+                data = resp.json()
+            except Exception as e:
+                result.error = f"JSON parse error: {e}"
+                break
+
+            products = data.get("hydra:member", [])
+            if not products:
+                break  # no more pages
+
+            for product in products:
+                if limit is not None and total_fetched >= limit:
+                    break
+
+                product_id = product.get("id")
+                if not product_id:
+                    continue
+
+                name = product.get("name", "")
+                if not name:
+                    continue
+
+                # Fetch variants (contains price data)
+                variants_url = f"{_VARIANTS_URL}/{product_id}"
+                try:
+                    vresp = self._fetch(
+                        lambda u=variants_url: client.get(u, headers={"Accept": "application/json"})
+                    )
+                    if vresp.status_code == 404:
+                        continue
+                    vresp.raise_for_status()
+                    variants = vresp.json()
+                except Exception as e:
+                    write_dlq(self.conn, source_key, batch_id, "network_error", str(e),
+                              {"url": variants_url})
+                    result.rows_dlq += 1
+                    continue
+
+                if not isinstance(variants, list):
+                    continue
+
+                for variant in variants:
+                    if limit is not None and total_fetched >= limit:
+                        break
+
+                    # Fixed-price scraper: skip auction-only variants
+                    if variant.get("saleType") == "AUCTION":
+                        continue
+
+                    _process_variant(
+                        self.conn, source_key, batch_id, result,
+                        product, variant, "idealwine",
+                    )
+                    total_fetched += 1
+
+                time.sleep(0.2)
+
+            # Check if there are more pages
+            total_items = data.get("hydra:totalItems", 0)
+            if page * items_per_page >= total_items:
+                break
+
+            page += 1
+            time.sleep(1.0)
+
     def run(self, limit: Optional[int] = None) -> ScrapeResult:
         if not HAS_DEPS:
             return ScrapeResult(error="Missing dependencies: httpx not installed")
@@ -216,176 +510,325 @@ class IDealwineScraper(AuthenticatedScraper):
 
         client = None
         try:
-            client = self.authenticated_client(headers=headers)
+            client = self.authenticated_client(headers=headers, conn=self.conn)
         except AuthMissingError as e:
             return ScrapeResult(error=str(e))
         except AuthError as e:
             return ScrapeResult(error=str(e))
 
         try:
-            page = 1
-            items_per_page = 30
-            total_fetched = 0
+            self._run_products(client, SOURCE_KEY, batch_id, result, limit)
+        finally:
+            if client is not None:
+                client.close()
 
-            while True:
+        return result
+
+
+def _ensure_auction_source(conn: sqlite3.Connection) -> Optional[int]:
+    """Ensure the idealwine_auctions dim_source row exists; return its source_key."""
+    row = conn.execute(
+        "SELECT source_key FROM dim_source WHERE source_code = ?",
+        ("idealwine_auctions",),
+    ).fetchone()
+    if row:
+        return row[0]
+    try:
+        cur = conn.execute(
+            """INSERT OR IGNORE INTO dim_source
+               (source_code, source_name, source_tier, country_code, base_url,
+                license_class, cadence, enabled, requires_auth, notes)
+               VALUES (
+                 'idealwine_auctions',
+                 'iDealwine Auctions',
+                 'B_retailer',
+                 'FR',
+                 'https://www.idealwine.com',
+                 'public_check_terms',
+                 'weekly',
+                 1,
+                 1,
+                 'Auction lot estimates/bids — separate from fixed-price retail. '
+                 'Shares JWT credentials with idealwine source_code.'
+               )""",
+        )
+        conn.commit()
+        if cur.lastrowid:
+            return cur.lastrowid
+        row2 = conn.execute(
+            "SELECT source_key FROM dim_source WHERE source_code = ?",
+            ("idealwine_auctions",),
+        ).fetchone()
+        return row2[0] if row2 else None
+    except Exception as exc:
+        _logger.error("Could not insert idealwine_auctions dim_source row: %s", exc)
+        return None
+
+
+class IDealwineAuctionsScraper(AuthenticatedScraper):
+    """Scrape live auction lots from iDealwine's auction catalogs.
+
+    Authenticates with the same JWT credentials as IDealwineScraper but writes
+    to source_code='idealwine_auctions' so auction prices are not conflated with
+    fixed-price retail data in fact_price.
+
+    Each auction lot is a product variant with saleType=AUCTION. The price stored
+    is the current bid / starting estimate (priceByCountry, in cents → EUR).
+    Historical vintage coverage goes back to the early 1900s in Bordeaux catalogs.
+
+    Env vars: ACHILLES_AUTH_IDEALWINE_USERNAME / ACHILLES_AUTH_IDEALWINE_PASSWORD
+    (same as the main idealwine scraper).
+    """
+
+    source_code = "idealwine_auctions"
+    # The JWT credentials env vars match the main source (IDEALWINE, not IDEALWINE_AUCTIONS)
+    _auth_source_code = "idealwine"
+
+    def __init__(self, conn: sqlite3.Connection):
+        self.conn = conn
+        self.batch_id: Optional[str] = None
+
+    def _login(self, client: "httpx.Client", creds: "Credentials") -> bool:
+        """Obtain a JWT bearer token using IDEALWINE credentials."""
+        resp = client.post(
+            _AUTH_URL,
+            json={"email": creds.username, "password": creds.password},
+            headers={
+                "User-Agent": _USER_AGENT,
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
+        )
+        if resp.status_code == 401:
+            return False
+        if resp.status_code != 200:
+            return False
+        try:
+            token = resp.json().get("token", "")
+        except Exception:
+            return False
+        if not token:
+            return False
+        client.headers.update({
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/ld+json",
+        })
+        return True
+
+    def authenticated_client(
+        self,
+        headers: Optional[dict] = None,
+        timeout: float = 30.0,
+        *,
+        conn=None,
+        cache_key: Optional[str] = None,
+    ) -> "httpx.Client":
+        """Override to use the main IDEALWINE credentials and cache under 'idealwine'.
+
+        Both IDealwineScraper and IDealwineAuctionsScraper share the same JWT, so
+        they cache under the same key to avoid redundant logins.
+        """
+        from ..auth import get_credentials, AuthError as _AE
+        from ..session_store import (
+            load_session, is_expired, restore_session_to_client,
+            extract_session_from_client, save_session,
+        )
+        if not HAS_DEPS:
+            raise AuthError("httpx not installed — install scraper deps")
+
+        key = cache_key or self._auth_source_code  # always "idealwine"
+
+        # Try cached session first
+        if conn is not None:
+            session = load_session(conn, key)
+            if session is not None and not is_expired(session):
+                client = httpx.Client(headers=headers or {}, timeout=timeout, follow_redirects=True)
+                restore_session_to_client(client, session)
+                return client
+
+        # Fresh login with IDEALWINE credentials
+        creds = get_credentials(self._auth_source_code)
+        client = httpx.Client(headers=headers or {}, timeout=timeout, follow_redirects=True)
+        try:
+            ok = self._login(client, creds)
+        except Exception as e:
+            client.close()
+            raise AuthError(f"login dance failed for {self.source_code}: {e}") from e
+        if not ok:
+            client.close()
+            raise AuthError(f"login rejected for {self.source_code} (bad credentials?)")
+
+        if conn is not None:
+            auth_hdr = client.headers.get("Authorization", "")
+            token_type = "jwt_bearer" if auth_hdr.startswith("Bearer ") else "cookie_jar"
+            session = extract_session_from_client(key, client, token_type)
+            save_session(conn, session)
+
+        return client
+
+    def _fetch_auction_catalogs(self, client: "httpx.Client") -> list:
+        """Fetch all active auction catalogs from the /api/v2/shop/auction-catalogs endpoint."""
+        try:
+            resp = self._fetch(
+                lambda: client.get(f"{_AUCTION_CATALOGS_URL}?itemsPerPage=200")
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            return data.get("hydra:member", [])
+        except Exception as e:
+            _logger.warning("Could not fetch auction catalogs: %s", e)
+            return []
+
+    def _run_auctions(
+        self,
+        client: "httpx.Client",
+        source_key: int,
+        batch_id: str,
+        result: "ScrapeResult",
+        limit: Optional[int],
+        active_catalog_ids: "set[int]",
+    ) -> None:
+        """Iterate all products and collect variants with saleType=AUCTION.
+
+        Only variants whose auctionCatalogId is in active_catalog_ids are processed.
+        If active_catalog_ids is empty, all AUCTION variants are accepted.
+        """
+        page = 1
+        items_per_page = 30
+        total_fetched = 0
+
+        while True:
+            if limit is not None and total_fetched >= limit:
+                break
+
+            products_url = f"{_PRODUCTS_URL}?page={page}&itemsPerPage={items_per_page}"
+            try:
+                resp = self._fetch(lambda u=products_url: client.get(u))
+                resp.raise_for_status()
+            except Exception as e:
+                result.error = f"HTTP error fetching auction products page {page}: {e}"
+                write_dlq(self.conn, source_key, batch_id, "network_error", str(e),
+                          {"url": products_url})
+                result.rows_dlq += 1
+                break
+
+            try:
+                data = resp.json()
+            except Exception as e:
+                result.error = f"JSON parse error on auction products: {e}"
+                break
+
+            products = data.get("hydra:member", [])
+            if not products:
+                break
+
+            for product in products:
                 if limit is not None and total_fetched >= limit:
                     break
 
-                products_url = f"{_PRODUCTS_URL}?page={page}&itemsPerPage={items_per_page}"
+                product_id = product.get("id")
+                if not product_id:
+                    continue
+
+                name = product.get("name", "")
+                if not name:
+                    continue
+
+                variants_url = f"{_VARIANTS_URL}/{product_id}"
                 try:
-                    resp = self._fetch(lambda u=products_url: client.get(u))
-                    resp.raise_for_status()
+                    vresp = self._fetch(
+                        lambda u=variants_url: client.get(u, headers={"Accept": "application/json"})
+                    )
+                    if vresp.status_code == 404:
+                        continue
+                    vresp.raise_for_status()
+                    variants = vresp.json()
                 except Exception as e:
-                    result.error = f"HTTP error on products page {page}: {e}"
-                    write_dlq(self.conn, SOURCE_KEY, batch_id, "network_error", str(e),
-                              {"url": products_url})
+                    write_dlq(self.conn, source_key, batch_id, "network_error", str(e),
+                              {"url": variants_url})
                     result.rows_dlq += 1
-                    break
+                    continue
 
-                try:
-                    data = resp.json()
-                except Exception as e:
-                    result.error = f"JSON parse error: {e}"
-                    break
+                if not isinstance(variants, list):
+                    continue
 
-                products = data.get("hydra:member", [])
-                if not products:
-                    break  # no more pages
-
-                for product in products:
+                for variant in variants:
                     if limit is not None and total_fetched >= limit:
                         break
 
-                    product_id = product.get("id")
-                    if not product_id:
+                    # Only process auction variants
+                    if variant.get("saleType") != "AUCTION":
                         continue
 
-                    name = product.get("name", "")
-                    if not name:
+                    # If we have active catalog IDs, only accept lots from those catalogs
+                    catalog_id = variant.get("auctionCatalogId")
+                    if active_catalog_ids and catalog_id not in active_catalog_ids:
                         continue
 
-                    appellation_raw = product.get("appellation", "") or ""
-                    region_raw = product.get("region", "") or ""
-                    owner_raw = product.get("owner", "") or ""
-                    color_raw = product.get("color", "") or ""
-                    color = _map_color(color_raw)
+                    inserted = _process_variant(
+                        self.conn, source_key, batch_id, result,
+                        product, variant, "idealwine_auctions",
+                        sale_type_filter=None,  # already filtered above
+                    )
+                    total_fetched += 1
+                    if not inserted and result.rows_fetched > 0:
+                        # _process_variant already counted this row
+                        pass
 
-                    # Fetch variants (contains price data)
-                    variants_url = f"{_VARIANTS_URL}/{product_id}"
-                    try:
-                        vresp = self._fetch(
-                            lambda u=variants_url: client.get(u, headers={"Accept": "application/json"})
-                        )
-                        if vresp.status_code == 404:
-                            continue
-                        vresp.raise_for_status()
-                        variants = vresp.json()
-                    except Exception as e:
-                        write_dlq(self.conn, SOURCE_KEY, batch_id, "network_error", str(e),
-                                  {"url": variants_url})
-                        result.rows_dlq += 1
-                        continue
+                time.sleep(0.2)
 
-                    if not isinstance(variants, list):
-                        continue
+            total_items = data.get("hydra:totalItems", 0)
+            if page * items_per_page >= total_items:
+                break
 
-                    for variant in variants:
-                        if limit is not None and total_fetched >= limit:
-                            break
+            page += 1
+            time.sleep(1.0)
 
-                        # Price: priceByCountry dict, values in cents
-                        price_by_country = variant.get("priceByCountry") or {}
-                        price_cents = price_by_country.get("FR") or price_by_country.get("BE") or (
-                            list(price_by_country.values())[0] if price_by_country else None
-                        )
-                        if not price_cents:
-                            continue
-                        price_eur = price_cents / 100.0
+    def run(self, limit: Optional[int] = None) -> ScrapeResult:
+        if not HAS_DEPS:
+            return ScrapeResult(error="Missing dependencies: httpx not installed")
 
-                        # Vintage
-                        vintage_raw = variant.get("vintage")
-                        if isinstance(vintage_raw, int) and 1990 <= vintage_raw <= 2035:
-                            vintage: Optional[int] = vintage_raw
-                        else:
-                            vintage = None
+        # Credentials use the main IDEALWINE source code
+        if not has_credentials(self._auth_source_code):
+            return ScrapeResult(
+                error="Credentials missing: set ACHILLES_AUTH_IDEALWINE_USERNAME / _PASSWORD"
+            )
 
-                        # Wine name from variant
-                        variant_name = variant.get("additionalObservations", {}).get("fr", "") or name
-                        if not variant_name:
-                            variant_name = name
+        # Ensure the dim_source row exists (idempotent)
+        source_key = _ensure_auction_source(self.conn)
+        if source_key is None:
+            return ScrapeResult(error="Could not ensure idealwine_auctions dim_source row")
 
-                        appellation = variant.get("appellation") or appellation_raw or ""
-                        region = variant.get("region") or region_raw or ""
+        batch_id = (
+            self.batch_id
+            or f"idealwine_auctions-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:8]}"
+        )
+        result = ScrapeResult(batch_id=batch_id)
 
-                        producer_norm = normalize_producer(owner_raw or variant_name)
-                        cuvee_norm = normalize_cuvee(variant_name)
-                        appellation_norm = norm_text(appellation) if appellation else ""
+        headers = {
+            "User-Agent": _USER_AGENT,
+            "Accept": "application/ld+json",
+        }
 
-                        if not producer_norm or not cuvee_norm:
-                            write_dlq(
-                                self.conn, SOURCE_KEY, batch_id,
-                                "parse_error",
-                                f"Empty producer_norm or cuvee_norm for: {variant_name!r}",
-                                {"raw_name": variant_name},
-                            )
-                            result.rows_dlq += 1
-                            continue
+        client = None
+        try:
+            client = self.authenticated_client(headers=headers, conn=self.conn)
+        except AuthMissingError as e:
+            return ScrapeResult(error=str(e))
+        except AuthError as e:
+            return ScrapeResult(error=str(e))
 
-                        wine_key = compute_wine_key(producer_norm, cuvee_norm, vintage, appellation_norm)
-                        _ensure_producer(self.conn, producer_norm, owner_raw or variant_name)
+        try:
+            # Discover active auction catalogs so we can filter variants accordingly
+            catalogs = self._fetch_auction_catalogs(client)
+            active_catalog_ids: set[int] = {c["id"] for c in catalogs if isinstance(c.get("id"), int)}
+            _logger.info(
+                "[%s] Found %d active auction catalogs: %s",
+                batch_id, len(active_catalog_ids),
+                sorted(active_catalog_ids)[:10],
+            )
 
-                        if not _ensure_wine(
-                            self.conn, wine_key, producer_norm, variant_name,
-                            cuvee_norm, appellation, appellation_norm, region, vintage, color,
-                        ):
-                            write_dlq(
-                                self.conn, SOURCE_KEY, batch_id,
-                                "unresolved_dim", "Could not resolve producer or appellation",
-                                {"raw_name": variant_name, "wine_key": wine_key},
-                            )
-                            result.rows_dlq += 1
-                            continue
-
-                        source_url = f"{_BASE}/fr/acheter-du-vin/{product.get('slug', product_id)}"
-                        card_hash = hashlib.sha256(
-                            json.dumps(
-                                {"wine_key": wine_key, "price": price_eur, "product_id": product_id},
-                                sort_keys=True,
-                            ).encode()
-                        ).hexdigest()
-
-                        try:
-                            self.conn.execute(
-                                """INSERT OR IGNORE INTO staging_price_candidates
-                                   (wine_key, source_key, retailer, recorded_at, currency_code,
-                                    amount_local, amount_eur, source_url, content_hash, batch_id, needs_review)
-                                   VALUES (?, ?, 'idealwine', ?, 'EUR', ?, ?, ?, ?, ?, 1)""",
-                                (wine_key, SOURCE_KEY, int(time.time()), price_eur, price_eur,
-                                 source_url, card_hash, batch_id),
-                            )
-                            self.conn.commit()
-                            result.rows_inserted += 1
-                        except Exception as e:
-                            write_dlq(
-                                self.conn, SOURCE_KEY, batch_id,
-                                "validation_error", str(e),
-                                {"wine_key": wine_key, "price_eur": price_eur},
-                            )
-                            result.rows_dlq += 1
-
-                        total_fetched += 1
-                        result.rows_fetched += 1
-
-                    time.sleep(0.2)
-
-                # Check if there are more pages
-                total_items = data.get("hydra:totalItems", 0)
-                if page * items_per_page >= total_items:
-                    break
-
-                page += 1
-                time.sleep(1.0)
-
+            self._run_auctions(client, source_key, batch_id, result, limit, active_catalog_ids)
         finally:
             if client is not None:
                 client.close()

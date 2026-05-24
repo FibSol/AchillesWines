@@ -111,7 +111,7 @@ Wine press (E_press_critic → write to fact_rating):
 
 - [x] **P2 · 3h** [Patroclus + Odysseus + Cassandra] Auth system: `auth.py` + `AuthenticatedScraper` base + `/admin/auth` UI + test_login JobRunner flow + 16 unit tests + docs/AUTH.md ✓ 2026-05-22 (ADR-010)
 - [x] **P2 · 0.5h** [Cassandra] Marquer `requires_auth=1` sur dim_source pour les sources concrètes (idealwine, lavinia, vinatis, rvf) ✓ 2026-05-22 (migration 0005)
-- [ ] **P3 · 2h** [Patroclus] Persister les sessions dans `ops_auth_sessions` (cookie_jar JSON + expires_at) si le re-login chaque batch devient un problème (rate-limit, latence). Pour l'instant la décision ADR-010 est re-login à chaque fois. — [#22](https://github.com/FibSol/AchillesWines/issues/22)
+- [x] **P3 · 2h** [Patroclus] Persister les sessions dans `ops_auth_sessions` (cookie_jar JSON + expires_at) si le re-login chaque batch devient un problème (rate-limit, latence). Pour l'instant la décision ADR-010 est re-login à chaque fois. — [#22](https://github.com/FibSol/AchillesWines/issues/22) ✓ 2026-05-24
 
 ## Sprint 10 — Robustesse & orchestration scraper
 

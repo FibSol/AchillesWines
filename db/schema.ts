@@ -727,6 +727,36 @@ export const opsJobQueue = sqliteTable(
   })
 );
 
+/** Auth session cache — stored JWT bearer tokens and cookie jars (#22, ADR-010 extension). */
+export const opsAuthSessions = sqliteTable(
+  "ops_auth_sessions",
+  {
+    sessionKey: integer("session_key").primaryKey({ autoIncrement: true }),
+    /** Must match dim_source.source_code (or the _auth_source_code for shared-cred scrapers). */
+    sourceCode: text("source_code").notNull().unique(),
+    tokenType: text("token_type", {
+      enum: ["cookie_jar", "jwt_bearer"],
+    }).notNull(),
+    /** JSON dict {name: value} — populated for cookie_jar sessions. */
+    cookieJar: text("cookie_jar"),
+    /** Raw JWT bearer token — populated for jwt_bearer sessions. */
+    authToken: text("auth_token"),
+    /** JSON dict of extra headers to inject (e.g. Authorization). */
+    extraHeaders: text("extra_headers"),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    /** Unix timestamp after which the session must not be used. NULL = use DEFAULT_SESSION_TTL_SECONDS. */
+    expiresAt: integer("expires_at", { mode: "timestamp" }),
+    lastUsedAt: integer("last_used_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (t) => ({
+    sourceIdx: index("idx_auth_session_source").on(t.sourceCode),
+  })
+);
+
 /* ============================================================================
  * Exports
  * ========================================================================== */

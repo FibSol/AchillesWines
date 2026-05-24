@@ -473,7 +473,7 @@ class CellarTrackerScraper(AuthenticatedScraper):
         }
 
         try:
-            client = self.authenticated_client(headers=headers)
+            client = self.authenticated_client(headers=headers, conn=self.conn)
         except AuthMissingError as e:
             return ScrapeResult(error=str(e))
         except AuthError as e:

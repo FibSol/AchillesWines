@@ -303,7 +303,7 @@ class CavissimaBeScraper(AuthenticatedScraper):
         total_fetched = 0
 
         try:
-            client_ctx = self.authenticated_client(headers=headers, timeout=30.0)
+            client_ctx = self.authenticated_client(headers=headers, timeout=30.0, conn=self.conn)
         except AuthMissingError as e:
             result.error = f"Credentials missing: {e}"
             return result

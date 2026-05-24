@@ -10,10 +10,16 @@ Env pattern (uppercase source_code, '-' → '_'):
 
 Subclass `AuthenticatedScraper` and implement `_login()` for sites that
 gate prices behind a login form.
+
+Session caching (#22): pass `conn=` to `authenticated_client()` to enable
+ops_auth_sessions caching. The first call performs a fresh login and saves
+the session; subsequent calls within the TTL reuse the cached token/cookies
+without re-logging in.
 """
 from __future__ import annotations
 
 import os
+import sqlite3
 from abc import abstractmethod
 from dataclasses import dataclass
 from typing import Optional
@@ -27,9 +33,22 @@ except ImportError:
 
 from .scrapers.base import BaseScraper
 from .errors import AuthError, AuthMissingError
+from .session_store import (
+    extract_session_from_client,
+    invalidate_session as _invalidate_session,
+    is_expired,
+    load_session,
+    restore_session_to_client,
+    save_session,
+)
 
 # Re-export so existing imports from achilles_scraper.auth continue to work.
-__all__ = ["AuthError", "AuthMissingError", "Credentials", "has_credentials", "get_credentials", "AuthenticatedScraper"]
+__all__ = [
+    "AuthError", "AuthMissingError", "Credentials",
+    "has_credentials", "get_credentials",
+    "AuthenticatedScraper",
+    "invalidate_auth_session",
+]
 
 
 @dataclass(frozen=True)
@@ -87,15 +106,45 @@ class AuthenticatedScraper(BaseScraper):
         self,
         headers: Optional[dict] = None,
         timeout: float = 30.0,
+        *,
+        conn: Optional[sqlite3.Connection] = None,
+        cache_key: Optional[str] = None,
     ) -> "httpx.Client":
-        """Return an httpx.Client with a fresh session attached.
+        """Return an httpx.Client with a valid session attached.
 
-        Raises:
-            AuthMissingError: env vars not set.
-            AuthError:        credentials rejected by the site.
+        When `conn` is provided, the session is cached in ops_auth_sessions:
+          - On cache hit (non-expired): credentials are restored without re-login.
+          - On cache miss or expiry: fresh login is performed and saved to cache.
+
+        Parameters
+        ----------
+        conn:
+            SQLite connection for session caching. Pass None to always re-login
+            (original ADR-010 behaviour).
+        cache_key:
+            Override the source_code used as the ops_auth_sessions lookup key.
+            Useful when multiple scrapers share one credential set (e.g.
+            idealwine + idealwine_auctions both cache under "idealwine").
+
+        Raises
+        ------
+        AuthMissingError: env vars not set.
+        AuthError:        credentials rejected by the site.
         """
         if not HAS_HTTPX:
             raise AuthError("httpx not installed — install scraper deps")
+
+        key = cache_key or self.source_code
+
+        # --- Try cached session first ---
+        if conn is not None:
+            session = load_session(conn, key)
+            if session is not None and not is_expired(session):
+                client = httpx.Client(headers=headers or {}, timeout=timeout, follow_redirects=True)
+                restore_session_to_client(client, session)
+                return client
+
+        # --- Fresh login ---
         creds = get_credentials(self.source_code)
         client = httpx.Client(headers=headers or {}, timeout=timeout, follow_redirects=True)
         try:
@@ -106,6 +155,14 @@ class AuthenticatedScraper(BaseScraper):
         if not ok:
             client.close()
             raise AuthError(f"login rejected for {self.source_code} (bad credentials?)")
+
+        # --- Persist session ---
+        if conn is not None:
+            auth_hdr = client.headers.get("Authorization", "")
+            token_type = "jwt_bearer" if auth_hdr.startswith("Bearer ") else "cookie_jar"
+            session = extract_session_from_client(key, client, token_type)
+            save_session(conn, session)
+
         return client
 
     def test_login(self) -> tuple[bool, str]:
@@ -122,3 +179,12 @@ class AuthenticatedScraper(BaseScraper):
             return False, f"auth error: {e}"
         except Exception as e:  # network, etc.
             return False, f"unexpected error: {e}"
+
+
+def invalidate_auth_session(conn: sqlite3.Connection, source_code: str) -> None:
+    """Remove the cached auth session for source_code.
+
+    Call this when a scraper receives an unexpected 401/403 mid-run so the
+    next batch performs a fresh login instead of reusing a stale token.
+    """
+    _invalidate_session(conn, source_code)
