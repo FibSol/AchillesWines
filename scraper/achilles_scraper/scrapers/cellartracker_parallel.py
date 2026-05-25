@@ -200,9 +200,14 @@ async def _fetch_one(
                     "error": f"HTTP {resp.status_code}"}
 
         html = resp.text or ""
+        lo = html.lower()
         # Detect AWS WAF challenge (means cookies expired)
-        if "human verification" in html.lower() and len(html) < 15000:
+        if "human verification" in lo and len(html) < 15000:
             return {"iwine": iwine, "url": wine_url, "status": "waf_challenge", "error": "WAF challenge"}
+        # Detect CT login redirect — session expired server-side even though TTL looks valid.
+        # Signature: title "Sign In - CellarTracker", contains szUser input, short page.
+        if ("sign in - cellartracker" in lo or ("szuser" in lo and "szpassword" in lo)) and len(html) < 20000:
+            return {"iwine": iwine, "url": wine_url, "status": "waf_challenge", "error": "CT session expired (login redirect)"}
 
         return {"iwine": iwine, "url": wine_url, "status": "ok", "html": html, "ct_status": resp.status_code}
 
