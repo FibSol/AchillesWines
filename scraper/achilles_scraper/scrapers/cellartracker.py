@@ -2,61 +2,17 @@
 """
 CellarTracker.com scraper — community wine database with crowd ratings.
 
-CellarTracker is the world's largest user-driven wine database (~6M+ wines,
-~10M+ tasting notes). Every wine has a stable integer id and lives at
-    https://www.cellartracker.com/wine.asp?iWine=<N>
-Range: 1 .. ~6_500_000 (sparse — many gaps for deleted/private/merged wines).
+Fetches wine pages via the Firecrawl /v1/scrape API (proxy + headless browser)
+which bypasses CellarTracker's Kasada anti-bot protection.
 
-What we capture (→ fact_rating with critic_code='CT', reviewer_type='crowd'):
-- Producer, designation (cuvée), vintage, varietal, country, region, appellation
-- Community average score (CT 100-point scale) + number of notes
-- Wine type → color mapping
-
-What we deliberately skip:
-- Tasting note text (huge volume, copyrighted by individual users)
-- Market prices (per project rule — prices come from retailer scrapers only)
-- Private / hidden wines (login still resolves but score absent)
-
-Credentials: ACHILLES_AUTH_CELLARTRACKER_USERNAME / _PASSWORD
-The site enforces a session cookie via POST to /password.asp.
+Requires: FIRECRAWL_API_KEY env var.
 
 Crawl strategy:
-- Resumable cursor stored in data/cellartracker_cursor.txt (last successful iWine).
-- `--limit` controls how many iWine ids to attempt this run (NOT how many rows
-  to insert — many ids 404 or have no community score yet).
-- `ACHILLES_CT_START_ID` env var overrides the cursor (useful for re-crawls
-  or starting cold). Defaults to 1 on first run.
-- Polite default delay of 0.6s between requests, jittered.
-
-The site has no public terms-of-service block on personal/research scraping
-at low rates, but we keep concurrency at 1 and obey 429s with exponential
-backoff via the shared retry wrapper.
-
-⚠ HARD LIMITATION (verified 2026-05-23): wine.asp pages are protected by
-Kasada anti-bot (KP_UIDz cookie + x-kpsdk-* headers + ips.js JS challenge).
-- CloudFront TLS check is passable with curl_cffi (chrome124 impersonation).
-- Login flow itself is NOT Kasada-gated: POSTing {Referrer, szUser, szPassword,
-  UseCookie} to /password.asp via curl_cffi yields PWHash + User session
-  cookies just fine.
-- BUT every subsequent wine.asp?iWine=N request returns HTTP 429 with a
-  Kasada JS challenge body, even fully logged in.
-
-Bypassing Kasada at the 6M-page scale is not economical:
-  Playwright+stealth → many months runtime, near-certain account ban.
-  Paid Kasada-solvers (ZenRows/Scrapfly) → €10-50 per 1k requests → €60-300k
-  for the full sweep.
-  Reverse-engineering Kasada → moving target, breaks every few weeks.
-
-The realistic path is CellarTracker's official data-export endpoint
-xlquery.asp (used by their mobile app + 3rd-party sync tools). It bypasses
-Kasada and returns CSV/XML, but only for the *logged-in user's own cellar*:
-Inventory, Notes, PendingDeliveries, Availability, Pro reviews aggregated
-to YOUR wines. See https://www.cellartracker.com/help.asp?iHelp=11.
-
-This module keeps the scaffolding (login, parse helpers, cursor, fact_rating
-write path) but `.run()` will currently return rows_dlq with
-"network_error: HTTP 429 (Kasada)" for every iWine until the export-endpoint
-variant is implemented as a sibling class.
+- Resumable cursor in data/cellartracker_cursor.txt (last successful iWine).
+- `--limit` = number of iWine ids to attempt (NOT rows inserted — many ids are
+  gaps / deleted wines / no community score).
+- ACHILLES_CT_START_ID overrides cursor for a cold re-crawl.
+- Each Firecrawl scrape costs 1 credit. Default limit=100 per run.
 """
 from __future__ import annotations
 
@@ -80,21 +36,16 @@ try:
 except ImportError:
     HAS_DEPS = False
 
-from .base import ScrapeResult
-from ..auth import AuthenticatedScraper, has_credentials, AuthMissingError, AuthError, Credentials
+from .base import BaseScraper, ScrapeResult
 from ..identity import normalize_producer, normalize_cuvee, compute_wine_key, norm_text
 from ..dlq import write_dlq
 
+_FIRECRAWL_SCRAPE_URL = "https://api.firecrawl.dev/v1/scrape"
+_FC_ENV_KEY = "FIRECRAWL_API_KEY"
+
 _logger = logging.getLogger(__name__)
 
-_USER_AGENT = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/124.0.0.0 Safari/537.36"
-)
-
 _BASE = "https://www.cellartracker.com"
-_LOGIN_URL = f"{_BASE}/password.asp"
 _WINE_URL = f"{_BASE}/wine.asp?iWine="
 
 CRITIC_CODE = "CT"
@@ -400,6 +351,9 @@ def _is_not_found(tree: HTMLParser, status_code: int) -> bool:
     if not tree.body:
         return True
     body = (tree.body.text(separator=" ") or "").lower()
+    # CloudFront/CDN error pages returned when the proxy is blocked
+    if "cloudfront" in body and ("403 error" in body or "request blocked" in body):
+        return True
     return (
         "wine not found" in body
         or "no such wine" in body
@@ -407,53 +361,23 @@ def _is_not_found(tree: HTMLParser, status_code: int) -> bool:
     )
 
 
-class CellarTrackerScraper(AuthenticatedScraper):
+class CellarTrackerScraper(BaseScraper):
+    """Fetches CellarTracker wine pages via Firecrawl (bypasses Kasada anti-bot)."""
+
     source_code = "cellartracker"
 
     def __init__(self, conn: sqlite3.Connection):
         self.conn = conn
         self.batch_id: Optional[str] = None
 
-    def _login(self, client: "httpx.Client", creds: Credentials) -> bool:
-        # CT's classic ASP login form (name="login") on /password.asp:
-        #   <input name="Referrer" type="hidden">
-        #   <input name="szUser">
-        #   <input name="szPassword" type="password">
-        #   <input name="UseCookie" type="checkbox" value="true">
-        # On success the response sets PWHash + User cookies and a "Sign Out"
-        # link appears on /default.asp. Verified 2026-05-23.
-        # GET the form first so any anti-CSRF / warmup cookies get attached.
-        client.get(_LOGIN_URL, headers={"User-Agent": _USER_AGENT})
-        resp = client.post(
-            _LOGIN_URL,
-            data={
-                "Referrer": "",
-                "szUser": creds.username,
-                "szPassword": creds.password,
-                "UseCookie": "true",
-            },
-            headers={
-                "User-Agent": _USER_AGENT,
-                "Referer": _LOGIN_URL,
-                "Origin": _BASE,
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-        )
-        if resp.status_code >= 500:
-            raise AuthError(f"CT login HTTP {resp.status_code}")
-        # Confirm by GETting /default.asp and looking for the logged-in chrome.
-        probe = client.get(f"{_BASE}/default.asp", headers={"User-Agent": _USER_AGENT})
-        if probe.status_code != 200:
-            return False
-        body = (probe.text or "").lower()
-        return ("sign out" in body) or ("logout" in body) or (creds.username.lower() in body)
-
     def run(self, limit: Optional[int] = None) -> ScrapeResult:
         if not HAS_DEPS:
             return ScrapeResult(error="Missing dependencies: httpx or selectolax not installed")
-        if not has_credentials(self.source_code):
+
+        api_key = os.environ.get(_FC_ENV_KEY, "").strip()
+        if not api_key:
             return ScrapeResult(
-                error="Credentials missing: set ACHILLES_AUTH_CELLARTRACKER_USERNAME / _PASSWORD"
+                error=f"{_FC_ENV_KEY} not set — required for CellarTracker (Firecrawl bypasses Kasada)"
             )
 
         batch_id = self.batch_id or f"ct-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:8]}"
@@ -463,56 +387,76 @@ class CellarTrackerScraper(AuthenticatedScraper):
         if SOURCE_KEY is None:
             return ScrapeResult(error="could not resolve or create dim_source row for 'cellartracker'")
 
-        attempts_budget = limit if limit is not None else 500  # iWine ids to try this run
+        attempts_budget = limit if limit is not None else 100  # each attempt costs 1 Firecrawl credit
         start_id = _load_cursor(default_start=1)
 
-        headers = {
-            "User-Agent": _USER_AGENT,
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9",
-            "Accept-Language": "en-US,en;q=0.7,fr;q=0.5",
+        fc_headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
         }
 
-        try:
-            client = self.authenticated_client(headers=headers, conn=self.conn)
-        except AuthMissingError as e:
-            return ScrapeResult(error=str(e))
-        except AuthError as e:
-            return ScrapeResult(error=str(e))
-
-        delay_min = float(os.getenv("ACHILLES_CT_DELAY_MIN", "0.5"))
-        delay_max = float(os.getenv("ACHILLES_CT_DELAY_MAX", "0.9"))
-
         consecutive_404 = 0
-        try:
+        with httpx.Client(timeout=60, follow_redirects=True) as client:
             for i in range(attempts_budget):
                 iwine = start_id + i
-                url = f"{_WINE_URL}{iwine}"
+                wine_url = f"{_WINE_URL}{iwine}"
+
+                # Fetch via Firecrawl — handles Kasada JS challenge
                 try:
-                    resp = self._fetch(lambda u=url: client.get(u))
+                    fc_resp = client.post(
+                        _FIRECRAWL_SCRAPE_URL,
+                        headers=fc_headers,
+                        json={
+                            "url": wine_url,
+                            "formats": ["rawHtml"],
+                            "waitFor": 3000,
+                            "mobile": False,
+                        },
+                    )
                 except Exception as e:
                     write_dlq(self.conn, SOURCE_KEY, batch_id, "network_error", str(e), {"iWine": iwine})
                     result.rows_dlq += 1
                     _save_cursor(iwine)
                     continue
 
-                tree = HTMLParser(resp.text or "")
-                if _is_not_found(tree, resp.status_code):
+                if fc_resp.status_code == 401:
+                    result.error = f"Firecrawl 401 — check {_FC_ENV_KEY}"
+                    break
+                if fc_resp.status_code == 429:
+                    write_dlq(self.conn, SOURCE_KEY, batch_id, "network_error",
+                              "Firecrawl rate limit (429)", {"iWine": iwine})
+                    result.rows_dlq += 1
+                    time.sleep(30)
+                    continue
+                if not fc_resp.is_success:
+                    write_dlq(self.conn, SOURCE_KEY, batch_id, "network_error",
+                              f"Firecrawl HTTP {fc_resp.status_code}", {"iWine": iwine})
+                    result.rows_dlq += 1
+                    _save_cursor(iwine)
+                    continue
+
+                try:
+                    fc_data = fc_resp.json()
+                except Exception:
+                    write_dlq(self.conn, SOURCE_KEY, batch_id, "parse_error",
+                              "Firecrawl JSON decode failed", {"iWine": iwine})
+                    result.rows_dlq += 1
+                    _save_cursor(iwine)
+                    continue
+
+                raw_html = (fc_data.get("data") or {}).get("rawHtml") or ""
+                ct_status = (fc_data.get("data") or {}).get("metadata", {}).get("statusCode", 200)
+
+                tree = HTMLParser(raw_html)
+                if _is_not_found(tree, ct_status):
                     consecutive_404 += 1
                     _save_cursor(iwine)
-                    # If we hit 200 consecutive 404s past iWine=2_000_000, assume tail of range
                     if consecutive_404 >= 200 and iwine > 2_000_000:
-                        result.error = f"stopping early at iWine={iwine} after {consecutive_404} consecutive misses"
+                        result.error = f"stopping at iWine={iwine} after {consecutive_404} consecutive misses"
                         break
                     continue
                 consecutive_404 = 0
                 result.rows_fetched += 1
-
-                if resp.status_code != 200:
-                    write_dlq(self.conn, SOURCE_KEY, batch_id, "network_error",
-                              f"HTTP {resp.status_code}", {"iWine": iwine})
-                    result.rows_dlq += 1
-                    _save_cursor(iwine)
-                    continue
 
                 pairs = _parse_table_pairs(tree)
                 producer_raw = pairs.get("producer", "")
@@ -520,20 +464,20 @@ class CellarTrackerScraper(AuthenticatedScraper):
                 vintage_raw = pairs.get("vintage", "")
                 country_raw = pairs.get("country", "")
                 region_raw = pairs.get("region", "")
-                appellation_raw = pairs.get("appellation", "") or pairs.get("subregion", "") or pairs.get("sub-region", "")
+                appellation_raw = (
+                    pairs.get("appellation", "")
+                    or pairs.get("subregion", "")
+                    or pairs.get("sub-region", "")
+                )
                 type_raw = pairs.get("type", "")
 
                 if not producer_raw or not designation:
                     write_dlq(self.conn, SOURCE_KEY, batch_id, "parse_error",
-                              "missing producer or designation",
-                              {"iWine": iwine, "pairs": pairs})
+                              "missing producer or designation", {"iWine": iwine, "pairs": pairs})
                     result.rows_dlq += 1
                     _save_cursor(iwine)
-                    if delay_max > 0:
-                        time.sleep(random.uniform(delay_min, delay_max))
                     continue
 
-                # Vintage: "N.V." / "NV" / "1998"
                 vintage: Optional[int] = None
                 vraw = (vintage_raw or "").strip().upper()
                 if vraw and vraw not in {"NV", "N.V.", "NON-VINTAGE", "N/A", "-"}:
@@ -547,15 +491,11 @@ class CellarTrackerScraper(AuthenticatedScraper):
                 color = _map_color(type_raw) or "red"
 
                 if not country:
-                    # Without a country we can't satisfy the dim_producer/appellation
-                    # unique constraints. Park in DLQ for manual review.
                     write_dlq(self.conn, SOURCE_KEY, batch_id, "unresolved_dim",
                               f"unmapped country: {country_raw!r}",
                               {"iWine": iwine, "producer": producer_raw, "country": country_raw})
                     result.rows_dlq += 1
                     _save_cursor(iwine)
-                    if delay_max > 0:
-                        time.sleep(random.uniform(delay_min, delay_max))
                     continue
 
                 producer_norm = normalize_producer(producer_raw)
@@ -570,8 +510,6 @@ class CellarTrackerScraper(AuthenticatedScraper):
                               {"iWine": iwine, "producer": producer_raw, "designation": designation})
                     result.rows_dlq += 1
                     _save_cursor(iwine)
-                    if delay_max > 0:
-                        time.sleep(random.uniform(delay_min, delay_max))
                     continue
 
                 producer_key = _ensure_producer(self.conn, country, producer_norm, producer_raw)
@@ -587,23 +525,16 @@ class CellarTrackerScraper(AuthenticatedScraper):
                                "appellation": appellation_name, "country": country})
                     result.rows_dlq += 1
                     _save_cursor(iwine)
-                    if delay_max > 0:
-                        time.sleep(random.uniform(delay_min, delay_max))
                     continue
 
                 wine_key = compute_wine_key(producer_norm, cuvee_norm, vintage, appellation_norm)
                 _ensure_wine(self.conn, wine_key, producer_key, appellation_key,
                              designation, cuvee_norm, color, vintage)
 
-                # Community score → fact_rating
                 score, notes = _parse_score(tree)
                 if score is None:
-                    # Wine exists but no community score yet — we already
-                    # captured dim_wine, just count as skipped for the rating leg.
                     result.rows_skipped_unchanged += 1
                     _save_cursor(iwine)
-                    if delay_max > 0:
-                        time.sleep(random.uniform(delay_min, delay_max))
                     continue
 
                 content_hash = hashlib.sha256(
@@ -621,7 +552,7 @@ class CellarTrackerScraper(AuthenticatedScraper):
                             source_url, content_hash, batch_id)
                            VALUES (?, ?, ?, 'crowd', ?, ?, ?, ?, ?, ?)""",
                         (wine_key, SOURCE_KEY, CRITIC_CODE,
-                         score, SCALE, score, url, content_hash, batch_id),
+                         score, SCALE, score, wine_url, content_hash, batch_id),
                     )
                     self.conn.commit()
                     result.rows_inserted += 1
@@ -631,13 +562,5 @@ class CellarTrackerScraper(AuthenticatedScraper):
                     result.rows_dlq += 1
 
                 _save_cursor(iwine)
-                if delay_max > 0:
-                    time.sleep(random.uniform(delay_min, delay_max))
-
-        finally:
-            try:
-                client.close()
-            except Exception:
-                pass
 
         return result

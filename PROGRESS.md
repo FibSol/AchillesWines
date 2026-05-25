@@ -1,5 +1,16 @@
 # Achilles's Wines — Progress Log
 
+## 2026-05-25
+
+### Patroclus (Backend)
+- [Patroclus] Three-scraper run + promoter pass. iDealwine (Sylius JWT): 211 fetched, 211 staged, 34 DLQ (session expired at page 15 — auth limit). Wine-Searcher (Firecrawl /v1/search): 100 fetched, 23 staged, 0 DLQ, 77 skipped (no avg-price snippet). CellarTracker (Firecrawl /v1/scrape): 50 DLQ — CloudFront returns 403 error pages to Firecrawl proxies; Kasada bypass didn't work via this path. _is_not_found() updated to detect CloudFront 403 pages so future runs classify them as network errors not parse errors. Promoter pass: 1,362 new rows promoted → fact_price now 3,140 (was 1,778). FIRECRAWL_API_KEY wired into .env from firecrawl-cli stored credentials. · files: scraper/achilles_scraper/scrapers/cellartracker.py, .env
+
+### Patroclus (Backend)
+- [Patroclus] CellarTracker scraper rewrote run() to use Firecrawl /v1/scrape API instead of direct httpx (no longer depends on CT credentials or AuthenticatedScraper — FIRECRAWL_API_KEY now sole requirement). Default limit reduced to 100 per run (1 credit/page). Despite proxy routing, CloudFront still blocks cellartracker.com. Viable alternative: xlquery.asp official data-export endpoint (own-cellar data) or CellarTracker public API if credentials are provided. · files: scraper/achilles_scraper/scrapers/cellartracker.py
+
+### Helena + Patroclus
+- [Helena+Patroclus] RVF digital library accessed via Firecrawl interact (magazines.fr login + navigate). Found 10 La Revue du Vin de France issues available (N°691 Jun 2025 → N°700 May 2026) with signed mozzoviewer viewer URLs. Viewer renders page images (not text) — content is not directly extractable as structured data. Viable paths: (a) scrape larvf.com with user subscription credentials; (b) Claude Vision OCR on page images. Viewer URLs saved to scraper/.firecrawl/library-links.md (time-limited tokens ~Oct 2026). · files: scraper/.firecrawl/library-links.md
+
 ## 2026-05-24
 
 ### Patroclus (Backend)
