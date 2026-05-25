@@ -276,6 +276,69 @@ _RE_VINTAGE = re.compile(r"\b(1[89]\d{2}|20[0-3]\d)\b")
 _RE_SCORE = re.compile(r"(\d{2,3}(?:\.\d)?)")
 _RE_NOTES = re.compile(r"(\d[\d,]*)\s+(?:community\s+)?(?:tasting\s+)?notes?", re.I)
 
+_NOT_FOUND_DESIGNATIONS = {"n/a", "n.a.", "na", "unknown", ""}
+
+
+def _parse_wine_list(tree: HTMLParser) -> dict[str, str]:
+    """Extract wine metadata from the current CT layout.
+
+    CT now renders wine details in::
+
+        <ul class="twin_set_list">
+          <li><span>Vintage</span><a href="...">1997</a></li>
+          <li><span>Producer</span><a href="...">Abreu</a></li>
+          ...
+        </ul>
+
+    Returns a flat dict with lower-cased label keys.
+    """
+    out: dict[str, str] = {}
+    ul = tree.css_first("ul.twin_set_list")
+    if ul is None:
+        return out
+    for li in ul.css("li"):
+        label_node = li.css_first("span")
+        if label_node is None:
+            continue
+        label = _text_of(label_node).rstrip(":").strip().lower()
+        # Value is the first link or the remaining text after the span
+        link = li.css_first("a")
+        value = _text_of(link) if link else ""
+        if not value:
+            full = _text_of(li)
+            label_raw = _text_of(label_node)
+            value = full[len(label_raw):].strip()
+        if label and value:
+            out[label] = value
+    return out
+
+
+def _parse_score_v2(tree: HTMLParser) -> tuple[Optional[float], Optional[int]]:
+    """Parse community avg score from the current CT wine page layout.
+
+    Score: ``<span class="rating">95.7</span>`` inside a ``.score`` element.
+    Notes count: from ``<meta property="og:description">`` content.
+    """
+    node = tree.css_first("span.rating")
+    if node:
+        m = _RE_SCORE.search(_text_of(node))
+        if m:
+            try:
+                score = float(m.group(1))
+                if 50.0 <= score <= 100.0:
+                    notes: Optional[int] = None
+                    og = tree.css_first('meta[property="og:description"]')
+                    if og:
+                        content = og.attrs.get("content", "") or ""
+                        nm = re.search(r"(\d[\d,]*)\s+community\s+wine\s+reviews?", content, re.I)
+                        if nm:
+                            notes = int(nm.group(1).replace(",", ""))
+                    return score, notes
+            except ValueError:
+                pass
+    # Fallback to legacy parser
+    return None, None
+
 
 def _text_of(node) -> str:
     if node is None:
