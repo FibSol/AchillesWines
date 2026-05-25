@@ -90,8 +90,6 @@ _ALL_SOURCES = [
     "xwines",             # X-Wines/Vivino crowd ratings (CC0)
     "kaggle_reviews",     # WineEnthusiast reviews via Kaggle API (v2, 130k, has title)
     "kaggle_reviews_v1",  # WineEnthusiast reviews via Kaggle API (v1, 150k, NV only)
-    "cellartracker",          # CellarTracker community DB (iWine sweep — Kasada-blocked, scaffolding only)
-    "cellartracker_fast",     # CellarTracker iWine sweep — parallel (N concurrent Firecrawl requests)
     "cellartracker_xlquery",  # CellarTracker official xlquery.asp export — own cellar + 30 critic columns
 ]
 
@@ -152,8 +150,6 @@ def _load_scrapers():
     from .scrapers.vivino import VivinoScraper
     from .scrapers.xwines import XWinesScraper
     from .scrapers.kaggle_reviews import KaggleReviewsScraper, KaggleReviewsV1Scraper
-    from .scrapers.cellartracker import CellarTrackerScraper
-    from .scrapers.cellartracker_parallel import CellarTrackerFastScraper
     from .scrapers.cellartracker_xlquery import CellarTrackerXlqueryScraper
 
     SCRAPERS["millesima"] = MillesimaScraper
@@ -201,8 +197,6 @@ def _load_scrapers():
     SCRAPERS["xwines"] = XWinesScraper
     SCRAPERS["kaggle_reviews"] = KaggleReviewsScraper
     SCRAPERS["kaggle_reviews_v1"] = KaggleReviewsV1Scraper
-    SCRAPERS["cellartracker"] = CellarTrackerScraper
-    SCRAPERS["cellartracker_fast"] = CellarTrackerFastScraper
     SCRAPERS["cellartracker_xlquery"] = CellarTrackerXlqueryScraper
 
 
