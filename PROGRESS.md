@@ -3,6 +3,9 @@
 ## 2026-05-25
 
 ### Patroclus (Backend)
+- [Patroclus] CellarTracker browser-session scraper: built `ct_browser_scrape.py` + `ct_recv_server.py`. Uses Claude-in-Chrome MCP to execute in-page `fetch('/wine.asp?iWine=N')` calls inside user's real CT session (bypasses CloudFront/Kasada entirely). Batches of 15 iWines at 200ms delay per MCP call (~10s each, under 45s timeout). Data extraction via `ul.twin_set_list li` + `.scorebox` / `CT\s+([\d.]+)` regex. Results collected in `window._ctAll`, persisted via `window.name` across navigation, retrieved via same-origin POST to local `ct_recv_server.py` (GET serves collector HTML page, POST writes to `data/ct_received.json`). Fixed `reviewer_type='crowd'→'user_aggregate'` (CHECK constraint). Fixed score regex to `CT\s+(\d+)` to avoid matching "1 user review". Added score range guard (<50 rejected). Scanned iWine 50000–50269 (270 IDs): 175 CT ratings inserted into fact_rating covering FR (62), US (45+), IT, AU, ES. · files: scraper/scripts/ct_browser_scrape.py, scraper/scripts/ct_recv_server.py
+
+### Patroclus (Backend)
 - [Patroclus] Three-scraper run + promoter pass. iDealwine (Sylius JWT): 211 fetched, 211 staged, 34 DLQ (session expired at page 15 — auth limit). Wine-Searcher (Firecrawl /v1/search): 100 fetched, 23 staged, 0 DLQ, 77 skipped (no avg-price snippet). CellarTracker (Firecrawl /v1/scrape): 50 DLQ — CloudFront returns 403 error pages to Firecrawl proxies; Kasada bypass didn't work via this path. _is_not_found() updated to detect CloudFront 403 pages so future runs classify them as network errors not parse errors. Promoter pass: 1,362 new rows promoted → fact_price now 3,140 (was 1,778). FIRECRAWL_API_KEY wired into .env from firecrawl-cli stored credentials. · files: scraper/achilles_scraper/scrapers/cellartracker.py, .env
 
 ### Patroclus (Backend)
