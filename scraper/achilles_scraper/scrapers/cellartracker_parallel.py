@@ -281,6 +281,12 @@ def _process_and_write(
             if 1900 <= v <= 2040:
                 vintage = v
 
+    # Vintage filter: only keep NV wines and vintages >= 2000.
+    if vintage is not None and vintage < 2000:
+        result.rows_skipped_unchanged += 1
+        _save_cursor(iwine)
+        return "skip"
+
     country = _map_country(country_raw)
     color = _map_color(type_raw) or "red"
 
