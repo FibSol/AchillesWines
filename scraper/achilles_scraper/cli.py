@@ -227,8 +227,9 @@ def run(source: str, limit):
     conn = get_db(config.db_path)
 
     # Resolve source_key from dim_source so the job row links correctly.
+    # Case-insensitive match: CLI uses lowercase, some dim_source rows are uppercase.
     row = conn.execute(
-        "SELECT source_key FROM dim_source WHERE source_code = ?", (source,)
+        "SELECT source_key FROM dim_source WHERE LOWER(source_code) = LOWER(?)", (source,)
     ).fetchone()
     source_key = row["source_key"] if row else None
 
