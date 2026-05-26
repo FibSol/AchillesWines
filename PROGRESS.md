@@ -1,5 +1,10 @@
 # Achilles's Wines — Progress Log
 
+## 2026-05-26
+
+### Patroclus (Backend)
+- [Patroclus] #35 iDealwine historical auction scraper: added `IDealwineHistoricalScraper` (source_code=`idealwine_history`) to `scraper/achilles_scraper/scrapers/idealwine.py`. Pulls past sold-lot results from iDealwine's archive — covers old vintages (pre-2010/pre-2000) not present in active auction catalogs. Strategy: tries dedicated `/api/v2/shop/auction-results` endpoint first (with `soldAtAfter` date filter); falls back to `/api/v2/shop/products` scan accepting all AUCTION variants regardless of catalog ID. `from_date` parameter enables cursor-based incremental runs (skips variants with `updatedAt` before cutoff). Inherits JWT auth and session caching from `IDealwineAuctionsScraper` (shared `idealwine` credentials). Fixed SQL string-concat bug in both `_ensure_auction_source` and `_ensure_history_source` (Python adjacent-string literals are not valid inside SQL VALUES). Migration `0017_idealwine_history_source.sql` seeds the dim_source row. Registered in `cli.py` (`_ALL_SOURCES` + `_load_scrapers`). 9 unit tests in `test_idealwine_auctions.py` (dim_source idempotency, from_date cursor, 404 fallback trigger, AUCTION/DIRECT_PURCHASE filtering, content-hash dedup). 196/196 Python tests passing (test_wine_searcher.py pre-existing import error excluded). · files: scraper/achilles_scraper/scrapers/idealwine.py, scraper/achilles_scraper/cli.py, db/migrations/0017_idealwine_history_source.sql, scraper/tests/test_idealwine_auctions.py
+
 ## 2026-05-25
 
 ### Patroclus (Backend)

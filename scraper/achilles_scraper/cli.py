@@ -42,6 +42,7 @@ _ALL_SOURCES = [
     "millesima_be",
     "idealwine",
     "idealwine_auctions",
+    "idealwine_history",
     "lavinia",
     "vinatis",
     "cavissima",
@@ -56,7 +57,7 @@ _ALL_SOURCES = [
     "topwijnen_be",
     "wijnendeclerck_be",
     "belgiumwinewatchers",
-    "wine_searcher",         # Wine-Searcher avg prices via Firecrawl search (FIRECRAWL_API_KEY)
+    "wine_searcher",         # Wine-Searcher per-merchant prices via Firecrawl CLI page scrape
     # --- Email newsletter scrapers (→ staging_price_candidates via IMAP) ---
     "millesima_email",
     "idealwine_email",
@@ -98,7 +99,7 @@ def _load_scrapers():
     # Web retail
     from .scrapers.millesima import MillesimaScraper
     from .scrapers.millesima_be import MillesimaBeScraper
-    from .scrapers.idealwine import IDealwineScraper, IDealwineAuctionsScraper
+    from .scrapers.idealwine import IDealwineScraper, IDealwineAuctionsScraper, IDealwineHistoricalScraper
     from .scrapers.lavinia import LaviniaScraper
     from .scrapers.vinatis import VinatissScraper
     from .scrapers.cavissima import CavissimaScraper
@@ -156,6 +157,7 @@ def _load_scrapers():
     SCRAPERS["millesima_be"] = MillesimaBeScraper
     SCRAPERS["idealwine"] = IDealwineScraper
     SCRAPERS["idealwine_auctions"] = IDealwineAuctionsScraper
+    SCRAPERS["idealwine_history"] = IDealwineHistoricalScraper
     SCRAPERS["lavinia"] = LaviniaScraper
     SCRAPERS["vinatis"] = VinatissScraper
     SCRAPERS["cavissima"] = CavissimaScraper

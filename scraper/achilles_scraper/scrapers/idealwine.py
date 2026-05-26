@@ -52,6 +52,8 @@ _AUTH_URL = f"{_BASE}/api/v2/shop/authentication-token"
 _PRODUCTS_URL = f"{_BASE}/api/v2/shop/products"
 _VARIANTS_URL = f"{_BASE}/api/v2/shop/product-variants-by-product"
 _AUCTION_CATALOGS_URL = f"{_BASE}/api/v2/shop/auction-catalogs"
+# Historical sold lots — past auction results archive
+_AUCTION_RESULTS_URL = f"{_BASE}/api/v2/shop/auction-results"
 
 _logger = logging.getLogger(__name__)
 
@@ -534,6 +536,10 @@ def _ensure_auction_source(conn: sqlite3.Connection) -> Optional[int]:
     if row:
         return row[0]
     try:
+        auctions_notes = (
+            "Auction lot estimates/bids - separate from fixed-price retail. "
+            "Shares JWT credentials with idealwine source_code."
+        )
         cur = conn.execute(
             """INSERT OR IGNORE INTO dim_source
                (source_code, source_name, source_tier, country_code, base_url,
@@ -548,9 +554,9 @@ def _ensure_auction_source(conn: sqlite3.Connection) -> Optional[int]:
                  'weekly',
                  1,
                  1,
-                 'Auction lot estimates/bids — separate from fixed-price retail. '
-                 'Shares JWT credentials with idealwine source_code.'
+                 ?
                )""",
+            (auctions_notes,),
         )
         conn.commit()
         if cur.lastrowid:
@@ -829,6 +835,400 @@ class IDealwineAuctionsScraper(AuthenticatedScraper):
             )
 
             self._run_auctions(client, source_key, batch_id, result, limit, active_catalog_ids)
+        finally:
+            if client is not None:
+                client.close()
+
+        return result
+
+
+def _ensure_history_source(conn: sqlite3.Connection) -> Optional[int]:
+    """Ensure the idealwine_history dim_source row exists; return its source_key."""
+    row = conn.execute(
+        "SELECT source_key FROM dim_source WHERE source_code = ?",
+        ("idealwine_history",),
+    ).fetchone()
+    if row:
+        return row[0]
+    try:
+        notes = (
+            "Past auction sold-lot results archive - hammer prices for old vintages "
+            "(pre-2010). Separate from idealwine_auctions (live lots). "
+            "Shares JWT credentials with idealwine source_code."
+        )
+        cur = conn.execute(
+            """INSERT OR IGNORE INTO dim_source
+               (source_code, source_name, source_tier, country_code, base_url,
+                license_class, cadence, enabled, requires_auth, notes)
+               VALUES (
+                 'idealwine_history',
+                 'iDealwine Historical Auction Results',
+                 'B_retailer',
+                 'FR',
+                 'https://www.idealwine.com',
+                 'public_check_terms',
+                 'monthly',
+                 1,
+                 1,
+                 ?
+               )""",
+            (notes,),
+        )
+        conn.commit()
+        if cur.lastrowid:
+            return cur.lastrowid
+        row2 = conn.execute(
+            "SELECT source_key FROM dim_source WHERE source_code = ?",
+            ("idealwine_history",),
+        ).fetchone()
+        return row2[0] if row2 else None
+    except Exception as exc:
+        _logger.error("Could not insert idealwine_history dim_source row: %s", exc)
+        return None
+
+
+class IDealwineHistoricalScraper(IDealwineAuctionsScraper):
+    """Scrape past auction sold-lot results from iDealwine's historical archive.
+
+    iDealwine keeps an extensive archive of hammer prices for past auction
+    sales. This scraper pulls that archive so old vintages (pre-2010, pre-2000)
+    that never appear in active auction catalogs are covered.
+
+    Strategy
+    --------
+    1. Try the dedicated ``/api/v2/shop/auction-results`` endpoint first.
+       This endpoint, if it exists on the Sylius backend, returns sold lots
+       with a ``soldAt`` timestamp suitable for cursor-based incremental runs.
+    2. Fall back to the standard ``/api/v2/shop/products`` endpoint with no
+       active-catalog filter (all AUCTION variants accepted regardless of
+       their ``auctionCatalogId``).  This is the same data as
+       ``IDealwineAuctionsScraper`` but without the live-catalog filter, so
+       it captures lots from all historical catalogs.
+
+    ``from_date`` parameter
+    -----------------------
+    Pass an ISO-8601 string (``YYYY-MM-DD``) to skip lots whose ``soldAt``
+    is before that date. On the results endpoint this maps to the API filter
+    ``?soldAtAfter=YYYY-MM-DD``. On the products fallback it is applied
+    client-side via the variant's ``createdAt`` / ``updatedAt`` field.
+
+    The source is registered as ``idealwine_history`` in ``dim_source``, so
+    historical hammer prices are kept separate from both retail prices
+    (``idealwine``) and live auction estimates (``idealwine_auctions``).
+
+    Env vars: ACHILLES_AUTH_IDEALWINE_USERNAME / ACHILLES_AUTH_IDEALWINE_PASSWORD
+    (shared with the main idealwine scraper).
+    """
+
+    source_code = "idealwine_history"
+    _auth_source_code = "idealwine"
+
+    def __init__(self, conn: sqlite3.Connection):
+        self.conn = conn
+        self.batch_id: Optional[str] = None
+        self.from_date: Optional[str] = None  # ISO-8601 date string, e.g. "2020-01-01"
+
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+
+    def _parse_from_ts(self) -> Optional[int]:
+        """Convert self.from_date to a Unix timestamp, or None."""
+        if not self.from_date:
+            return None
+        try:
+            from datetime import date
+            d = date.fromisoformat(self.from_date)
+            return int(datetime(d.year, d.month, d.day, tzinfo=timezone.utc).timestamp())
+        except Exception:
+            return None
+
+    def _run_results_endpoint(
+        self,
+        client: "httpx.Client",
+        source_key: int,
+        batch_id: str,
+        result: "ScrapeResult",
+        limit: Optional[int],
+    ) -> bool:
+        """Try the /api/v2/shop/auction-results endpoint.
+
+        Returns True if the endpoint existed and was successfully iterated,
+        False if it returned 404/405 (meaning we should fall back).
+        """
+        page = 1
+        items_per_page = 30
+        total_fetched = 0
+
+        date_filter = f"&soldAtAfter={self.from_date}" if self.from_date else ""
+
+        while True:
+            if limit is not None and total_fetched >= limit:
+                break
+
+            url = (
+                f"{_AUCTION_RESULTS_URL}"
+                f"?page={page}&itemsPerPage={items_per_page}{date_filter}"
+            )
+            try:
+                resp = self._fetch(lambda u=url: client.get(u))
+            except Exception as e:
+                result.error = f"HTTP error on auction-results page {page}: {e}"
+                write_dlq(self.conn, source_key, batch_id, "network_error", str(e),
+                          {"url": url})
+                result.rows_dlq += 1
+                return True  # endpoint existed, just errored
+
+            # 404 / 405 → endpoint does not exist on this Sylius instance
+            if resp.status_code in (404, 405):
+                _logger.info(
+                    "[%s] /api/v2/shop/auction-results returned HTTP %d — falling back",
+                    batch_id, resp.status_code,
+                )
+                return False
+
+            try:
+                resp.raise_for_status()
+            except Exception as e:
+                result.error = f"HTTP error on auction-results page {page}: {e}"
+                write_dlq(self.conn, source_key, batch_id, "network_error", str(e),
+                          {"url": url})
+                result.rows_dlq += 1
+                return True
+
+            try:
+                data = resp.json()
+            except Exception as e:
+                result.error = f"JSON parse error on auction-results: {e}"
+                return True
+
+            lots = data.get("hydra:member", [])
+            if not lots:
+                break
+
+            from_ts = self._parse_from_ts()
+
+            for lot in lots:
+                if limit is not None and total_fetched >= limit:
+                    break
+
+                # Date filtering on the lot level (belt-and-suspenders)
+                if from_ts:
+                    sold_at_raw = lot.get("soldAt") or lot.get("createdAt") or ""
+                    if sold_at_raw:
+                        try:
+                            sold_ts = int(datetime.fromisoformat(
+                                sold_at_raw.replace("Z", "+00:00")
+                            ).timestamp())
+                            if sold_ts < from_ts:
+                                continue
+                        except Exception:
+                            pass
+
+                # Each lot contains embedded product + variant data
+                product = lot.get("product") or lot
+                variant = lot.get("variant") or lot
+
+                # Ensure saleType is present for _process_variant
+                if "saleType" not in variant:
+                    variant = dict(variant, saleType="AUCTION")
+
+                # Use hammer price if available, else estimate
+                hammer_cents = lot.get("hammerPrice") or lot.get("finalPrice")
+                if hammer_cents and "priceByCountry" not in variant:
+                    variant = dict(variant, priceByCountry={"FR": hammer_cents})
+
+                inserted = _process_variant(
+                    self.conn, source_key, batch_id, result,
+                    product, variant, "idealwine_history",
+                    sale_type_filter=None,
+                )
+                total_fetched += 1
+
+            total_items = data.get("hydra:totalItems", 0)
+            if page * items_per_page >= total_items:
+                break
+
+            page += 1
+            time.sleep(1.0)
+
+        return True
+
+    def _run_products_fallback(
+        self,
+        client: "httpx.Client",
+        source_key: int,
+        batch_id: str,
+        result: "ScrapeResult",
+        limit: Optional[int],
+    ) -> None:
+        """Fallback: iterate /api/v2/shop/products accepting all AUCTION variants.
+
+        Unlike IDealwineAuctionsScraper._run_auctions(), this does NOT filter
+        by active catalog IDs, so past catalog lots are included.  A from_date
+        guard is applied on the variant's createdAt/updatedAt field.
+        """
+        page = 1
+        items_per_page = 30
+        total_fetched = 0
+        from_ts = self._parse_from_ts()
+
+        while True:
+            if limit is not None and total_fetched >= limit:
+                break
+
+            products_url = f"{_PRODUCTS_URL}?page={page}&itemsPerPage={items_per_page}"
+            try:
+                resp = self._fetch(lambda u=products_url: client.get(u))
+                resp.raise_for_status()
+            except Exception as e:
+                result.error = f"HTTP error fetching products page {page}: {e}"
+                write_dlq(self.conn, source_key, batch_id, "network_error", str(e),
+                          {"url": products_url})
+                result.rows_dlq += 1
+                break
+
+            try:
+                data = resp.json()
+            except Exception as e:
+                result.error = f"JSON parse error on products: {e}"
+                break
+
+            products = data.get("hydra:member", [])
+            if not products:
+                break
+
+            for product in products:
+                if limit is not None and total_fetched >= limit:
+                    break
+
+                product_id = product.get("id")
+                if not product_id:
+                    continue
+
+                name = product.get("name", "")
+                if not name:
+                    continue
+
+                variants_url = f"{_VARIANTS_URL}/{product_id}"
+                try:
+                    vresp = self._fetch(
+                        lambda u=variants_url: client.get(u, headers={"Accept": "application/json"})
+                    )
+                    if vresp.status_code == 404:
+                        continue
+                    vresp.raise_for_status()
+                    variants = vresp.json()
+                except Exception as e:
+                    write_dlq(self.conn, source_key, batch_id, "network_error", str(e),
+                              {"url": variants_url})
+                    result.rows_dlq += 1
+                    continue
+
+                if not isinstance(variants, list):
+                    continue
+
+                for variant in variants:
+                    if limit is not None and total_fetched >= limit:
+                        break
+
+                    # Only auction variants
+                    if variant.get("saleType") != "AUCTION":
+                        continue
+
+                    # Date-cursor filtering (from_date support)
+                    if from_ts:
+                        updated_raw = (
+                            variant.get("updatedAt")
+                            or variant.get("createdAt")
+                            or ""
+                        )
+                        if updated_raw:
+                            try:
+                                var_ts = int(datetime.fromisoformat(
+                                    updated_raw.replace("Z", "+00:00")
+                                ).timestamp())
+                                if var_ts < from_ts:
+                                    continue
+                            except Exception:
+                                pass
+
+                    _process_variant(
+                        self.conn, source_key, batch_id, result,
+                        product, variant, "idealwine_history",
+                        sale_type_filter=None,
+                    )
+                    total_fetched += 1
+
+                time.sleep(0.2)
+
+            total_items = data.get("hydra:totalItems", 0)
+            if page * items_per_page >= total_items:
+                break
+
+            page += 1
+            time.sleep(1.0)
+
+    # ------------------------------------------------------------------
+    # Public interface
+    # ------------------------------------------------------------------
+
+    def run(self, limit: Optional[int] = None) -> ScrapeResult:  # type: ignore[override]
+        if not HAS_DEPS:
+            return ScrapeResult(error="Missing dependencies: httpx not installed")
+
+        if not has_credentials(self._auth_source_code):
+            return ScrapeResult(
+                error="Credentials missing: set ACHILLES_AUTH_IDEALWINE_USERNAME / _PASSWORD"
+            )
+
+        # Ensure the dim_source row exists (idempotent)
+        source_key = _ensure_history_source(self.conn)
+        if source_key is None:
+            return ScrapeResult(error="Could not ensure idealwine_history dim_source row")
+
+        batch_id = (
+            self.batch_id
+            or f"idealwine_history-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:8]}"
+        )
+        result = ScrapeResult(batch_id=batch_id)
+
+        headers = {
+            "User-Agent": _USER_AGENT,
+            "Accept": "application/ld+json",
+        }
+
+        client = None
+        try:
+            client = self.authenticated_client(headers=headers, conn=self.conn)
+        except AuthMissingError as e:
+            return ScrapeResult(error=str(e))
+        except AuthError as e:
+            return ScrapeResult(error=str(e))
+
+        try:
+            _logger.info(
+                "[%s] Starting idealwine_history run (from_date=%s, limit=%s)",
+                batch_id, self.from_date, limit,
+            )
+
+            # Try dedicated results endpoint first; fall back to products scan
+            used_results_endpoint = self._run_results_endpoint(
+                client, source_key, batch_id, result, limit,
+            )
+
+            if not used_results_endpoint:
+                _logger.info(
+                    "[%s] auction-results endpoint not available; using products fallback",
+                    batch_id,
+                )
+                self._run_products_fallback(client, source_key, batch_id, result, limit)
+            else:
+                _logger.info(
+                    "[%s] Used auction-results endpoint; fetched=%d inserted=%d",
+                    batch_id, result.rows_fetched, result.rows_inserted,
+                )
+
         finally:
             if client is not None:
                 client.close()
