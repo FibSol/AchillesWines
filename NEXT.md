@@ -103,7 +103,7 @@ Wine press (E_press_critic → write to fact_rating):
 ## Sprint 9 — Email newsletter ingestion (ADR-011)
 
 - [x] **P2 · 4h** [Patroclus + Cassandra] Email newsletter scraper: IMAP mailbox client + generic HTML parser + EmailNewsletterScraper base + .eml replay + 40 unit tests + docs/EMAIL.md ✓ 2026-05-22 (ADR-011)
-- [ ] **P4 · 1h** [Patroclus] Set `from_email` to the real subscriber address for each `*_email` row in dim_source after the user subscribes the mailbox — [#19](https://github.com/FibSol/AchillesWines/issues/19)
+- [x] **P4 · 1h** [Patroclus] Set `from_email` to the real subscriber address for each `*_email` row in dim_source after the user subscribes the mailbox — [#19](https://github.com/FibSol/AchillesWines/issues/19) ✓ 2026-05-26
 - [x] **P3 · 2h** [Patroclus] Per-vendor `_parse_html()` overrides as the generic heuristic shows holes per source — [#20](https://github.com/FibSol/AchillesWines/issues/20) ✓ 2026-05-24
 - [x] **P3 · 3h** [Patroclus] Optional LLM fallback parser (Claude API) for emails the heuristic can't handle — gated behind a per-source `use_llm_fallback` flag to keep API costs predictable — [#21](https://github.com/FibSol/AchillesWines/issues/21) ✓ 2026-05-26
 
