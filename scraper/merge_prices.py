@@ -107,17 +107,30 @@ for i, r in enumerate(unique, 1):
     except Exception:
         domain = ""
 
-    if price != "not found" and src_url:
+    # Always provide a shop/lookup link
+    buy_link = src_url if src_url else ws_url
+    buy_label = domain if domain else "wine-searcher.com"
+
+    if price not in ("not found", "not listed"):
         price_cell = (
             f'<td class="price {rc}" title="{snippet}">'
-            f'<a href="{src_url}" target="_blank">{price}</a>'
-            f'<br><span class="src">{domain}</span>'
+            f'<span class="price-val">{price}</span>'
+            f'<a class="shop-btn" href="{buy_link}" target="_blank">shop ↗</a>'
             f'</td>'
         )
-    elif price != "not found":
-        price_cell = f'<td class="price {rc}">{price}</td>'
+    elif price == "not listed":
+        price_cell = (
+            f'<td class="price" title="{snippet}">'
+            f'<span style="color:#888">not listed</span>'
+            f'<a class="shop-btn" href="{buy_link}" target="_blank">search ↗</a>'
+            f'</td>'
+        )
     else:
-        price_cell = f'<td class="price"><a href="{ws_url}" target="_blank">lookup ↗</a></td>'
+        price_cell = (
+            f'<td class="price">'
+            f'<a class="shop-btn" href="{ws_url}" target="_blank">lookup ↗</a>'
+            f'</td>'
+        )
 
     html_rows.append(f'  <tr><td>{i}</td><td class="score">{sc}</td><td>{prod}</td><td>{cuv}</td><td>{v}</td><td>{app}</td>{price_cell}<td class="val">{val_html}</td></tr>')
 
@@ -142,6 +155,9 @@ html = (
 "  .price a { color: #E5B25D; text-decoration: none; }\n"
 "  .price a:hover { text-decoration: underline; }\n"
 "  .src { color: #666; font-size: 10px; font-weight: normal; }\n"
+"  .price-val { color: inherit; margin-right: 6px; }\n"
+"  .shop-btn { display: inline-block; margin-left: 4px; padding: 1px 6px; background: #A53860; color: #fff !important; border-radius: 3px; font-size: 10px; font-weight: bold; text-decoration: none !important; white-space: nowrap; }\n"
+"  .shop-btn:hover { background: #c04070; }\n"
 "  .val { white-space: nowrap; }\n"
 "  .val-5 { color: #00e676; font-size: 13px; }\n"
 "  .val-4 { color: #69f0ae; font-size: 12px; }\n"
