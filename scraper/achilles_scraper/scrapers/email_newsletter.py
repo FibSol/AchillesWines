@@ -39,6 +39,7 @@ from ..identity import (
     clean_cuvee_tails,
 )
 from ..dlq import write_dlq
+from ..llm_parser import parse_with_llm
 from .base import BaseScraper, ScrapeResult
 
 
@@ -107,6 +108,18 @@ class EmailNewsletterScraper(BaseScraper):
             ),
         )
 
+    # -- LLM fallback ---------------------------------------------------------
+
+    def _use_llm_fallback(self) -> bool:
+        """Return True when this source has use_llm_fallback=1 in dim_source."""
+        row = self.conn.execute(
+            "SELECT use_llm_fallback FROM dim_source WHERE source_code = ?",
+            (self.source_code,),
+        ).fetchone()
+        if row is None:
+            return False
+        return bool(row["use_llm_fallback"])
+
     # -- Parsing override hook ------------------------------------------------
 
     def _parse_html(self, html: str) -> list[EmailOffer]:
@@ -165,6 +178,10 @@ class EmailNewsletterScraper(BaseScraper):
                             continue
 
                         offers = self._parse_html(html)
+                        if not offers and self._use_llm_fallback():
+                            offers = parse_with_llm(html, self.source_code)
+                            if offers:
+                                print(f"  → LLM fallback extracted {len(offers)} offer(s)")
                         print(
                             f"  uid={uid.decode('ascii', errors='replace')} "
                             f"subject={msg.subject[:60]!r} → {len(offers)} offer(s)"

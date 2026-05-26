@@ -65,6 +65,11 @@ export const dimSource = sqliteTable(
     benchmarkSuccessRate: real("benchmark_success_rate"),
     /** Human-readable notes from the last benchmark (JSON summary). */
     benchmarkNotes: text("benchmark_notes"),
+    /** When 1, EmailNewsletterScraper will retry 0-offer emails via Claude Haiku
+     * (LLM fallback parser). Opt-in only — keeps API costs predictable.
+     * Requires ANTHROPIC_API_KEY in env; gracefully skipped if absent.
+     */
+    useLlmFallback: integer("use_llm_fallback").notNull().default(0),
   },
   (t) => ({
     tierIdx: index("idx_source_tier").on(t.sourceTier),
