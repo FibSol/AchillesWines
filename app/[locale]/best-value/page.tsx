@@ -1,6 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { db } from "@/db";
-import { dimWine, dimProducer, dimAppellation, factPrice, factRating } from "@/db/schema";
+import { dimWine, dimProducer, dimAppellation, factPrice, factRating, stagingPriceCandidates } from "@/db/schema";
 import { sql, desc, eq, and, gt, isNotNull } from "drizzle-orm";
 import { PageShell } from "@/components/page-shell";
 import { BestValueScatter, type BestValuePoint } from "@/components/BestValueScatter";
@@ -38,7 +38,27 @@ async function getBestValueWines(): Promise<{ wines: BestValueRow[]; ratingMode:
       .where(and(isNotNull(factPrice.amountEur), gt(factPrice.amountEur, 1)))
       .groupBy(factPrice.wineKey);
 
-    if (prices.length === 0) return { wines: [], ratingMode: false };
+    // Also include staging prices for wines not yet promoted to fact_price (single-source candidates)
+    const factPriceKeys = new Set(prices.map((p) => p.wineKey));
+    const stagingRows = await db
+      .select({
+        wineKey: stagingPriceCandidates.wineKey,
+        avgPrice: sql<number>`avg(${stagingPriceCandidates.amountEur})`,
+        minPrice: sql<number>`min(${stagingPriceCandidates.amountEur})`,
+        maxPrice: sql<number>`max(${stagingPriceCandidates.amountEur})`,
+        srcCount: sql<number>`count(distinct ${stagingPriceCandidates.sourceKey})`,
+      })
+      .from(stagingPriceCandidates)
+      .where(and(isNotNull(stagingPriceCandidates.amountEur), gt(stagingPriceCandidates.amountEur, 1)))
+      .groupBy(stagingPriceCandidates.wineKey);
+
+    // Merge: fact_price wins on overlap; staging fills in the rest
+    const allPrices = [
+      ...prices,
+      ...stagingRows.filter((s) => !factPriceKeys.has(s.wineKey)),
+    ];
+
+    if (allPrices.length === 0) return { wines: [], ratingMode: false };
 
     // Get average normalized rating + distinct source count per wine
     const ratings = await db
@@ -52,7 +72,7 @@ async function getBestValueWines(): Promise<{ wines: BestValueRow[]; ratingMode:
       .groupBy(factRating.wineKey);
 
     const hasRatings = ratings.length > 0;
-    const priceMap = new Map(prices.map((p) => [p.wineKey, p]));
+    const priceMap = new Map(allPrices.map((p) => [p.wineKey, p]));
     const ratingMap = new Map(ratings.map((r) => [r.wineKey, { avg: r.avgRating, count: r.sourceCount }]));
 
     // In rating mode: only wines with both price + rating; in price-confidence mode: all price wines
