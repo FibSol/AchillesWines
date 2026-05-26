@@ -73,7 +73,7 @@ Wine shops:
 - [x] **P2 · 1h**   [Patroclus] Scraper belgiumwinewatchers (BE) ✓ 2026-05-22
 
 Wine press (E_press_critic → write to fact_rating):
-- [ ] **P2 · 2h**   [Patroclus] Scraper magazines_fr (aggregator — subscription needed, URL patterns TBD) — [#18](https://github.com/FibSol/AchillesWines/issues/18)
+- [x] **P2 · 2h**   [Patroclus] Scraper magazines_fr (aggregator — subscription needed, URL patterns TBD) — [#18](https://github.com/FibSol/AchillesWines/issues/18) ✓ 2026-05-26
 - [x] **P2 · 1.5h** [Patroclus] Scraper figaro_vin (lefigaro.fr/avis-vin) ✓ 2026-05-22
 - [x] **P2 · 1.5h** [Patroclus] Scraper terredevins ✓ 2026-05-22
 - [x] **P2 · 2h**   [Patroclus] Scraper hachette_vins (guide ratings) ✓ 2026-05-22
