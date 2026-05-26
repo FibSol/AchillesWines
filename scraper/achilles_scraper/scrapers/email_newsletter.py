@@ -182,10 +182,12 @@ class EmailNewsletterScraper(BaseScraper):
 
                         # Per-message hash so duplicate newsletters don't repopulate staging.
                         msg_hash = msg.message_id or f"uid:{uid.decode('ascii', errors='replace')}"
+                        inserted_this_msg = 0
                         for offer in offers:
                             try:
                                 self._insert_candidate(source_key, batch_id, offer, msg_hash)
                                 result.rows_inserted += 1
+                                inserted_this_msg += 1
                             except sqlite3.Error as e:
                                 self._dlq(
                                     batch_id, msg, eml_path,
@@ -195,8 +197,11 @@ class EmailNewsletterScraper(BaseScraper):
                                 result.rows_dlq += 1
                         self.conn.commit()
 
-                        # Success → delete from mailbox so it doesn't accumulate.
-                        mb.delete(uid)
+                        # Only delete from mailbox if at least one offer was persisted.
+                        # If all inserts failed (e.g. DB lock), leave the message UNSEEN
+                        # so the next scraper run retries it.
+                        if inserted_this_msg > 0:
+                            mb.delete(uid)
                     except MailboxError as e:
                         print(f"  uid={uid!r} mailbox error: {e}")
                         result.rows_dlq += 1

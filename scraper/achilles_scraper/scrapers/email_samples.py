@@ -136,11 +136,18 @@ def _block_offer(anchor: object, href: str) -> Optional[EmailOffer]:
 
 class MillesimaEmailScraper(EmailNewsletterScraper):
     """
-    Millesima newsletters use table-based product cards.  The wine name is
-    typically in a <p> or <strong> element adjacent to the product link, not
-    inside the anchor text itself — the anchor is often an image or a short
-    "Voir" CTA.  The block-first parser handles this; the generic parser is
-    used as a fallback.
+    Millesima newsletter parser.
+
+    Two email formats coexist:
+    1. "Nouveautés" format — product data is fully inline in a TD:
+       "Producer : Cuvée Vintage Appellation Color  NNN,NN€ Un carton de N Bouteilles (75cl)  Découvrir"
+       Price is per carton; divide by bottle count for per-unit price.
+
+    2. Legacy format — product link on millesima.com/millesima.fr with block-first
+       extraction (image + CTA anchor; title in adjacent strong/heading).
+
+    Both formats use tracking redirect URLs (t.news.millesima.com), so URL-based
+    product detection is skipped in favour of text-pattern matching for format 1.
     """
 
     source_code = "millesima_email"
@@ -148,14 +155,113 @@ class MillesimaEmailScraper(EmailNewsletterScraper):
     domain_hints = ("millesima.fr", "millesima.com")
 
     _DOMAIN_FRAGS: tuple[str, ...] = ("millesima.fr", "millesima.com")
-    # millesima.fr/vins/…, millesima.com/bdd/produit/…, /wine/, /bouteille
     _PATH_KEYS: tuple[str, ...] = ("/vins/", "/bdd/produit", "/wine/", "/wines/", "/bouteille")
+
+    # Matches "NNN,NN€ Un carton de N Bouteilles"
+    _CARTON_RE = re.compile(
+        r"(\d{1,4}[,.]\d{2})\s*€\s+Un carton de (\d+) Bouteilles",
+        re.IGNORECASE,
+    )
+    # Colour words that trail the appellation — strip them from cuvée.
+    _COLOR_WORDS = {"Blanc", "Rouge", "Rosé", "Rose", "Effervescent", "Mousseux", "Pétillant"}
+
+    def _parse_inline(self, html: str) -> list[EmailOffer]:
+        """Parse 'Nouveautés' style: full product info in a single TD."""
+        if not _HAS_SELECTOLAX:
+            return []
+        tree = _HTMLParser(html)
+        offers: list[EmailOffer] = []
+        seen_texts: set[str] = set()
+
+        for node in tree.css("td, div, p"):
+            raw = node.text(separator=" ", strip=True)
+            # Must contain " : " separator and a "carton de N Bouteilles" price.
+            if " : " not in raw:
+                continue
+            m = self._CARTON_RE.search(raw)
+            if not m:
+                continue
+
+            key = re.sub(r"\s+", " ", raw).strip()
+            if key in seen_texts:
+                continue
+            seen_texts.add(key)
+
+            price_str = m.group(1).replace(",", ".")
+            try:
+                carton_price = float(price_str)
+            except ValueError:
+                continue
+            n_bottles = int(m.group(2))
+            if n_bottles <= 0:
+                continue
+            price_per_bottle = round(carton_price / n_bottles, 2)
+
+            # Text before the price pattern.
+            prefix = raw[: m.start()].strip()
+            # Split producer / rest on first " : ".
+            colon_idx = prefix.find(" : ")
+            if colon_idx < 0:
+                continue
+            producer = prefix[:colon_idx].strip()
+            rest = prefix[colon_idx + 3:].strip()
+
+            # Reject noise: preamble blocks have very long "producer" text or
+            # contain multiple producers listed (commas) or preamble markers.
+            if (
+                len(producer) > 60
+                or "en ligne" in producer.lower()
+                or producer.count(",") >= 2
+            ):
+                continue
+
+            # Detect vintage.
+            vy = _ep_detect_vintage(rest)
+            if vy is not None:
+                # Cuvée is everything before the vintage.
+                cuvee = re.sub(rf"\b{vy}\b.*", "", rest).strip()
+            else:
+                cuvee = rest
+
+            # Strip trailing colour word from cuvée.
+            words = cuvee.split()
+            while words and words[-1] in self._COLOR_WORDS:
+                words.pop()
+            cuvee = " ".join(words).strip(" ,–—-")
+
+            if not producer or not cuvee:
+                continue
+
+            # Source URL: nearest tracking href (best effort).
+            href = ""
+            for a in node.css("a[href]"):
+                href = a.attributes.get("href", "") or ""
+                if href:
+                    break
+
+            offers.append(EmailOffer(
+                producer_name=producer,
+                cuvee_name=cuvee,
+                vintage=vy,
+                bottle_ml=750,
+                price_eur=price_per_bottle,
+                source_url=href or None,
+                raw_anchor_text=prefix,
+            ))
+
+        return offers
 
     def _parse_html(self, html: str) -> list[EmailOffer]:
         if not html or not _HAS_SELECTOLAX:
             return []
+
+        # Try inline (Nouveautés) format first.
+        offers = self._parse_inline(html)
+        if offers:
+            return offers
+
+        # Legacy: product links on millesima domain.
         tree = _HTMLParser(html)
-        offers: list[EmailOffer] = []
         seen: set[str] = set()
         for anchor in tree.css("a[href]"):
             href = anchor.attributes.get("href", "") or ""
@@ -167,6 +273,7 @@ class MillesimaEmailScraper(EmailNewsletterScraper):
             offer = _block_offer(anchor, href)
             if offer:
                 offers.append(offer)
+
         if not offers:
             return parse_newsletter_html(html, source_domain_hints=self.domain_hints)
         return offers
