@@ -149,7 +149,7 @@ Wine press (E_press_critic → write to fact_rating):
 
 ## Sprint 12 — Production data migration
 
-- [ ] **P1 · 1h** [Patroclus] Migrate dev DB → prod RPi once ≥ 80% of scrapers have at least one successful `done` run. Gate: `SELECT COUNT(DISTINCT source_key) FROM ops_job_queue WHERE status='done'` ≥ 80% of enabled sources. Script `scripts/migrate-dev-to-prod.ps1`: dump dim_producer, dim_appellation, dim_wine, bridge_wine_variety, fact_price, fact_rating, fact_vintage_rating, staging_price_candidates, cellar_* from dev; SCP to RPi; stop add-on, apply, restart; print row counts before/after. Do NOT overwrite dim_source, ops_scraper_schedule, ops_* tables on prod. — [#29](https://github.com/FibSol/AchillesWines/issues/29)
+- [x] **P1 · 1h** [Patroclus] Migrate dev DB → prod RPi once ≥ 80% of scrapers have at least one successful `done` run. Gate: `SELECT COUNT(DISTINCT source_key) FROM ops_job_queue WHERE status='done'` ≥ 80% of enabled sources. Script `scripts/migrate-dev-to-prod.ps1`: dump dim_producer, dim_appellation, dim_wine, bridge_wine_variety, fact_price, fact_rating, fact_vintage_rating, staging_price_candidates, cellar_* from dev; SCP to RPi; stop add-on, apply, restart; print row counts before/after. Do NOT overwrite dim_source, ops_scraper_schedule, ops_* tables on prod. — [#29](https://github.com/FibSol/AchillesWines/issues/29) ✓ 2026-05-26
 
 ## Idées différées (P3 backlog)
 
