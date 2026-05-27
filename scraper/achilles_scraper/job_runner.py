@@ -489,6 +489,53 @@ class JobRunner:
         )
         self.conn.commit()
 
+    def _auto_requeue_due(self) -> list[dict]:
+        """Return sources whose auto_requeue_minutes has elapsed since their last job.
+
+        Called every 60 s from the polling loop so email scrapers (and any other
+        always-on source) keep cycling without an external monitor script.
+        Only enqueues if the source is enabled, has auto_requeue_minutes set,
+        is not already queued/running, and finished its last job more than
+        auto_requeue_minutes ago (or has never run at all).
+        """
+        now = int(time.time())
+        try:
+            rows = self.conn.execute(
+                "SELECT source_key, source_code, auto_requeue_minutes "
+                "FROM dim_source "
+                "WHERE auto_requeue_minutes IS NOT NULL AND enabled = 1"
+            ).fetchall()
+        except Exception:
+            return []
+
+        due = []
+        for row in rows:
+            sk = row["source_key"]
+            mins = row["auto_requeue_minutes"]
+            threshold = now - int(mins) * 60
+
+            # Skip if already active (queued or running)
+            active = self.conn.execute(
+                "SELECT COUNT(*) FROM ops_job_queue "
+                "WHERE source_key=? AND status IN ('queued','running')",
+                (sk,),
+            ).fetchone()[0]
+            if active > 0:
+                continue
+
+            # Skip if ran (any terminal status) within the requeue window
+            recent = self.conn.execute(
+                "SELECT MAX(finished_at) FROM ops_job_queue "
+                "WHERE source_key=? AND status IN ('done','failed','cancelled')",
+                (sk,),
+            ).fetchone()[0]
+            if recent is not None and recent > threshold:
+                continue
+
+            due.append(dict(row))
+
+        return due
+
     def _finish_job(self, job_id: str, result: ScrapeResult):
         status = "failed" if result.error else "done"
         self.conn.execute(
@@ -619,69 +666,98 @@ class JobRunner:
             try:
                 while True:
                     _poll_iter += 1
-                    # ── 0. Refresh schedules from DB every 60 s ─────────────
-                    if _poll_iter % 12 == 0:
-                        self._refresh_schedules()
-
-                    # ── 1. Reap completed futures ────────────────────────────
-                    done_futures = [f for f in list(in_flight) if f.done()]
-                    for future in done_futures:
-                        job_id = in_flight.pop(future)
-                        try:
-                            _returned_job_id, result = future.result()
-                        except Exception as exc:
-                            # Safety-net: exception escaped the worker wrapper.
-                            console.print(
-                                f"[red]Worker raised unhandled exception for job {job_id[:8]}…: {exc}[/red]"
-                            )
-                            result = ScrapeResult(error=str(exc))
-                        self._finish_job(job_id, result)
-                        icon = "[red]✗[/red]" if result.error else "[green]✓[/green]"
-                        console.print(
-                            f"{icon} job={job_id[:8]}… "
-                            f"fetched={result.rows_fetched} inserted={result.rows_inserted} dlq={result.rows_dlq}"
-                        )
-
-                    # ── 2. Claim new jobs to fill free worker slots ──────────
-                    free_slots = self.max_workers - len(in_flight)
-                    if free_slots > 0:
-                        jobs = self._claim_jobs(free_slots)
-                        for job in jobs:
-                            source_code = (
-                                self._get_source_code(job["source_key"])
-                                if job.get("source_key")
-                                else None
-                            )
-                            # Normalise to lowercase — SCRAPERS keys are lowercase
-                            # but dim_source.source_code may be uppercase (e.g. BIVB, CIVB)
-                            scraper_key = source_code.lower() if source_code else None
-                            if scraper_key and scraper_key in self.scrapers:
-                                params = job.get("params") or {}
-                                if not isinstance(params, dict):
-                                    params = {}
-                                limit = int(params["limit"]) if params.get("limit") else None
-                                test_auth = bool(params.get("test_auth"))
-
-                                batch_id = _make_batch_id(scraper_key)
-                                self._set_batch_id(job["job_id"], batch_id)
-
-                                future = executor.submit(
-                                    _worker_run_job,
-                                    self.db_path,
-                                    self.scrapers,
-                                    job,
-                                    scraper_key,
-                                    batch_id,
-                                    limit,
-                                    test_auth,
-                                )
-                                in_flight[future] = job["job_id"]
-                            else:
-                                self.conn.execute(
-                                    "UPDATE ops_job_queue SET status='failed', error_message='Unknown source' WHERE job_id=?",
-                                    (job["job_id"],),
-                                )
+                    try:
+                        # ── 0. Refresh schedules + auto-requeue every 60 s ──────
+                        if _poll_iter % 12 == 0:
+                            self._refresh_schedules()
+                            # Re-enqueue always-on sources (e.g. email scrapers)
+                            # that have auto_requeue_minutes set and are overdue.
+                            due = self._auto_requeue_due()
+                            if due:
+                                for src in due:
+                                    self.conn.execute(
+                                        "INSERT INTO ops_job_queue "
+                                        "(job_id, source_key, requested_by, status, params) "
+                                        "VALUES (?, ?, 'runner_heartbeat', 'queued', '{}')",
+                                        (str(uuid.uuid4()), src["source_key"]),
+                                    )
+                                    console.print(
+                                        f"[dim]Auto-requeue: {src['source_code']} "
+                                        f"(every {src['auto_requeue_minutes']} min)[/dim]"
+                                    )
                                 self.conn.commit()
+
+                        # ── 1. Reap completed futures ────────────────────────────
+                        done_futures = [f for f in list(in_flight) if f.done()]
+                        for future in done_futures:
+                            job_id = in_flight.pop(future)
+                            try:
+                                _returned_job_id, result = future.result()
+                            except Exception as exc:
+                                # Safety-net: exception escaped the worker wrapper.
+                                console.print(
+                                    f"[red]Worker raised unhandled exception for job {job_id[:8]}…: {exc}[/red]"
+                                )
+                                result = ScrapeResult(error=str(exc))
+                            self._finish_job(job_id, result)
+                            icon = "[red]✗[/red]" if result.error else "[green]✓[/green]"
+                            console.print(
+                                f"{icon} job={job_id[:8]}… "
+                                f"fetched={result.rows_fetched} inserted={result.rows_inserted} dlq={result.rows_dlq}"
+                            )
+
+                        # ── 2. Claim new jobs to fill free worker slots ──────────
+                        free_slots = self.max_workers - len(in_flight)
+                        if free_slots > 0:
+                            jobs = self._claim_jobs(free_slots)
+                            for job in jobs:
+                                source_code = (
+                                    self._get_source_code(job["source_key"])
+                                    if job.get("source_key")
+                                    else None
+                                )
+                                # Normalise to lowercase — SCRAPERS keys are lowercase
+                                # but dim_source.source_code may be uppercase (e.g. BIVB, CIVB)
+                                scraper_key = source_code.lower() if source_code else None
+                                if scraper_key and scraper_key in self.scrapers:
+                                    params = job.get("params") or {}
+                                    if not isinstance(params, dict):
+                                        params = {}
+                                    limit = int(params["limit"]) if params.get("limit") else None
+                                    test_auth = bool(params.get("test_auth"))
+
+                                    batch_id = _make_batch_id(scraper_key)
+                                    self._set_batch_id(job["job_id"], batch_id)
+
+                                    future = executor.submit(
+                                        _worker_run_job,
+                                        self.db_path,
+                                        self.scrapers,
+                                        job,
+                                        scraper_key,
+                                        batch_id,
+                                        limit,
+                                        test_auth,
+                                    )
+                                    in_flight[future] = job["job_id"]
+                                else:
+                                    self.conn.execute(
+                                        "UPDATE ops_job_queue SET status='failed', error_message='Unknown source' WHERE job_id=?",
+                                        (job["job_id"],),
+                                    )
+                                    self.conn.commit()
+
+                    except (KeyboardInterrupt, SystemExit):
+                        raise  # let the outer handler catch these
+                    except Exception as exc:
+                        # Non-fatal poll error (e.g. transient DB busy, network blip).
+                        # Log and back off 30 s — do not crash the runner.
+                        console.print(
+                            f"[bold red]Poll loop error (iter {_poll_iter}): {exc}[/bold red] "
+                            f"— backing off 30 s"
+                        )
+                        time.sleep(30)
+                        continue
 
                     time.sleep(5)
 
