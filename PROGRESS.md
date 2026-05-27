@@ -2,6 +2,9 @@
 
 ## 2026-05-27
 
+### Helena (BA) + Hector (Architect)
+- [Helena+Hector] GitHub housekeeping + README rewrite: (1) Closed 3 stale open issues — #20 (per-vendor email parsers ✓ 2026-05-24), #22 (ops_auth_sessions ✓ 2026-05-24), #34 (Wine-Searcher scraper ✓ 2026-05-24). (2) README rewritten — step-by-step local dev install (Windows, 8 steps), RPi/HAOS production install (references docs/INSTALL_HAOS.md), architecture diagram, stack table, data-quality gate table, updated metrics (33 492 producers / 3 140 fact_price / ~130 500 fact_rating), Sprint 14 marked fully done. (3) NEXT.md backlog extended with #40 (WS vintage enrichment), #41 (naming CSV review), #42 (bridge_wine_variety). · files: README.md, NEXT.md
+
 ### Patroclus (Backend)
 - [Patroclus] Fix 3 known scraper/data issues: (1) **hachette_vins_guide.py**: added `_ensure_dim_wine()` FK guard — creates dim_producer (coverage_tier=long_tail) + dim_wine (appellation_key=1854 France generic) before each fact_rating INSERT; future runs will no longer generate validation_error DLQ entries. (2) **job_runner.py `_finish_job()`**: now looks up source_key from ops_job_queue and does `UPDATE dim_source SET last_success_at=? WHERE source_key=?` on successful job completion — last_success_at will populate on next scraper runs. (3) **batch7 missing fact_rating**: wrote `scraper/rvf_batch7_fix_fact_rating.py` — inserted 106 missing RVF fact_rating rows for wines batch7 had created in dim_wine but not in fact_rating; rvf_magazine now has 504 total ratings with 21% vintage≥2000 coverage (was 0%). Also wrote `scraper/hachette_dlq_resolve.py` which marked 1,840 legacy hachette validation_error DLQ entries as unresolvable (raw_record lacked producer_norm; fresh scraper runs will create correct data going forward). · files: scraper/achilles_scraper/scrapers/hachette_vins_guide.py, scraper/achilles_scraper/job_runner.py, scraper/rvf_batch7_fix_fact_rating.py, scraper/hachette_dlq_resolve.py
 
