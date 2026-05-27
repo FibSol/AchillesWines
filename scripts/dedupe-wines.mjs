@@ -35,7 +35,9 @@ const SAMPLE_LIMIT = (() => {
 
 const db = new Database(DB_PATH);
 db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
+// FK constraints need to be OFF during deduplication because we re-point child rows
+// from dupe wine_keys to the survivor before deleting dupes.
+db.pragma('foreign_keys = OFF');
 
 const LEVEL_RANK = { iconic: 5, grand_cru: 4, premier_cru: 3, village: 2, regional: 1 };
 

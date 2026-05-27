@@ -176,7 +176,11 @@ for (const r of rows) {
   const stripWords = pNorm.split(' ').filter(w => w.length > 2);
   let cuveeNorm = normText(displayCuvee);
   for (const w of stripWords) {
-    cuveeNorm = cuveeNorm.replace(new RegExp(`\\b${w}\\b`, 'g'), ' ');
+    // Escape regex special chars before constructing the pattern
+    const escaped = w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    try {
+      cuveeNorm = cuveeNorm.replace(new RegExp(`\\b${escaped}\\b`, 'g'), ' ');
+    } catch (_) { /* skip words that can't form valid regex */ }
   }
   cuveeNorm = cuveeNorm.replace(/\s+/g, ' ').trim();
 

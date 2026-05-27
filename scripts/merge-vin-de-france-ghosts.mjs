@@ -22,7 +22,7 @@ const SAMPLE_LIMIT = (() => { const i = argv.indexOf('--limit'); return i>=0 ? (
 
 const db = new Database(DB_PATH);
 db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
+db.pragma('foreign_keys = OFF'); // OFF: child rows re-pointed before dupe delete
 
 // Find all VdF rows grouped by (producer_key, vintage, bottle_ml, cuvee_norm).
 // For each group, if there's a non-VdF row in the same identity tuple, merge.
