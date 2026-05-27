@@ -652,14 +652,17 @@ class JobRunner:
                                 if job.get("source_key")
                                 else None
                             )
-                            if source_code and source_code in self.scrapers:
+                            # Normalise to lowercase — SCRAPERS keys are lowercase
+                            # but dim_source.source_code may be uppercase (e.g. BIVB, CIVB)
+                            scraper_key = source_code.lower() if source_code else None
+                            if scraper_key and scraper_key in self.scrapers:
                                 params = job.get("params") or {}
                                 if not isinstance(params, dict):
                                     params = {}
                                 limit = int(params["limit"]) if params.get("limit") else None
                                 test_auth = bool(params.get("test_auth"))
 
-                                batch_id = _make_batch_id(source_code)
+                                batch_id = _make_batch_id(scraper_key)
                                 self._set_batch_id(job["job_id"], batch_id)
 
                                 future = executor.submit(
@@ -667,7 +670,7 @@ class JobRunner:
                                     self.db_path,
                                     self.scrapers,
                                     job,
-                                    source_code,
+                                    scraper_key,
                                     batch_id,
                                     limit,
                                     test_auth,
