@@ -16,7 +16,7 @@ if master_path.exists():
 else:
     master = {}
 
-for f in sorted(DATA_DIR.glob("rvf_prices_found*.json")):
+for f in sorted(DATA_DIR.glob("rvf_prices_found*.json")) + sorted(DATA_DIR.glob("rvf_prices_fill*.json")):
     data = json.loads(f.read_text(encoding="utf-8"))
     for key, entry in data.items():
         existing = master.get(key, {})

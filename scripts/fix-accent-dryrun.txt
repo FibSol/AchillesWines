@@ -1,0 +1,17 @@
+﻿Found 7 rows to fix:
+  [c101d836d6a31011]  cuvee_name: "Le Carillon d'Angelus"  ->  "Le Carillon d'Ang�lus"
+         canonical:  "Ch�teau Ang�lus Le Carillon d'Angelus 2020"  ->  "Ch�teau Ang�lus Le Carillon d'Ang�lus 2020"
+  [a806abd607bdb96d]  cuvee_name: "Le Carillon d'Angelus"  ->  "Le Carillon d'Ang�lus"
+         canonical:  "Ch�teau Ang�lus Le Carillon d'Angelus 2021"  ->  "Ch�teau Ang�lus Le Carillon d'Ang�lus 2021"
+  [8eefde87eb2dd59b]  cuvee_name: "Tempo d'Angelus"  ->  "Tempo d'Ang�lus"
+         canonical:  "Ch�teau Ang�lus Tempo d'Angelus 2023"  ->  "Ch�teau Ang�lus Tempo d'Ang�lus 2023"
+  [0d7a0f83abd84440]  cuvee_name: 'Fugue de Nenin'  ->  'Fugue de N�ni'
+         canonical:  'Ch�teau N�nin Fugue de Nenin 2023'  ->  'Ch�teau N�nin Fugue de N�ni 2023'
+  [dbd0bad31efb720a]  cuvee_name: 'Aromes de Pavie'  ->  'Ar�mes de Pavie'
+         canonical:  'Ch�teau Pavie Aromes de Pavie, Saint Emilion 2020'  ->  'Ch�teau Pavie Ar�mes de Pavie, Saint Emilion 2020'
+  [ddc37ef766a3c276]  cuvee_name: 'Aromes de Pavie'  ->  'Ar�mes de Pavie'
+         canonical:  'Ch�teau Pavie Aromes de Pavie, Saint Emilion 2022'  ->  'Ch�teau Pavie Ar�mes de Pavie, Saint Emilion 2022'
+  [126557ad78ee0701]  cuvee_name: 'Terres Brul�es'  ->  'Terres Br�l�es'
+         canonical:  'Jean-Luc Colombo Terres Brul�es'  ->  'Jean-Luc Colombo Terres Br�l�es'
+
+[dry-run] No changes written.

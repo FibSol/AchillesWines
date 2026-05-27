@@ -1,0 +1,117 @@
+﻿Total pairs: 4980
+By category:
+  accent                   4
+  article                 58
+  edit-1                 514
+  edit-2                 224
+  substring             4180
+
+Full report: C:\Claude\achilles-wines\scripts\cuvee-similarity-report.json
+
+=== ACCENT ISSUES ===
+  [Ch�teau Ang�lus]  "Le Carillon d'Angelus"  vs  "Le Carillon d'Ang�lus"
+  [Ch�teau N�nin]  'Fugue de Nenin'  vs  'Fugue de N�nin'
+  [Ch�teau Pavie]  'Aromes de Pavie'  vs  'Ar�mes de Pavie'
+  [Jean-Luc Colombo]  'Terres Brul�es'  vs  'Terres Br�l�es'
+
+=== ARTICLE ISSUES (Le/La/Les prefix divergence) ===
+  [Adelaida]  'Glenrose Vineyard Reserve'  vs  'The Glenrose Vineyard Reserve'
+  [Adelaida]  'Glenrose Vineyard Roussanne-Grenache Blanc'  vs  'The Glenrose Vineyard Roussanne-Grenache Blanc'
+  [Alvear]  'A�ada'  vs  'de A�ada'
+  [Bodegas Carrau]  'De Reserva'  vs  'Reserva'
+  [Bouchard P�re & Fils]  "Gouttes d'Or Premier Cru"  vs  "Les Gouttes d'Or Premier Cru"
+  [Calcareous]  'The Twisted Sisters'  vs  'Twisted Sisters'
+  [Cass]  "Rockin' One"  vs  "The Rockin' One"
+  [Cave du Marmandais]  'La Vieille Eglise R�serve'  vs  'Vieille Eglise R�serve'
+  [Cayuse]  'The Widowmaker'  vs  'Widowmaker'
+  [Ch�teau Ang�lus]  "Carillon d'Ang�lus"  vs  "Le Carillon d'Angelus"
+  [Ch�teau Ang�lus]  "Carillon d'Ang�lus"  vs  "Le Carillon d'Ang�lus"
+  [Ch�teau Ausone]  "Chapelle d'Ausone"  vs  "La Chapelle d'Ausone"
+  [Ch�teau Bouissel]  'La Syrah de Bouissel'  vs  'Le Syrah de Bouissel'
+  [Ch�teau Calon-S�gur]  'C de Calon S�gur'  vs  'Le C de Calon Segur'
+  [Ch�teau Chasse-Spleen]  'H�ritage de Chasse Spleen'  vs  "L'H�ritage de Chasse-Spleen"
+  [Ch�teau Chasse-Spleen]  'H�ritage de Chasse-Spleen'  vs  "L'H�ritage de Chasse-Spleen"
+  [Ch�teau Cos d'Estournel]  'Les Pagodes de Cos'  vs  'Pagodes de Cos'
+  [Ch�teau Haut-Brion]  'La Clart� de Haut-Brion'  vs  'Le Clart� de Haut-Brion'
+  [Ch�teau Lafite Rothschild]  'Carruades de Lafite'  vs  'Les Carruades de Lafite'
+  [Ch�teau Montrose]  'Dame de Montrose'  vs  'La Dame de Montrose'
+  [Ch�teau Potensac]  'Chapelle de Potensac'  vs  'La Chapelle de Potensac'
+  [D'Arenberg]  "The d'Arry's Original"  vs  "d'Arry's Original"
+  [Domaine Carneros]  'Famous Gate'  vs  'The Famous Gate'
+  [Domaine Faiveley]  'Charmes'  vs  'Les Charmes'
+  [Domaine Ostertag]  'Les Vieilles Vignes'  vs  'Vieilles Vignes'
+  [Domaine Ren� Bouvier]  'Crais de ch�ne'  vs  'Les Crais de ch�ne'
+  [Domaine Vrignaud]  'La Champr�aux'  vs  'Les Champr�aux'
+  [Domaine de Chevalier]  'Esprit de Chevalier'  vs  "L'Esprit de Chevalier"
+  [Domaine de la Mordor�e]  'La Reine des Bois'  vs  'Reine des Bois'
+  [EOS]  'French Connection'  vs  'The French Connection'
+  [Fairview]  'Beacon'  vs  'The Beacon'
+  [Four Vines]  'Peasant'  vs  'The Peasant'
+  [Jim Barry]  'Armagh'  vs  'The Armagh'
+  [Joseph Mellot]  'La Grande Cuv�e des Edvins'  vs  'Le Grande Cuv�e des Edvins'
+  [Joseph Mellot]  'La Montarlet'  vs  'Le Montarlet'
+  [Les Ma�tres Vignerons de la presqu'�le de Saint-Tropez]  'Cave de Saint-Roch les Vignes'  vs  'La Cave de Saint-Roch-les-Vignes'
+  [Les Vins de Vienne]  'La Chamb�e'  vs  'Le Chamb�e'
+  [Louis Latour]  'Charmes'  vs  'Les Charmes'
+  [M. Chapoutier]  'La Bernardine'  vs  'Le Bernardine'
+  [Maison Champy]  'Champs Pimont Premier Cru'  vs  'Les Champs Pimont Premier Cru'
+  [Mionetto]  'Il Prosecco'  vs  'Prosecco'
+  [Newton]  'Le Puzzle'  vs  'The Puzzle'
+  [Norman]  'Monster'  vs  'The Monster'
+  [Pascal Jolivet]  'Ch�teau du Nozay'  vs  'Le Chateau du Nozay'
+  [Peachy Canyon]  'The Vortex'  vs  'Vortex'
+  [Peirano]  'Heritage Collection'  vs  'The Heritage Collection'
+  [Peirano]  'Heritage Collection, Six Clones'  vs  'The Heritage Collection Six Clones'
+  [Pepperwood Grove]  'Big Green Box'  vs  'The Big Green Box'
+  [Remoissenet P�re et Fils]  'Charmes'  vs  'Les Charmes'
+  [Simonnet-Febvre]  'Les Preuses'  vs  'Preuses'
+  [Sleight of Hand]  'Archimage'  vs  'The Archimage'
+  [Trinity Hill]  'Gimblett'  vs  'The Gimblett'
+  [Vincent Girardin]  'Les Perri�res'  vs  'Perri�res'
+  [Yalumba]  'The Y Series'  vs  'Y Series'
+  [Yalumba]  'The Y Series Ros�'  vs  'Y Series Ros�'
+  [Yalumba]  'The Y Series Sangiovese'  vs  'Y Series Sangiovese'
+  [Yalumba]  'The Y Series Unwooded'  vs  'Y Series Unwooded'
+  [Yellow Tail]  'Reserve'  vs  'The Reserve'
+
+=== EDIT-1 SAMPLE (first 40) ===
+  [Abacela]  "Vintner's Blend #12"  vs  "Vintner's Blend #16"
+  [Acorn]  'Alegria Vineyard'  vs  'Alegr�a Vineyards'
+  [Acorn]  'Alegria Vineyard Axiom'  vs  'Alegria Vineyards Axiom'
+  [Acorn]  'Alegria Vineyards Axiom'  vs  'Allegria Vineyards Axiom'
+  [Adega Cooperativa de Borba]  'Monte Claros Reserva Branco'  vs  'Montes Claros Reserva Branco'
+  [Alidis]  'Expresi�n'  vs  'Expression'
+  [Alma Rosa]  'El Jabali Vineyard'  vs  'El Jagali Vineyard'
+  [Andrew Peace]  'Master Peace'  vs  'Masterpeace'
+  [Antucura]  'Gran Vin'  vs  'Grand Vin'
+  [Arbor Crest]  'Conner Lee Vineyard'  vs  'Connor Lee Vineyard'
+  [Ayoub]  '??? Vineyard'  vs  '??? Vineyards'
+  [B Cellars]  'Blend 23'  vs  'Blend 24'
+  [B Cellars]  'Blend 23'  vs  'Blend 25'
+  [B Cellars]  'Blend 23'  vs  'Blend 26'
+  [B Cellars]  'Blend 24'  vs  'Blend 25'
+  [B Cellars]  'Blend 24'  vs  'Blend 26'
+  [B Cellars]  'Blend 25'  vs  'Blend 26'
+  [B.R. Cohn]  'Olive Hill Estate Vineyards'  vs  'Oliver Hill Estate Vineyards'
+  [Bacalh�a Wines of Portugal]  'Serras de Azeit�o Selec��o do En�logo'  vs  'Serras de Azeit�o Sele��o do En�logo'
+  [Ballentine]  'Pocai Vineyard Old Vine'  vs  'Pocai Vineyard Old Vines'
+  [Barkan]  '14 Months Barrel Aged Kosher'  vs  '16 Months Barrel Aged Kosher'
+  [Barros]  '10 Years Old'  vs  '20 Years Old'
+  [Barros]  '10-year old tawny'  vs  '20-year old Tawny'
+  [Barros]  '10-year old tawny'  vs  '30-year old tawny'
+  [Barros]  '10-year old tawny'  vs  '40-year old tawny'
+  [Barros]  '20-Years Old Tawny'  vs  '20-year old Tawny'
+  [Barros]  '20-year old Tawny'  vs  '30-year old tawny'
+  [Barros]  '20-year old Tawny'  vs  '40-year old tawny'
+  [Barros]  '30-year old tawny'  vs  '40-year old tawny'
+  [Bar�o de Vilar]  '10-year old tawny'  vs  '20-year old tawny'
+  [Bella]  'Maple Vineyard'  vs  'Maple Vineyards'
+  [Bellangelo]  'Porto Elana'  vs  'Porto Elena'
+  [Benegas]  'Libertad Vineyard'  vs  'Libertad Vineyards'
+  [Bibich]  'Riserva R5'  vs  'Riserva R6'
+  [Bisch�fliche Weing�ter Trier]  'Ayer Kupp Sp�tlese'  vs  'Ayler Kupp Sp�tlese'
+  [Bisch�fliche Weing�ter Trier]  'Scharzhofberger Sp�tlese'  vs  'Scharzhoferger Sp�tlese'
+  [Black Kite]  "Redwood's Edge"  vs  "Redwoods' Edge"
+  [Bodega NQN]  'Malma Reserva'  vs  'Malma Reserve'
+  [Bodegas Faustino]  'Faustino V Reserva'  vs  'Faustino V Riserva'
+  [Bodegas Vega Sicilia]  'Mac�n Classico - Benjamin de Rothschild & Vega Sicilia'  vs  'Mac�n Cl�sico - Benjamin de Rothschild & Vega Sicilia'

@@ -538,11 +538,19 @@ class JobRunner:
 
     def _finish_job(self, job_id: str, result: ScrapeResult):
         status = "failed" if result.error else "done"
+        now = int(time.time())
+
+        # Fetch source_key before updating the row (needed for last_success_at).
+        job_row = self.conn.execute(
+            "SELECT source_key FROM ops_job_queue WHERE job_id = ?", (job_id,)
+        ).fetchone()
+        source_key = job_row["source_key"] if job_row else None
+
         self.conn.execute(
             "UPDATE ops_job_queue SET status=?, finished_at=?, rows_fetched=?, rows_inserted=?, rows_dlq=?, error_message=?, batch_id=? WHERE job_id=?",
             (
                 status,
-                int(time.time()),
+                now,
                 result.rows_fetched,
                 result.rows_inserted,
                 result.rows_dlq,
@@ -551,6 +559,14 @@ class JobRunner:
                 job_id,
             ),
         )
+
+        # Stamp last_success_at on the source row when the job completes successfully.
+        if status == "done" and source_key:
+            self.conn.execute(
+                "UPDATE dim_source SET last_success_at = ? WHERE source_key = ?",
+                (now, source_key),
+            )
+
         self.conn.commit()
 
     def _run_scraper_with_logs(self, scraper_cls, batch_id: str, limit: int | None) -> ScrapeResult:

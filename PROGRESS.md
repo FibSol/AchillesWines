@@ -1,5 +1,10 @@
 # Achilles's Wines — Progress Log
 
+## 2026-05-27
+
+### Patroclus (Backend)
+- [Patroclus] Fix 3 known scraper/data issues: (1) **hachette_vins_guide.py**: added `_ensure_dim_wine()` FK guard — creates dim_producer (coverage_tier=long_tail) + dim_wine (appellation_key=1854 France generic) before each fact_rating INSERT; future runs will no longer generate validation_error DLQ entries. (2) **job_runner.py `_finish_job()`**: now looks up source_key from ops_job_queue and does `UPDATE dim_source SET last_success_at=? WHERE source_key=?` on successful job completion — last_success_at will populate on next scraper runs. (3) **batch7 missing fact_rating**: wrote `scraper/rvf_batch7_fix_fact_rating.py` — inserted 106 missing RVF fact_rating rows for wines batch7 had created in dim_wine but not in fact_rating; rvf_magazine now has 504 total ratings with 21% vintage≥2000 coverage (was 0%). Also wrote `scraper/hachette_dlq_resolve.py` which marked 1,840 legacy hachette validation_error DLQ entries as unresolvable (raw_record lacked producer_norm; fresh scraper runs will create correct data going forward). · files: scraper/achilles_scraper/scrapers/hachette_vins_guide.py, scraper/achilles_scraper/job_runner.py, scraper/rvf_batch7_fix_fact_rating.py, scraper/hachette_dlq_resolve.py
+
 ## 2026-05-26
 
 ### Patroclus (Backend)

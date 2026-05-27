@@ -1,0 +1,1506 @@
+"https://www.magazines.fr/espace-client/connexion.html"
+- generic
+  - banner
+    - generic
+      - link "magazines.fr LE SITE OFFICIEL D'ABONNEMENT DU GROUPE MARIE CLAIRE" [ref=e3]
+        - image "magazines.fr"
+        - StaticText "LE SITE OFFICIEL D'ABONNEMENT"
+        - LineBreak "\n"
+        - StaticText "DU GROUPE MARIE CLAIRE"
+      - generic [ref=e4] clickable [cursor:pointer]
+        - image
+        - StaticText "J’ai un code express"
+        - search
+          - textbox [ref=e15]
+      - link "Je me réabonne" [ref=e5]
+        - image
+        - StaticText "Je me réabonne"
+      - generic
+        - link [ref=e13]
+          - image
+        - generic
+          - image
+          - search
+            - textbox "Rechercher" [ref=e32]
+      - link [ref=e6]
+        - image
+      - link [ref=e7]
+        - image
+    - list
+      - listitem [level=1]
+        - link "FÉMININS" [ref=e8]
+          - StaticText "FÉMININS"
+        - list
+          - listitem [level=2]
+            - link "Avantages" [ref=e33]
+          - listitem [level=2]
+            - link "Cosmopolitan" [ref=e34]
+          - listitem [level=2]
+            - link "Marie Claire" [ref=e35]
+          - listitem [level=2]
+            - link "Marie Claire Style" [ref=e36]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e37]
+      - listitem [level=1]
+        - link "VIN" [ref=e9]
+          - StaticText "VIN"
+        - list
+          - listitem [level=2]
+            - link "La Revue du vin de France" [ref=e38]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e39]
+      - listitem [level=1]
+        - link "LOISIRS ET DÉCORATION" [ref=e10]
+          - StaticText "LOISIRS ET DÉCORATION"
+        - list
+          - listitem [level=2]
+            - link "Marie Claire Idées" [ref=e40]
+          - listitem [level=2]
+            - link "Marie Claire Maison" [ref=e41]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e42]
+      - listitem [level=1]
+        - link "FAMILLE" [ref=e11]
+          - StaticText "FAMILLE"
+        - list
+          - listitem [level=2]
+            - link "Marie Claire Enfants" [ref=e43]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e44]
+    - list
+      - listitem [level=1]
+        - link "TOUS LES MAGAZINES" [ref=e12]
+          - StaticText "TOUS LES MAGAZINES"
+          - image
+        - list
+          - listitem [level=2]
+            - link "Avantages" [ref=e45]
+          - listitem [level=2]
+            - link "Cosmopolitan" [ref=e46]
+          - listitem [level=2]
+            - link "Marie Claire" [ref=e47]
+          - listitem [level=2]
+            - link "Marie Claire Style" [ref=e48]
+          - listitem [level=2]
+            - link "La Revue du vin de France" [ref=e49]
+          - listitem [level=2]
+            - link "Marie Claire Idées" [ref=e50]
+          - listitem [level=2]
+            - link "Marie Claire Maison" [ref=e51]
+          - listitem [level=2]
+            - link "Marie Claire Enfants" [ref=e52]
+  - main
+    - generic
+      - heading "Page Introuvable" [level=1, ref=e1]
+      - heading "Désolé, la page que vous cherchez n'a pas été trouvée ou n'existe pas. Veuillez vérifier que l'URL que vous avez saisie est correcte. " [level=2, ref=e2]
+        - StaticText "Désolé, la page que vous cherchez n'a pas été trouvée ou n'existe pas."
+        - LineBreak "\n"
+        - StaticText "Veuillez vérifier que l'URL que vous avez saisie est correcte."
+        - LineBreak "\n"
+      - paragraph
+        - image
+      - link "Je continue mon shopping" [ref=e14]
+        - StaticText "Je continue mon shopping"
+  - contentinfo
+    - list
+      - listitem [level=1]
+        - image
+        - StaticText "Moins cher qu'en kiosque"
+      - listitem [level=1]
+        - image
+        - StaticText "Version numérique incluse"
+      - listitem [level=1]
+        - image
+        - StaticText "La fidélité récompensée"
+      - listitem [level=1]
+        - image
+        - StaticText "Paiement sécurisé"
+    - generic
+      - generic
+        - StaticText "LES MAGAZINES DU GROUPE"
+        - list
+          - listitem [level=1]
+            - link "Avantages" [ref=e16]
+          - listitem [level=1]
+            - link "Cosmopolitan" [ref=e17]
+          - listitem [level=1]
+            - link "La Revue du vin de France" [ref=e18]
+        - list
+          - listitem [level=1]
+            - link "Marie Claire" [ref=e19]
+          - listitem [level=1]
+            - link "Marie Claire Enfants" [ref=e20]
+          - listitem [level=1]
+            - link "Marie Claire Style" [ref=e21]
+          - listitem [level=1]
+            - link "Marie Claire Idées" [ref=e22]
+          - listitem [level=1]
+            - link "Marie Claire Maison" [ref=e23]
+        - StaticText "GROUPE MARIE CLAIRE"
+        - list
+          - listitem [level=1]
+            - link "Aide" [ref=e24]
+          - listitem [level=1]
+            - link "CGV" [ref=e25]
+          - listitem [level=1]
+            - link "CGU" [ref=e26]
+          - listitem [level=1]
+            - link "Politique de confidentialité" [ref=e27]
+          - listitem [level=1]
+            - link "Données cookies" [ref=e28]
+          - listitem [level=1]
+            - link "Plan du site" [ref=e29]
+        - generic
+          - StaticText "UN SERVICE CLIENT"
+          - LineBreak "\n"
+          - StaticText "À VOTRE ÉCOUTE :"
+        - list
+          - listitem [level=1]
+            - image
+            - link "01 84 888 222" [ref=e30]
+            - StaticText "du lundi au vendredi : 8h-19h et le samedi : 8h-16h"
+          - listitem [level=1]
+            - image
+            - link "leserviceclient@magazines.fr" [ref=e31]
+          - listitem [level=1]
+            - image
+            - StaticText "Groupe Marie Claire"
+            - LineBreak "\n"
+            - StaticText "Service abonnements"
+            - LineBreak "\n"
+            - StaticText "Bâtiment B11, 127 rue Charles Tillon"
+            - LineBreak "\n"
+            - StaticText "93309 Aubervilliers"
+            - LineBreak "\n"
+      - StaticText "© Groupe Marie Claire"
+https://www.magazines.fr/mon-espace-client.html
+- generic
+  - dialog "Welcome to Marie Claire Album Consent Management"
+    - document
+      - button "Continue without agreeing" [ref=e14]
+      - heading "Logo" [level=1, ref=e35]
+      - heading "We respect your privacy!" [level=1, ref=e15]
+      - paragraph
+        - StaticText "We and our partners use non-sensitive information like cookies or device identifiers for purposes like displaying personalized ads, measuring traffic and preferences of our visitors as well as personalize content."
+      - paragraph
+        - StaticText "Click on the button to consent to these operations and maintain a tailored experience. You can change your preferences at any time by coming back to this website."
+      - LineBreak "\n"
+      - StaticText "With your agreement, we and "
+      - button "our 1014 partners" [ref=e16]
+      - StaticText " use cookies or similar technologies to store, access, and process personal data like your visit on this website, IP addresses and cookie identifiers. Some partners do not ask for your consent to process your data and rely on their legitimate business interest. You can withdraw your consent or object to data processing based on legitimate interest at any time by clicking on “Learn More” or in our Privacy Policy on this website."
+      - heading "We and our partners process data for the following purposes:" [level=2, ref=e17]
+      - StaticText "Personalised advertising and content, advertising and content measurement, audience research and services development"
+      - StaticText ", Precise geolocation data, and identification through device scanning"
+      - StaticText ", Store and/or access information on a device"
+      - generic
+        - button "Learn More: Configure your consents" [ref=e36]
+          - StaticText "Learn More →"
+        - button "Agree and close: Agree to our data processing and close" [ref=e37]
+          - StaticText "Agree and close"
+  - banner
+    - generic
+      - link "magazines.fr LE SITE OFFICIEL D'ABONNEMENT DU GROUPE MARIE CLAIRE" [ref=e1]
+        - image "magazines.fr"
+        - StaticText "LE SITE OFFICIEL D'ABONNEMENT"
+        - LineBreak "\n"
+        - StaticText "DU GROUPE MARIE CLAIRE"
+      - generic [ref=e2] clickable [cursor:pointer]
+        - image
+        - StaticText "J’ai un code express"
+        - search
+          - textbox [ref=e18]
+      - link "Je me réabonne" [ref=e3]
+        - image
+        - StaticText "Je me réabonne"
+      - generic
+        - link [ref=e11]
+          - image
+        - generic
+          - image
+          - search
+            - textbox "Rechercher" [ref=e38]
+      - link [ref=e4]
+        - image
+      - link [ref=e5]
+        - image
+    - list
+      - listitem [level=1]
+        - link "FÉMININS" [ref=e6]
+          - StaticText "FÉMININS"
+        - list
+          - listitem [level=2]
+            - link "Avantages" [ref=e39]
+          - listitem [level=2]
+            - link "Cosmopolitan" [ref=e40]
+          - listitem [level=2]
+            - link "Marie Claire" [ref=e41]
+          - listitem [level=2]
+            - link "Marie Claire Style" [ref=e42]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e43]
+      - listitem [level=1]
+        - link "VIN" [ref=e7]
+          - StaticText "VIN"
+        - list
+          - listitem [level=2]
+            - link "La Revue du vin de France" [ref=e44]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e45]
+      - listitem [level=1]
+        - link "LOISIRS ET DÉCORATION" [ref=e8]
+          - StaticText "LOISIRS ET DÉCORATION"
+        - list
+          - listitem [level=2]
+            - link "Marie Claire Idées" [ref=e46]
+          - listitem [level=2]
+            - link "Marie Claire Maison" [ref=e47]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e48]
+      - listitem [level=1]
+        - link "FAMILLE" [ref=e9]
+          - StaticText "FAMILLE"
+        - list
+          - listitem [level=2]
+            - link "Marie Claire Enfants" [ref=e49]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e50]
+    - list
+      - listitem [level=1]
+        - link "TOUS LES MAGAZINES" [ref=e10]
+          - StaticText "TOUS LES MAGAZINES"
+          - image
+        - list
+          - listitem [level=2]
+            - link "Avantages" [ref=e51]
+          - listitem [level=2]
+            - link "Cosmopolitan" [ref=e52]
+          - listitem [level=2]
+            - link "Marie Claire" [ref=e53]
+          - listitem [level=2]
+            - link "Marie Claire Style" [ref=e54]
+          - listitem [level=2]
+            - link "La Revue du vin de France" [ref=e55]
+          - listitem [level=2]
+            - link "Marie Claire Idées" [ref=e56]
+          - listitem [level=2]
+            - link "Marie Claire Maison" [ref=e57]
+          - listitem [level=2]
+            - link "Marie Claire Enfants" [ref=e58]
+  - main
+    - generic
+      - list
+        - listitem [level=1]
+          - link "Magazines.fr >" [ref=e12]
+            - StaticText "Magazines.fr"
+            - StaticText ">"
+        - listitem [level=1]
+          - StaticText "Connexion"
+      - generic
+        - generic
+          - heading "Avez-vous déjà commandé sur Magazines.fr?" [level=1, ref=e13]
+          - generic
+            - StaticText "Oui"
+            - StaticText "J'ai déjà un compte"
+          - generic
+            - StaticText "Non"
+            - StaticText "Je crée mon compte"
+  - contentinfo
+    - list
+      - listitem [level=1]
+        - image
+        - StaticText "Moins cher qu'en kiosque"
+      - listitem [level=1]
+        - image
+        - StaticText "Version numérique incluse"
+      - listitem [level=1]
+        - image
+        - StaticText "La fidélité récompensée"
+      - listitem [level=1]
+        - image
+        - StaticText "Paiement sécurisé"
+    - generic
+      - generic
+        - StaticText "LES MAGAZINES DU GROUPE"
+        - list
+          - listitem [level=1]
+            - link "Avantages" [ref=e19]
+          - listitem [level=1]
+            - link "Cosmopolitan" [ref=e20]
+          - listitem [level=1]
+            - link "La Revue du vin de France" [ref=e21]
+        - list
+          - listitem [level=1]
+            - link "Marie Claire" [ref=e22]
+          - listitem [level=1]
+            - link "Marie Claire Enfants" [ref=e23]
+          - listitem [level=1]
+            - link "Marie Claire Style" [ref=e24]
+          - listitem [level=1]
+            - link "Marie Claire Idées" [ref=e25]
+          - listitem [level=1]
+            - link "Marie Claire Maison" [ref=e26]
+        - StaticText "GROUPE MARIE CLAIRE"
+        - list
+          - listitem [level=1]
+            - link "Aide" [ref=e27]
+          - listitem [level=1]
+            - link "CGV" [ref=e28]
+          - listitem [level=1]
+            - link "CGU" [ref=e29]
+          - listitem [level=1]
+            - link "Politique de confidentialité" [ref=e30]
+          - listitem [level=1]
+            - link "Données cookies" [ref=e31]
+          - listitem [level=1]
+            - link "Plan du site" [ref=e32]
+        - generic
+          - StaticText "UN SERVICE CLIENT"
+          - LineBreak "\n"
+          - StaticText "À VOTRE ÉCOUTE :"
+        - list
+          - listitem [level=1]
+            - image
+            - link "01 84 888 222" [ref=e33]
+            - StaticText "du lundi au vendredi : 8h-19h et le samedi : 8h-16h"
+          - listitem [level=1]
+            - image
+            - link "leserviceclient@magazines.fr" [ref=e34]
+          - listitem [level=1]
+            - image
+            - StaticText "Groupe Marie Claire"
+            - LineBreak "\n"
+            - StaticText "Service abonnements"
+            - LineBreak "\n"
+            - StaticText "Bâtiment B11, 127 rue Charles Tillon"
+            - LineBreak "\n"
+            - StaticText "93309 Aubervilliers"
+            - LineBreak "\n"
+      - StaticText "© Groupe Marie Claire"
+✓ Done
+✓ Done
+- generic
+  - banner
+    - generic
+      - link "magazines.fr LE SITE OFFICIEL D'ABONNEMENT DU GROUPE MARIE CLAIRE" [ref=e1]
+        - image "magazines.fr"
+        - StaticText "LE SITE OFFICIEL D'ABONNEMENT"
+        - LineBreak "\n"
+        - StaticText "DU GROUPE MARIE CLAIRE"
+      - generic [ref=e2] clickable [cursor:pointer]
+        - image
+        - StaticText "J’ai un code express"
+        - search
+          - textbox [ref=e14]
+      - link "Je me réabonne" [ref=e3]
+        - image
+        - StaticText "Je me réabonne"
+      - generic
+        - link [ref=e11]
+          - image
+        - generic
+          - image
+          - search
+            - textbox "Rechercher" [ref=e31]
+      - link [ref=e4]
+        - image
+      - link [ref=e5]
+        - image
+    - list
+      - listitem [level=1]
+        - link "FÉMININS" [ref=e6]
+          - StaticText "FÉMININS"
+        - list
+          - listitem [level=2]
+            - link "Avantages" [ref=e32]
+          - listitem [level=2]
+            - link "Cosmopolitan" [ref=e33]
+          - listitem [level=2]
+            - link "Marie Claire" [ref=e34]
+          - listitem [level=2]
+            - link "Marie Claire Style" [ref=e35]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e36]
+      - listitem [level=1]
+        - link "VIN" [ref=e7]
+          - StaticText "VIN"
+        - list
+          - listitem [level=2]
+            - link "La Revue du vin de France" [ref=e37]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e38]
+      - listitem [level=1]
+        - link "LOISIRS ET DÉCORATION" [ref=e8]
+          - StaticText "LOISIRS ET DÉCORATION"
+        - list
+          - listitem [level=2]
+            - link "Marie Claire Idées" [ref=e39]
+          - listitem [level=2]
+            - link "Marie Claire Maison" [ref=e40]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e41]
+      - listitem [level=1]
+        - link "FAMILLE" [ref=e9]
+          - StaticText "FAMILLE"
+        - list
+          - listitem [level=2]
+            - link "Marie Claire Enfants" [ref=e42]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e43]
+    - list
+      - listitem [level=1]
+        - link "TOUS LES MAGAZINES" [ref=e10]
+          - StaticText "TOUS LES MAGAZINES"
+          - image
+        - list
+          - listitem [level=2]
+            - link "Avantages" [ref=e44]
+          - listitem [level=2]
+            - link "Cosmopolitan" [ref=e45]
+          - listitem [level=2]
+            - link "Marie Claire" [ref=e46]
+          - listitem [level=2]
+            - link "Marie Claire Style" [ref=e47]
+          - listitem [level=2]
+            - link "La Revue du vin de France" [ref=e48]
+          - listitem [level=2]
+            - link "Marie Claire Idées" [ref=e49]
+          - listitem [level=2]
+            - link "Marie Claire Maison" [ref=e50]
+          - listitem [level=2]
+            - link "Marie Claire Enfants" [ref=e51]
+  - main
+    - generic
+      - list
+        - listitem [level=1]
+          - link "Magazines.fr >" [ref=e12]
+            - StaticText "Magazines.fr"
+            - StaticText ">"
+        - listitem [level=1]
+          - StaticText "Connexion"
+      - generic
+        - generic
+          - heading "Avez-vous déjà commandé sur Magazines.fr?" [level=1, ref=e13]
+          - generic
+            - StaticText "Oui"
+            - StaticText "J'ai déjà un compte"
+          - generic
+            - StaticText "Non"
+            - StaticText "Je crée mon compte"
+        - group
+          - StaticText "Connexion"
+          - generic
+            - textbox "Email" [ref=e52]
+            - LabelText
+              - StaticText "Email"
+          - generic
+            - textbox "Mot de passe" [ref=e53]
+            - LabelText
+              - StaticText "Mot de passe"
+            - link [ref=e54]
+            - link "Mot de passe oublié ?" [ref=e55]
+          - button "Je me connecte" [ref=e56]
+  - contentinfo
+    - list
+      - listitem [level=1]
+        - image
+        - StaticText "Moins cher qu'en kiosque"
+      - listitem [level=1]
+        - image
+        - StaticText "Version numérique incluse"
+      - listitem [level=1]
+        - image
+        - StaticText "La fidélité récompensée"
+      - listitem [level=1]
+        - image
+        - StaticText "Paiement sécurisé"
+    - generic
+      - generic
+        - StaticText "LES MAGAZINES DU GROUPE"
+        - list
+          - listitem [level=1]
+            - link "Avantages" [ref=e15]
+          - listitem [level=1]
+            - link "Cosmopolitan" [ref=e16]
+          - listitem [level=1]
+            - link "La Revue du vin de France" [ref=e17]
+        - list
+          - listitem [level=1]
+            - link "Marie Claire" [ref=e18]
+          - listitem [level=1]
+            - link "Marie Claire Enfants" [ref=e19]
+          - listitem [level=1]
+            - link "Marie Claire Style" [ref=e20]
+          - listitem [level=1]
+            - link "Marie Claire Idées" [ref=e21]
+          - listitem [level=1]
+            - link "Marie Claire Maison" [ref=e22]
+        - StaticText "GROUPE MARIE CLAIRE"
+        - list
+          - listitem [level=1]
+            - link "Aide" [ref=e23]
+          - listitem [level=1]
+            - link "CGV" [ref=e24]
+          - listitem [level=1]
+            - link "CGU" [ref=e25]
+          - listitem [level=1]
+            - link "Politique de confidentialité" [ref=e26]
+          - listitem [level=1]
+            - link "Données cookies" [ref=e27]
+          - listitem [level=1]
+            - link "Plan du site" [ref=e28]
+        - generic
+          - StaticText "UN SERVICE CLIENT"
+          - LineBreak "\n"
+          - StaticText "À VOTRE ÉCOUTE :"
+        - list
+          - listitem [level=1]
+            - image
+            - link "01 84 888 222" [ref=e29]
+            - StaticText "du lundi au vendredi : 8h-19h et le samedi : 8h-16h"
+          - listitem [level=1]
+            - image
+            - link "leserviceclient@magazines.fr" [ref=e30]
+          - listitem [level=1]
+            - image
+            - StaticText "Groupe Marie Claire"
+            - LineBreak "\n"
+            - StaticText "Service abonnements"
+            - LineBreak "\n"
+            - StaticText "Bâtiment B11, 127 rue Charles Tillon"
+            - LineBreak "\n"
+            - StaticText "93309 Aubervilliers"
+            - LineBreak "\n"
+      - StaticText "© Groupe Marie Claire"
+✓ Done
+✓ Done
+✓ Done
+https://www.magazines.fr/mon-espace-client.html
+- generic
+  - banner
+    - generic
+      - link "magazines.fr LE SITE OFFICIEL D'ABONNEMENT DU GROUPE MARIE CLAIRE" [ref=e1]
+        - image "magazines.fr"
+        - StaticText "LE SITE OFFICIEL D'ABONNEMENT"
+        - LineBreak "\n"
+        - StaticText "DU GROUPE MARIE CLAIRE"
+      - generic [ref=e2] clickable [cursor:pointer]
+        - image
+        - StaticText "J’ai un code express"
+        - search
+          - textbox [ref=e14]
+      - link "Je me réabonne" [ref=e3]
+        - image
+        - StaticText "Je me réabonne"
+      - generic
+        - link [ref=e11]
+          - image
+        - generic
+          - image
+          - search
+            - textbox "Rechercher" [ref=e31]
+      - link [ref=e4]
+        - image
+      - link [ref=e5]
+        - image
+    - list
+      - listitem [level=1]
+        - link "FÉMININS" [ref=e6]
+          - StaticText "FÉMININS"
+        - list
+          - listitem [level=2]
+            - link "Avantages" [ref=e32]
+          - listitem [level=2]
+            - link "Cosmopolitan" [ref=e33]
+          - listitem [level=2]
+            - link "Marie Claire" [ref=e34]
+          - listitem [level=2]
+            - link "Marie Claire Style" [ref=e35]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e36]
+      - listitem [level=1]
+        - link "VIN" [ref=e7]
+          - StaticText "VIN"
+        - list
+          - listitem [level=2]
+            - link "La Revue du vin de France" [ref=e37]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e38]
+      - listitem [level=1]
+        - link "LOISIRS ET DÉCORATION" [ref=e8]
+          - StaticText "LOISIRS ET DÉCORATION"
+        - list
+          - listitem [level=2]
+            - link "Marie Claire Idées" [ref=e39]
+          - listitem [level=2]
+            - link "Marie Claire Maison" [ref=e40]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e41]
+      - listitem [level=1]
+        - link "FAMILLE" [ref=e9]
+          - StaticText "FAMILLE"
+        - list
+          - listitem [level=2]
+            - link "Marie Claire Enfants" [ref=e42]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e43]
+    - list
+      - listitem [level=1]
+        - link "TOUS LES MAGAZINES" [ref=e10]
+          - StaticText "TOUS LES MAGAZINES"
+          - image
+        - list
+          - listitem [level=2]
+            - link "Avantages" [ref=e44]
+          - listitem [level=2]
+            - link "Cosmopolitan" [ref=e45]
+          - listitem [level=2]
+            - link "Marie Claire" [ref=e46]
+          - listitem [level=2]
+            - link "Marie Claire Style" [ref=e47]
+          - listitem [level=2]
+            - link "La Revue du vin de France" [ref=e48]
+          - listitem [level=2]
+            - link "Marie Claire Idées" [ref=e49]
+          - listitem [level=2]
+            - link "Marie Claire Maison" [ref=e50]
+          - listitem [level=2]
+            - link "Marie Claire Enfants" [ref=e51]
+  - main
+    - generic
+      - list
+        - listitem [level=1]
+          - link "Magazines.fr >" [ref=e12]
+            - StaticText "Magazines.fr"
+            - StaticText ">"
+        - listitem [level=1]
+          - StaticText "Connexion"
+      - generic
+        - generic
+          - heading "Avez-vous déjà commandé sur Magazines.fr?" [level=1, ref=e13]
+          - generic
+            - StaticText "Oui"
+            - StaticText "J'ai déjà un compte"
+          - generic
+            - StaticText "Non"
+            - StaticText "Je crée mon compte"
+        - group
+          - StaticText "Connexion"
+          - generic
+            - textbox "Email" [ref=e52]: nicolas@fibsol.be
+              - StaticText "nicolas@fibsol.be"
+            - LabelText
+              - StaticText "Email"
+          - generic
+            - textbox "Mot de passe" [ref=e53]: ••••••••••••••
+              - StaticText "••••••••••••••"
+            - LabelText
+              - StaticText "Mot de passe"
+            - link [ref=e54]
+            - link "Mot de passe oublié ?" [ref=e55]
+          - button "Je me connecte" [ref=e56]
+  - contentinfo
+    - list
+      - listitem [level=1]
+        - image
+        - StaticText "Moins cher qu'en kiosque"
+      - listitem [level=1]
+        - image
+        - StaticText "Version numérique incluse"
+      - listitem [level=1]
+        - image
+        - StaticText "La fidélité récompensée"
+      - listitem [level=1]
+        - image
+        - StaticText "Paiement sécurisé"
+    - generic
+      - generic
+        - StaticText "LES MAGAZINES DU GROUPE"
+        - list
+          - listitem [level=1]
+            - link "Avantages" [ref=e15]
+          - listitem [level=1]
+            - link "Cosmopolitan" [ref=e16]
+          - listitem [level=1]
+            - link "La Revue du vin de France" [ref=e17]
+        - list
+          - listitem [level=1]
+            - link "Marie Claire" [ref=e18]
+          - listitem [level=1]
+            - link "Marie Claire Enfants" [ref=e19]
+          - listitem [level=1]
+            - link "Marie Claire Style" [ref=e20]
+          - listitem [level=1]
+            - link "Marie Claire Idées" [ref=e21]
+          - listitem [level=1]
+            - link "Marie Claire Maison" [ref=e22]
+        - StaticText "GROUPE MARIE CLAIRE"
+        - list
+          - listitem [level=1]
+            - link "Aide" [ref=e23]
+          - listitem [level=1]
+            - link "CGV" [ref=e24]
+          - listitem [level=1]
+            - link "CGU" [ref=e25]
+          - listitem [level=1]
+            - link "Politique de confidentialité" [ref=e26]
+          - listitem [level=1]
+            - link "Données cookies" [ref=e27]
+          - listitem [level=1]
+            - link "Plan du site" [ref=e28]
+        - generic
+          - StaticText "UN SERVICE CLIENT"
+          - LineBreak "\n"
+          - StaticText "À VOTRE ÉCOUTE :"
+        - list
+          - listitem [level=1]
+            - image
+            - link "01 84 888 222" [ref=e29]
+            - StaticText "du lundi au vendredi : 8h-19h et le samedi : 8h-16h"
+          - listitem [level=1]
+            - image
+            - link "leserviceclient@magazines.fr" [ref=e30]
+          - listitem [level=1]
+            - image
+            - StaticText "Groupe Marie Claire"
+            - LineBreak "\n"
+            - StaticText "Service abonnements"
+            - LineBreak "\n"
+            - StaticText "Bâtiment B11, 127 rue Charles Tillon"
+            - LineBreak "\n"
+            - StaticText "93309 Aubervilliers"
+            - LineBreak "\n"
+      - StaticText "© Groupe Marie Claire"
+  - generic
+    - IframePresentational "reCAPTCHA"
+"https://www.magazines.fr/espace-client/connexion.html"
+"https://www.magazines.fr/espace-client/connexion.html"
+https://www.magazines.fr/espace-client/connexion.html
+- generic
+  - banner
+    - generic
+      - link "magazines.fr LE SITE OFFICIEL D'ABONNEMENT DU GROUPE MARIE CLAIRE" [ref=e3]
+        - image "magazines.fr"
+        - StaticText "LE SITE OFFICIEL D'ABONNEMENT"
+        - LineBreak "\n"
+        - StaticText "DU GROUPE MARIE CLAIRE"
+      - generic [ref=e4] clickable [cursor:pointer]
+        - image
+        - StaticText "J’ai un code express"
+        - search
+          - textbox [ref=e15]
+      - link "Je me réabonne" [ref=e5]
+        - image
+        - StaticText "Je me réabonne"
+      - generic
+        - link [ref=e13]
+          - image
+        - generic
+          - image
+          - search
+            - textbox "Rechercher" [ref=e32]
+      - link [ref=e6]
+        - image
+      - link [ref=e7]
+        - image
+    - list
+      - listitem [level=1]
+        - link "FÉMININS" [ref=e8]
+          - StaticText "FÉMININS"
+        - list
+          - listitem [level=2]
+            - link "Avantages" [ref=e33]
+          - listitem [level=2]
+            - link "Cosmopolitan" [ref=e34]
+          - listitem [level=2]
+            - link "Marie Claire" [ref=e35]
+          - listitem [level=2]
+            - link "Marie Claire Style" [ref=e36]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e37]
+      - listitem [level=1]
+        - link "VIN" [ref=e9]
+          - StaticText "VIN"
+        - list
+          - listitem [level=2]
+            - link "La Revue du vin de France" [ref=e38]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e39]
+      - listitem [level=1]
+        - link "LOISIRS ET DÉCORATION" [ref=e10]
+          - StaticText "LOISIRS ET DÉCORATION"
+        - list
+          - listitem [level=2]
+            - link "Marie Claire Idées" [ref=e40]
+          - listitem [level=2]
+            - link "Marie Claire Maison" [ref=e41]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e42]
+      - listitem [level=1]
+        - link "FAMILLE" [ref=e11]
+          - StaticText "FAMILLE"
+        - list
+          - listitem [level=2]
+            - link "Marie Claire Enfants" [ref=e43]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e44]
+    - list
+      - listitem [level=1]
+        - link "TOUS LES MAGAZINES" [ref=e12]
+          - StaticText "TOUS LES MAGAZINES"
+          - image
+        - list
+          - listitem [level=2]
+            - link "Avantages" [ref=e45]
+          - listitem [level=2]
+            - link "Cosmopolitan" [ref=e46]
+          - listitem [level=2]
+            - link "Marie Claire" [ref=e47]
+          - listitem [level=2]
+            - link "Marie Claire Style" [ref=e48]
+          - listitem [level=2]
+            - link "La Revue du vin de France" [ref=e49]
+          - listitem [level=2]
+            - link "Marie Claire Idées" [ref=e50]
+          - listitem [level=2]
+            - link "Marie Claire Maison" [ref=e51]
+          - listitem [level=2]
+            - link "Marie Claire Enfants" [ref=e52]
+  - main
+    - generic
+      - heading "Page Introuvable" [level=1, ref=e1]
+      - heading "Désolé, la page que vous cherchez n'a pas été trouvée ou n'existe pas. Veuillez vérifier que l'URL que vous avez saisie est correcte. " [level=2, ref=e2]
+        - StaticText "Désolé, la page que vous cherchez n'a pas été trouvée ou n'existe pas."
+        - LineBreak "\n"
+        - StaticText "Veuillez vérifier que l'URL que vous avez saisie est correcte."
+        - LineBreak "\n"
+      - paragraph
+        - image
+      - link "Je continue mon shopping" [ref=e14]
+        - StaticText "Je continue mon shopping"
+  - contentinfo
+    - list
+      - listitem [level=1]
+        - image
+        - StaticText "Moins cher qu'en kiosque"
+      - listitem [level=1]
+        - image
+        - StaticText "Version numérique incluse"
+      - listitem [level=1]
+        - image
+        - StaticText "La fidélité récompensée"
+      - listitem [level=1]
+        - image
+        - StaticText "Paiement sécurisé"
+    - generic
+      - generic
+        - StaticText "LES MAGAZINES DU GROUPE"
+        - list
+          - listitem [level=1]
+            - link "Avantages" [ref=e16]
+          - listitem [level=1]
+            - link "Cosmopolitan" [ref=e17]
+          - listitem [level=1]
+            - link "La Revue du vin de France" [ref=e18]
+        - list
+          - listitem [level=1]
+            - link "Marie Claire" [ref=e19]
+          - listitem [level=1]
+            - link "Marie Claire Enfants" [ref=e20]
+          - listitem [level=1]
+            - link "Marie Claire Style" [ref=e21]
+          - listitem [level=1]
+            - link "Marie Claire Idées" [ref=e22]
+          - listitem [level=1]
+            - link "Marie Claire Maison" [ref=e23]
+        - StaticText "GROUPE MARIE CLAIRE"
+        - list
+          - listitem [level=1]
+            - link "Aide" [ref=e24]
+          - listitem [level=1]
+            - link "CGV" [ref=e25]
+          - listitem [level=1]
+            - link "CGU" [ref=e26]
+          - listitem [level=1]
+            - link "Politique de confidentialité" [ref=e27]
+          - listitem [level=1]
+            - link "Données cookies" [ref=e28]
+          - listitem [level=1]
+            - link "Plan du site" [ref=e29]
+        - generic
+          - StaticText "UN SERVICE CLIENT"
+          - LineBreak "\n"
+          - StaticText "À VOTRE ÉCOUTE :"
+        - list
+          - listitem [level=1]
+            - image
+            - link "01 84 888 222" [ref=e30]
+            - StaticText "du lundi au vendredi : 8h-19h et le samedi : 8h-16h"
+          - listitem [level=1]
+            - image
+            - link "leserviceclient@magazines.fr" [ref=e31]
+          - listitem [level=1]
+            - image
+            - StaticText "Groupe Marie Claire"
+            - LineBreak "\n"
+            - StaticText "Service abonnements"
+            - LineBreak "\n"
+            - StaticText "Bâtiment B11, 127 rue Charles Tillon"
+            - LineBreak "\n"
+            - StaticText "93309 Aubervilliers"
+            - LineBreak "\n"
+      - StaticText "© Groupe Marie Claire"
+"https://www.magazines.fr/mon-espace-client.html"
+✓ Done
+https://www.magazines.fr/espace-client/connexion.html
+"https://www.magazines.fr/mon-espace-client.html"
+"https://www.magazines.fr/mon-espace-client.html"
+"https://www.magazines.fr/mon-espace-client.html"
+- generic
+  - banner
+    - generic
+      - link "magazines.fr LE SITE OFFICIEL D'ABONNEMENT DU GROUPE MARIE CLAIRE" [ref=e1]
+        - image "magazines.fr"
+        - StaticText "LE SITE OFFICIEL D'ABONNEMENT"
+        - LineBreak "\n"
+        - StaticText "DU GROUPE MARIE CLAIRE"
+      - generic [ref=e2] clickable [cursor:pointer]
+        - image
+        - StaticText "J’ai un code express"
+        - search
+          - textbox [ref=e14]
+      - link "Je me réabonne" [ref=e3]
+        - image
+        - StaticText "Je me réabonne"
+      - generic
+        - link [ref=e11]
+          - image
+        - generic
+          - image
+          - search
+            - textbox "Rechercher" [ref=e31]
+      - link [ref=e4]
+        - image
+      - link [ref=e5]
+        - image
+    - list
+      - listitem [level=1]
+        - link "FÉMININS" [ref=e6]
+          - StaticText "FÉMININS"
+        - list
+          - listitem [level=2]
+            - link "Avantages" [ref=e32]
+          - listitem [level=2]
+            - link "Cosmopolitan" [ref=e33]
+          - listitem [level=2]
+            - link "Marie Claire" [ref=e34]
+          - listitem [level=2]
+            - link "Marie Claire Style" [ref=e35]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e36]
+      - listitem [level=1]
+        - link "VIN" [ref=e7]
+          - StaticText "VIN"
+        - list
+          - listitem [level=2]
+            - link "La Revue du vin de France" [ref=e37]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e38]
+      - listitem [level=1]
+        - link "LOISIRS ET DÉCORATION" [ref=e8]
+          - StaticText "LOISIRS ET DÉCORATION"
+        - list
+          - listitem [level=2]
+            - link "Marie Claire Idées" [ref=e39]
+          - listitem [level=2]
+            - link "Marie Claire Maison" [ref=e40]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e41]
+      - listitem [level=1]
+        - link "FAMILLE" [ref=e9]
+          - StaticText "FAMILLE"
+        - list
+          - listitem [level=2]
+            - link "Marie Claire Enfants" [ref=e42]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e43]
+    - list
+      - listitem [level=1]
+        - link "TOUS LES MAGAZINES" [ref=e10]
+          - StaticText "TOUS LES MAGAZINES"
+          - image
+        - list
+          - listitem [level=2]
+            - link "Avantages" [ref=e44]
+          - listitem [level=2]
+            - link "Cosmopolitan" [ref=e45]
+          - listitem [level=2]
+            - link "Marie Claire" [ref=e46]
+          - listitem [level=2]
+            - link "Marie Claire Style" [ref=e47]
+          - listitem [level=2]
+            - link "La Revue du vin de France" [ref=e48]
+          - listitem [level=2]
+            - link "Marie Claire Idées" [ref=e49]
+          - listitem [level=2]
+            - link "Marie Claire Maison" [ref=e50]
+          - listitem [level=2]
+            - link "Marie Claire Enfants" [ref=e51]
+  - main
+    - generic
+      - list
+        - listitem [level=1]
+          - link "Magazines.fr >" [ref=e12]
+            - StaticText "Magazines.fr"
+            - StaticText ">"
+        - listitem [level=1]
+          - StaticText "Connexion"
+      - generic
+        - generic
+          - heading "Avez-vous déjà commandé sur Magazines.fr?" [level=1, ref=e13]
+          - generic
+            - StaticText "Oui"
+            - StaticText "J'ai déjà un compte"
+          - generic
+            - StaticText "Non"
+            - StaticText "Je crée mon compte"
+  - contentinfo
+    - list
+      - listitem [level=1]
+        - image
+        - StaticText "Moins cher qu'en kiosque"
+      - listitem [level=1]
+        - image
+        - StaticText "Version numérique incluse"
+      - listitem [level=1]
+        - image
+        - StaticText "La fidélité récompensée"
+      - listitem [level=1]
+        - image
+        - StaticText "Paiement sécurisé"
+    - generic
+      - generic
+        - StaticText "LES MAGAZINES DU GROUPE"
+        - list
+          - listitem [level=1]
+            - link "Avantages" [ref=e15]
+          - listitem [level=1]
+            - link "Cosmopolitan" [ref=e16]
+          - listitem [level=1]
+            - link "La Revue du vin de France" [ref=e17]
+        - list
+          - listitem [level=1]
+            - link "Marie Claire" [ref=e18]
+          - listitem [level=1]
+            - link "Marie Claire Enfants" [ref=e19]
+          - listitem [level=1]
+            - link "Marie Claire Style" [ref=e20]
+          - listitem [level=1]
+            - link "Marie Claire Idées" [ref=e21]
+          - listitem [level=1]
+            - link "Marie Claire Maison" [ref=e22]
+        - StaticText "GROUPE MARIE CLAIRE"
+        - list
+          - listitem [level=1]
+            - link "Aide" [ref=e23]
+          - listitem [level=1]
+            - link "CGV" [ref=e24]
+          - listitem [level=1]
+            - link "CGU" [ref=e25]
+          - listitem [level=1]
+            - link "Politique de confidentialité" [ref=e26]
+          - listitem [level=1]
+            - link "Données cookies" [ref=e27]
+          - listitem [level=1]
+            - link "Plan du site" [ref=e28]
+        - generic
+          - StaticText "UN SERVICE CLIENT"
+          - LineBreak "\n"
+          - StaticText "À VOTRE ÉCOUTE :"
+        - list
+          - listitem [level=1]
+            - image
+            - link "01 84 888 222" [ref=e29]
+            - StaticText "du lundi au vendredi : 8h-19h et le samedi : 8h-16h"
+          - listitem [level=1]
+            - image
+            - link "leserviceclient@magazines.fr" [ref=e30]
+          - listitem [level=1]
+            - image
+            - StaticText "Groupe Marie Claire"
+            - LineBreak "\n"
+            - StaticText "Service abonnements"
+            - LineBreak "\n"
+            - StaticText "Bâtiment B11, 127 rue Charles Tillon"
+            - LineBreak "\n"
+            - StaticText "93309 Aubervilliers"
+            - LineBreak "\n"
+      - StaticText "© Groupe Marie Claire"
+  - generic
+    - IframePresentational "reCAPTCHA"
+- generic
+  - banner
+    - generic
+      - link "magazines.fr LE SITE OFFICIEL D'ABONNEMENT DU GROUPE MARIE CLAIRE" [ref=e1]
+        - image "magazines.fr"
+        - StaticText "LE SITE OFFICIEL D'ABONNEMENT"
+        - LineBreak "\n"
+        - StaticText "DU GROUPE MARIE CLAIRE"
+      - generic [ref=e2] clickable [cursor:pointer]
+        - image
+        - StaticText "J’ai un code express"
+        - search
+          - textbox [ref=e14]
+      - link "Je me réabonne" [ref=e3]
+        - image
+        - StaticText "Je me réabonne"
+      - generic
+        - link [ref=e11]
+          - image
+        - generic
+          - image
+          - search
+            - textbox "Rechercher" [ref=e31]
+      - link [ref=e4]
+        - image
+      - link [ref=e5]
+        - image
+    - list
+      - listitem [level=1]
+        - link "FÉMININS" [ref=e6]
+          - StaticText "FÉMININS"
+        - list
+          - listitem [level=2]
+            - link "Avantages" [ref=e32]
+          - listitem [level=2]
+            - link "Cosmopolitan" [ref=e33]
+          - listitem [level=2]
+            - link "Marie Claire" [ref=e34]
+          - listitem [level=2]
+            - link "Marie Claire Style" [ref=e35]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e36]
+      - listitem [level=1]
+        - link "VIN" [ref=e7]
+          - StaticText "VIN"
+        - list
+          - listitem [level=2]
+            - link "La Revue du vin de France" [ref=e37]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e38]
+      - listitem [level=1]
+        - link "LOISIRS ET DÉCORATION" [ref=e8]
+          - StaticText "LOISIRS ET DÉCORATION"
+        - list
+          - listitem [level=2]
+            - link "Marie Claire Idées" [ref=e39]
+          - listitem [level=2]
+            - link "Marie Claire Maison" [ref=e40]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e41]
+      - listitem [level=1]
+        - link "FAMILLE" [ref=e9]
+          - StaticText "FAMILLE"
+        - list
+          - listitem [level=2]
+            - link "Marie Claire Enfants" [ref=e42]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e43]
+    - list
+      - listitem [level=1]
+        - link "TOUS LES MAGAZINES" [ref=e10]
+          - StaticText "TOUS LES MAGAZINES"
+          - image
+        - list
+          - listitem [level=2]
+            - link "Avantages" [ref=e44]
+          - listitem [level=2]
+            - link "Cosmopolitan" [ref=e45]
+          - listitem [level=2]
+            - link "Marie Claire" [ref=e46]
+          - listitem [level=2]
+            - link "Marie Claire Style" [ref=e47]
+          - listitem [level=2]
+            - link "La Revue du vin de France" [ref=e48]
+          - listitem [level=2]
+            - link "Marie Claire Idées" [ref=e49]
+          - listitem [level=2]
+            - link "Marie Claire Maison" [ref=e50]
+          - listitem [level=2]
+            - link "Marie Claire Enfants" [ref=e51]
+  - main
+    - generic
+      - list
+        - listitem [level=1]
+          - link "Magazines.fr >" [ref=e12]
+            - StaticText "Magazines.fr"
+            - StaticText ">"
+        - listitem [level=1]
+          - StaticText "Connexion"
+      - generic
+        - generic
+          - heading "Avez-vous déjà commandé sur Magazines.fr?" [level=1, ref=e13]
+          - generic
+            - StaticText "Oui"
+            - StaticText "J'ai déjà un compte"
+          - generic
+            - StaticText "Non"
+            - StaticText "Je crée mon compte"
+  - contentinfo
+    - list
+      - listitem [level=1]
+        - image
+        - StaticText "Moins cher qu'en kiosque"
+      - listitem [level=1]
+        - image
+        - StaticText "Version numérique incluse"
+      - listitem [level=1]
+        - image
+        - StaticText "La fidélité récompensée"
+      - listitem [level=1]
+        - image
+        - StaticText "Paiement sécurisé"
+    - generic
+      - generic
+        - StaticText "LES MAGAZINES DU GROUPE"
+        - list
+          - listitem [level=1]
+            - link "Avantages" [ref=e15]
+          - listitem [level=1]
+            - link "Cosmopolitan" [ref=e16]
+          - listitem [level=1]
+            - link "La Revue du vin de France" [ref=e17]
+        - list
+          - listitem [level=1]
+            - link "Marie Claire" [ref=e18]
+          - listitem [level=1]
+            - link "Marie Claire Enfants" [ref=e19]
+          - listitem [level=1]
+            - link "Marie Claire Style" [ref=e20]
+          - listitem [level=1]
+            - link "Marie Claire Idées" [ref=e21]
+          - listitem [level=1]
+            - link "Marie Claire Maison" [ref=e22]
+        - StaticText "GROUPE MARIE CLAIRE"
+        - list
+          - listitem [level=1]
+            - link "Aide" [ref=e23]
+          - listitem [level=1]
+            - link "CGV" [ref=e24]
+          - listitem [level=1]
+            - link "CGU" [ref=e25]
+          - listitem [level=1]
+            - link "Politique de confidentialité" [ref=e26]
+          - listitem [level=1]
+            - link "Données cookies" [ref=e27]
+          - listitem [level=1]
+            - link "Plan du site" [ref=e28]
+        - generic
+          - StaticText "UN SERVICE CLIENT"
+          - LineBreak "\n"
+          - StaticText "À VOTRE ÉCOUTE :"
+        - list
+          - listitem [level=1]
+            - image
+            - link "01 84 888 222" [ref=e29]
+            - StaticText "du lundi au vendredi : 8h-19h et le samedi : 8h-16h"
+          - listitem [level=1]
+            - image
+            - link "leserviceclient@magazines.fr" [ref=e30]
+          - listitem [level=1]
+            - image
+            - StaticText "Groupe Marie Claire"
+            - LineBreak "\n"
+            - StaticText "Service abonnements"
+            - LineBreak "\n"
+            - StaticText "Bâtiment B11, 127 rue Charles Tillon"
+            - LineBreak "\n"
+            - StaticText "93309 Aubervilliers"
+            - LineBreak "\n"
+      - StaticText "© Groupe Marie Claire"
+  - generic
+    - IframePresentational "reCAPTCHA"
+"https://www.magazines.fr/mon-espace-client.html"
+"https://www.magazines.fr/mon-espace-client.html"
+- generic
+  - banner
+    - generic
+      - link "magazines.fr LE SITE OFFICIEL D'ABONNEMENT DU GROUPE MARIE CLAIRE" [ref=e1]
+        - image "magazines.fr"
+        - StaticText "LE SITE OFFICIEL D'ABONNEMENT"
+        - LineBreak "\n"
+        - StaticText "DU GROUPE MARIE CLAIRE"
+      - generic [ref=e2] clickable [cursor:pointer]
+        - image
+        - StaticText "J’ai un code express"
+        - search
+          - textbox [ref=e14]
+      - link "Je me réabonne" [ref=e3]
+        - image
+        - StaticText "Je me réabonne"
+      - generic
+        - link [ref=e11]
+          - image
+        - generic
+          - image
+          - search
+            - textbox "Rechercher" [ref=e31]
+      - link [ref=e4]
+        - image
+      - link [ref=e5]
+        - image
+    - list
+      - listitem [level=1]
+        - link "FÉMININS" [ref=e6]
+          - StaticText "FÉMININS"
+        - list
+          - listitem [level=2]
+            - link "Avantages" [ref=e32]
+          - listitem [level=2]
+            - link "Cosmopolitan" [ref=e33]
+          - listitem [level=2]
+            - link "Marie Claire" [ref=e34]
+          - listitem [level=2]
+            - link "Marie Claire Style" [ref=e35]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e36]
+      - listitem [level=1]
+        - link "VIN" [ref=e7]
+          - StaticText "VIN"
+        - list
+          - listitem [level=2]
+            - link "La Revue du vin de France" [ref=e37]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e38]
+      - listitem [level=1]
+        - link "LOISIRS ET DÉCORATION" [ref=e8]
+          - StaticText "LOISIRS ET DÉCORATION"
+        - list
+          - listitem [level=2]
+            - link "Marie Claire Idées" [ref=e39]
+          - listitem [level=2]
+            - link "Marie Claire Maison" [ref=e40]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e41]
+      - listitem [level=1]
+        - link "FAMILLE" [ref=e9]
+          - StaticText "FAMILLE"
+        - list
+          - listitem [level=2]
+            - link "Marie Claire Enfants" [ref=e42]
+          - listitem [level=2]
+            - link "Voir tout" [ref=e43]
+    - list
+      - listitem [level=1]
+        - link "TOUS LES MAGAZINES" [ref=e10]
+          - StaticText "TOUS LES MAGAZINES"
+          - image
+        - list
+          - listitem [level=2]
+            - link "Avantages" [ref=e44]
+          - listitem [level=2]
+            - link "Cosmopolitan" [ref=e45]
+          - listitem [level=2]
+            - link "Marie Claire" [ref=e46]
+          - listitem [level=2]
+            - link "Marie Claire Style" [ref=e47]
+          - listitem [level=2]
+            - link "La Revue du vin de France" [ref=e48]
+          - listitem [level=2]
+            - link "Marie Claire Idées" [ref=e49]
+          - listitem [level=2]
+            - link "Marie Claire Maison" [ref=e50]
+          - listitem [level=2]
+            - link "Marie Claire Enfants" [ref=e51]
+  - main
+    - generic
+      - list
+        - listitem [level=1]
+          - link "Magazines.fr >" [ref=e12]
+            - StaticText "Magazines.fr"
+            - StaticText ">"
+        - listitem [level=1]
+          - StaticText "Connexion"
+      - generic
+        - generic
+          - heading "Avez-vous déjà commandé sur Magazines.fr?" [level=1, ref=e13]
+          - generic
+            - StaticText "Oui"
+            - StaticText "J'ai déjà un compte"
+          - generic
+            - StaticText "Non"
+            - StaticText "Je crée mon compte"
+  - contentinfo
+    - list
+      - listitem [level=1]
+        - image
+        - StaticText "Moins cher qu'en kiosque"
+      - listitem [level=1]
+        - image
+        - StaticText "Version numérique incluse"
+      - listitem [level=1]
+        - image
+        - StaticText "La fidélité récompensée"
+      - listitem [level=1]
+        - image
+        - StaticText "Paiement sécurisé"
+    - generic
+      - generic
+        - StaticText "LES MAGAZINES DU GROUPE"
+        - list
+          - listitem [level=1]
+            - link "Avantages" [ref=e15]
+          - listitem [level=1]
+            - link "Cosmopolitan" [ref=e16]
+          - listitem [level=1]
+            - link "La Revue du vin de France" [ref=e17]
+        - list
+          - listitem [level=1]
+            - link "Marie Claire" [ref=e18]
+          - listitem [level=1]
+            - link "Marie Claire Enfants" [ref=e19]
+          - listitem [level=1]
+            - link "Marie Claire Style" [ref=e20]
+          - listitem [level=1]
+            - link "Marie Claire Idées" [ref=e21]
+          - listitem [level=1]
+            - link "Marie Claire Maison" [ref=e22]
+        - StaticText "GROUPE MARIE CLAIRE"
+        - list
+          - listitem [level=1]
+            - link "Aide" [ref=e23]
+          - listitem [level=1]
+            - link "CGV" [ref=e24]
+          - listitem [level=1]
+            - link "CGU" [ref=e25]
+          - listitem [level=1]
+            - link "Politique de confidentialité" [ref=e26]
+          - listitem [level=1]
+            - link "Données cookies" [ref=e27]
+          - listitem [level=1]
+            - link "Plan du site" [ref=e28]
+        - generic
+          - StaticText "UN SERVICE CLIENT"
+          - LineBreak "\n"
+          - StaticText "À VOTRE ÉCOUTE :"
+        - list
+          - listitem [level=1]
+            - image
+            - link "01 84 888 222" [ref=e29]
+            - StaticText "du lundi au vendredi : 8h-19h et le samedi : 8h-16h"
+          - listitem [level=1]
+            - image
+            - link "leserviceclient@magazines.fr" [ref=e30]
+          - listitem [level=1]
+            - image
+            - StaticText "Groupe Marie Claire"
+            - LineBreak "\n"
+            - StaticText "Service abonnements"
+            - LineBreak "\n"
+            - StaticText "Bâtiment B11, 127 rue Charles Tillon"
+            - LineBreak "\n"
+            - StaticText "93309 Aubervilliers"
+            - LineBreak "\n"
+      - StaticText "© Groupe Marie Claire"
+  - generic
+    - IframePresentational "reCAPTCHA"
+"https://www.magazines.fr/mon-espace-client.html"

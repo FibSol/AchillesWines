@@ -1,49 +1,50 @@
 """
-Wine-Searcher scraper — Firecrawl search approach.
+Wine-Searcher scraper — Firecrawl CLI page scrape, cuvée-level batching.
 
-Target:  Firecrawl /v1/search → wine-searcher.com result snippets
-Auth:    FIRECRAWL_API_KEY env var (same key used by the CLI)
-Cadence: Monthly
+Target:  https://www.wine-searcher.com/find/{query}?sl-cur=EUR
+Method:  subprocess: firecrawl scrape --profile wine-searcher --only-main-content
+         The --profile flag reuses a persistent Firecrawl browser session that
+         bypasses PerimeterX.  Direct httpx / REST-API scraping returns 403.
+Cadence: Monthly (~5 Firecrawl credits per cuvée, one URL covers all vintages)
 Output:  staging_price_candidates → fact_price via tri-source promoter
 
-Strategy
---------
-For each wine in dim_wine (coverage_tier='notable' first) POST a Firecrawl
-search query:
-    "{producer} {cuvee} {vintage} site:wine-searcher.com"
+Batching strategy
+-----------------
+Scrapes at the cuvée level: one Wine-Searcher URL per (producer, cuvée) pair.
+A single page shows all vintages, so we cover all wine_keys for that cuvée in
+one CLI call.  vintage >= 2000 filter is applied at insert time.
 
-Wine-Searcher's Google snippet reliably contains the avg price in the format:
-    "Avg Price (ex-tax) $1,234 / 750ml"
+Progress tracking (auto-resume)
+---------------------------------
+After each attempted cuvée — whether or not listings were found — the scraper
+upserts a row to ops_content_hashes using a synthetic URL key:
+    ws_cuvee:{producer_norm}|{cuvee_norm}
+On subsequent runs the _load_cuvees query excludes URLs already fetched within
+the last 30 days, so the next batch picks up exactly where the last one stopped.
 
-That single price point is extracted, converted to EUR if needed, and inserted
-as a staging_price_candidate with retailer="wine-searcher.com".
-
-Why this works without a WS Pro API subscription
--------------------------------------------------
-Firecrawl's /search endpoint routes through its own cached/indexed layer and
-does not hit wine-searcher.com directly, bypassing PerimeterX entirely.
-Direct HTTP scraping of wine-searcher.com is blocked by PerimeterX regardless
-of headers or proxies.
-
-Credit cost
+Run example
 -----------
-1 Firecrawl credit per wine.  Run with --limit 500 for an initial sweep of
-notable-tier wines; increase once the credit budget is confirmed.
-
-Without FIRECRAWL_API_KEY the scraper logs a single scraper_not_applicable
-DLQ row and exits cleanly — the dim_source row stays enabled.
+    achilles-scraper run --source wine_searcher --limit 50
+    # 50 cuvées per run ≈ 100 seconds.  Re-run to advance the cursor.
 
 FX conversion
 -------------
-Wine-Searcher snippets show the US market average price (USD).  EUR conversion
-uses the Frankfurter API (FRANKFURTER_API_BASE env var, defaults to
-https://api.frankfurter.app) — a free, ECB-sourced endpoint, no key needed.
+Prices requested in EUR (?sl-cur=EUR).  Non-EUR symbols fall back to the
+Frankfurter API (api.frankfurter.app, no key, ECB-sourced).
+Override base URL with FRANKFURTER_API_BASE.
+
+Prerequisites
+-------------
+  - firecrawl CLI in PATH  (npm install -g firecrawl)
+  - FIRECRAWL_API_KEY set (same key as CLI)
 """
 import hashlib
 import logging
 import os
 import re
+import shutil
 import sqlite3
+import subprocess
 import time
 import uuid
 from datetime import datetime, timezone
@@ -57,68 +58,174 @@ except ImportError:
 
 from .base import BaseScraper, ScrapeResult
 from ..dlq import insert_staging_candidate, write_dlq
-from ..identity import normalize_producer, normalize_cuvee, compute_wine_key
 
 _logger = logging.getLogger(__name__)
 
-_FIRECRAWL_SEARCH_URL = "https://api.firecrawl.dev/v1/search"
+_WS_BASE          = "https://www.wine-searcher.com/find"
+_FC_PROFILE       = "wine-searcher"
+_SCRAPE_TIMEOUT   = 90        # seconds per CLI call
+_REQUEST_DELAY    = 1.0       # seconds between cuvée requests
+_PRICE_MIN_EUR    = 3.0
+_PRICE_MAX_EUR    = 50_000.0
+_VINTAGE_MIN      = 2000      # skip pre-2000 listings
+_RESUME_DAYS      = 30        # re-attempt a cuvée after this many days
 _FRANKFURTER_BASE = "https://api.frankfurter.app"
-_REQUEST_DELAY = 1.5            # seconds between Firecrawl calls
-_PRICE_MIN_EUR = 3.0
-_PRICE_MAX_EUR = 50_000.0
-_ENV_KEY = "FIRECRAWL_API_KEY"
 
-# Matches "Avg Price (ex-tax) $1,234 / 750ml" or "€ 567" or "£ 890"
-_AVG_PRICE_RE = re.compile(
-    r"Avg Price.*?([$€£])\s*([\d,]+(?:\.\d+)?)\s*/\s*750\s*ml",
+# ── Markdown parsing ──────────────────────────────────────────────────────────
+
+# [Merchant Name](https://www.wine-searcher.com/merchant/…)
+_MERCHANT_RE = re.compile(
+    r'\[([^\]]+)\]\(https://www\.wine-searcher\.com/merchant/[^)]+\)'
+)
+# "$128.78 / 750ml"  |  "€ 152.95 / 750ml"
+_PRICE_750_RE = re.compile(
+    r'([$€£])\s*([\d,]+(?:\.\d+)?)\s*/\s*750\s*ml'
+)
+# Vintage 4-digit year, NOT immediately surrounded by other digits
+_VINTAGE_RE = re.compile(r'(?<!\d)((?:19|20)\d{2})(?!\d)')
+# Offer type
+_OFFER_RE = re.compile(
+    r'\b(Retail|Pre Arrival|By Request|Auction|In Bond|En Primeur(?:/Futures)?)\b',
     re.IGNORECASE,
 )
-_CURRENCY_SYMBOL = {"$": "USD", "€": "EUR", "£": "GBP"}
+_CURRENCY_MAP = {"$": "USD", "€": "EUR", "£": "GBP"}
 
 
-def _parse_avg_price(description: str) -> tuple[Optional[float], str]:
-    """Extract (price, currency_code) from a WS snippet description.
+# ── URL builder ───────────────────────────────────────────────────────────────
 
-    Returns (None, 'EUR') if no price pattern is found.
+def _build_ws_url(cuvee: dict) -> str:
     """
-    if not description:
-        return None, "EUR"
-    m = _AVG_PRICE_RE.search(description)
-    if not m:
-        return None, "EUR"
-    symbol, raw = m.group(1), m.group(2)
+    Build a Wine-Searcher search URL from DB-normalised cuvée fields.
+    No vintage → WS returns all vintages on one page.
+    """
+    parts = (cuvee["producer_norm"] or "").split()
+    cuvee_norm = cuvee.get("cuvee_norm") or ""
+    if cuvee_norm and cuvee_norm != cuvee["producer_norm"]:
+        prod_set = set(parts)
+        parts += [t for t in cuvee_norm.split() if t not in prod_set]
+    slug = "+".join(p for p in parts if p)
+    return f"{_WS_BASE}/{slug}?sl-cur=EUR"
+
+
+def _progress_key(cuvee: dict) -> str:
+    """Synthetic ops_content_hashes key for tracking cuvée-level attempts."""
+    return f"ws_cuvee:{cuvee['producer_norm']}|{cuvee.get('cuvee_norm') or ''}"
+
+
+# ── Firecrawl CLI wrapper ─────────────────────────────────────────────────────
+
+def _scrape_page(url: str) -> Optional[str]:
+    """
+    Run `firecrawl scrape --profile wine-searcher --only-main-content`.
+    Returns the markdown body, or None on failure.
+    Strips the CLI "Scrape ID: …" header line from stdout.
+    """
+    fc = shutil.which("firecrawl")
+    if not fc:
+        return None
     try:
-        price = float(raw.replace(",", ""))
-    except ValueError:
-        return None, "EUR"
-    currency = _CURRENCY_SYMBOL.get(symbol, "USD")
-    return price, currency
+        proc = subprocess.run(
+            [fc, "scrape", url, "--profile", _FC_PROFILE, "--only-main-content"],
+            capture_output=True, text=True,
+            timeout=_SCRAPE_TIMEOUT,
+            encoding="utf-8", errors="replace",
+        )
+    except subprocess.TimeoutExpired:
+        _logger.warning("firecrawl timeout: %s", url)
+        return None
+    except Exception as exc:
+        _logger.warning("firecrawl error: %s", exc)
+        return None
+
+    if proc.returncode != 0:
+        _logger.warning("firecrawl rc=%d: %.200s", proc.returncode, proc.stderr)
+        return None
+
+    lines = proc.stdout.splitlines(keepends=True)
+    return "".join(l for l in lines if not l.startswith("Scrape ID:"))
 
 
-def _fetch_eur_rate(client: "httpx.Client", from_currency: str, base: str) -> Optional[float]:
-    """Return the EUR rate for 1 unit of from_currency via Frankfurter."""
-    if from_currency == "EUR":
+# ── Markdown parser ───────────────────────────────────────────────────────────
+
+def _parse_listings(markdown: str) -> list[dict]:
+    """
+    Parse a Wine-Searcher page markdown into a list of offer dicts.
+    Each dict: retailer, price_local, currency, vintage, offer_type, source_url.
+
+    The "Go to shop" link in WS markdown spans ~15 lines (each field on its own
+    line with backslash continuation).  We use a 35-line window per listing.
+    """
+    listings: list[dict] = []
+    lines = markdown.splitlines()
+    n = len(lines)
+    i = 0
+    while i < n:
+        m = _MERCHANT_RE.search(lines[i])
+        if not m:
+            i += 1
+            continue
+
+        retailer = m.group(1).strip()
+        block = "\n".join(lines[i : i + 35])
+
+        pm = _PRICE_750_RE.search(block)
+        if not pm:
+            i += 1
+            continue
+
+        try:
+            price_local = float(pm.group(2).replace(",", ""))
+        except ValueError:
+            i += 1
+            continue
+
+        currency = _CURRENCY_MAP.get(pm.group(1), "EUR")
+
+        vm = _VINTAGE_RE.search(block)
+        vintage = int(vm.group(1)) if vm else None
+
+        om = _OFFER_RE.search(block)
+        offer_type = om.group(1).strip() if om else "Retail"
+
+        su = re.search(r'\[Go to shop[^\]]*\]\((https?://[^)]+)\)', block)
+        source_url = su.group(1) if su else ""
+
+        listings.append({
+            "retailer":    retailer,
+            "price_local": price_local,
+            "currency":    currency,
+            "vintage":     vintage,
+            "offer_type":  offer_type,
+            "source_url":  source_url,
+        })
+        i += 1
+
+    return listings
+
+
+# ── FX helper ─────────────────────────────────────────────────────────────────
+
+def _eur_rate(client: "httpx.Client", currency: str, base: str) -> Optional[float]:
+    if currency == "EUR":
         return 1.0
     try:
-        resp = client.get(
-            f"{base}/latest",
-            params={"from": from_currency, "to": "EUR"},
-            timeout=10,
-        )
-        if resp.is_success:
-            data = resp.json()
-            return data.get("rates", {}).get("EUR")
+        r = client.get(f"{base}/latest", params={"from": currency, "to": "EUR"}, timeout=10)
+        if r.is_success:
+            return r.json().get("rates", {}).get("EUR")
     except Exception:
         pass
     return None
 
 
+# ── Scraper class ─────────────────────────────────────────────────────────────
+
 class WineSearcherScraper(BaseScraper):
     """
-    Wine-Searcher avg-price scraper via Firecrawl /v1/search.
+    Wine-Searcher full-coverage scraper via Firecrawl CLI.
 
-    Requires FIRECRAWL_API_KEY in the environment.
-    Without a key, logs a single ``scraper_not_applicable`` DLQ row and exits.
+    Operates at the cuvée level: one URL per (producer, cuvée) covers all
+    vintages.  Progress is tracked in ops_content_hashes so each batch picks
+    up where the last one stopped.
     """
 
     source_code = "wine_searcher"
@@ -127,12 +234,9 @@ class WineSearcherScraper(BaseScraper):
         self.conn = conn
         self.batch_id: Optional[str] = None
 
+    # ── Public entry point ────────────────────────────────────────────────────
+
     def run(self, limit: Optional[int] = None) -> ScrapeResult:
-        if not HAS_HTTPX:
-            return ScrapeResult(error="Missing dependency: httpx not installed")
-
-        api_key = os.environ.get(_ENV_KEY, "").strip()
-
         batch_id = self.batch_id or (
             f"wine_searcher-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
             f"-{uuid.uuid4().hex[:8]}"
@@ -147,214 +251,219 @@ class WineSearcherScraper(BaseScraper):
             return ScrapeResult(error="dim_source row missing for 'wine_searcher'.")
         source_key = source_row[0]
 
-        if not api_key:
+        if not shutil.which("firecrawl"):
             write_dlq(
                 self.conn, source_key, batch_id,
                 "scraper_not_applicable",
-                f"{_ENV_KEY} not set — set this env var (same key as the Firecrawl CLI) "
-                "to enable Wine-Searcher price ingestion.",
+                "firecrawl CLI not found — install with: npm install -g firecrawl",
                 {},
             )
             result.rows_dlq += 1
             return result
 
-        wines = self._load_wines(limit)
-        if not wines:
+        cuvees = self._load_cuvees(source_key, limit)
+        if not cuvees:
+            _logger.info("No cuvées to scrape (all already attempted within %d days).", _RESUME_DAYS)
             return result
 
+        _logger.info("Scraping %d cuvées (limit=%s)", len(cuvees), limit)
+
         frankfurter_base = os.environ.get("FRANKFURTER_API_BASE", _FRANKFURTER_BASE).rstrip("/")
-        # Cache FX rates to avoid hammering Frankfurter for every wine
         fx_cache: dict[str, Optional[float]] = {}
+        fx_client = httpx.Client(timeout=15, follow_redirects=True) if HAS_HTTPX else None
 
-        fc_headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        }
-
-        with httpx.Client(timeout=30, follow_redirects=True) as client:
-            for wine in wines:
-                if limit is not None and result.rows_fetched >= limit:
-                    break
-                self._scrape_wine(
-                    client, fc_headers, frankfurter_base,
-                    source_key, batch_id, wine, fx_cache, result,
+        try:
+            for cuvee in cuvees:
+                self._scrape_cuvee(
+                    fx_client, frankfurter_base,
+                    source_key, batch_id, cuvee, fx_cache, result,
                 )
                 time.sleep(_REQUEST_DELAY)
+        finally:
+            if fx_client:
+                fx_client.close()
 
         return result
 
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
+    # ── Data loading ──────────────────────────────────────────────────────────
 
-    def _load_wines(self, limit: Optional[int]) -> list[dict]:
-        """Return dim_wine rows joined with producer name, notable tier first."""
+    def _load_cuvees(self, source_key: int, limit: Optional[int]) -> list[dict]:
+        """
+        Return cuvées not yet attempted in the last _RESUME_DAYS days.
+
+        Each row is a unique (producer_norm, cuvee_norm) pair with:
+          - producer_name, cuvee_name  for display / URL building
+          - vintage_map: {vintage: wine_key}  for matching listings back
+          - appellation_norm for URL enrichment
+        """
+        cutoff = int(datetime.now(timezone.utc).timestamp()) - _RESUME_DAYS * 86400
         cap = limit if limit is not None else 999_999
+
         rows = self.conn.execute(
             """
             SELECT
-                w.wine_key,
-                p.producer_name,
                 p.producer_norm,
-                w.cuvee_name,
+                p.producer_name,
                 w.cuvee_norm,
-                w.vintage,
-                w.color,
-                a.appellation_norm
+                w.cuvee_name,
+                a.appellation_norm,
+                GROUP_CONCAT(
+                    CAST(COALESCE(w.vintage, 0) AS TEXT) || ':' || w.wine_key
+                ) AS vintage_keys,
+                p.coverage_tier
             FROM dim_wine w
             JOIN dim_producer p USING (producer_key)
             JOIN dim_appellation a USING (appellation_key)
             WHERE p.country_code = 'FR'
-              AND p.coverage_tier IN ('notable', 'mid')
               AND a.country_code = 'FR'
+              AND (w.vintage IS NULL OR w.vintage >= ?)
+              AND NOT EXISTS (
+                  SELECT 1 FROM ops_content_hashes och
+                  WHERE och.url  = 'ws_cuvee:' || p.producer_norm || '|' || COALESCE(w.cuvee_norm, '')
+                    AND och.source_key = ?
+                    AND och.last_fetched_at >= ?
+              )
+            GROUP BY p.producer_norm, w.cuvee_norm
             ORDER BY
                 CASE p.coverage_tier
-                    WHEN 'notable'   THEN 1
-                    WHEN 'mid'       THEN 2
-                    WHEN 'long_tail' THEN 3
-                    ELSE 4
+                    WHEN 'notable' THEN 1
+                    WHEN 'mid'     THEN 2
+                    ELSE 3
                 END,
                 p.producer_name
             LIMIT ?
             """,
-            (cap,),
+            (_VINTAGE_MIN, source_key, cutoff, cap),
         ).fetchall()
-        cols = [
-            "wine_key", "producer_name", "producer_norm",
-            "cuvee_name", "cuvee_norm", "vintage", "color", "appellation_norm",
-        ]
-        return [dict(zip(cols, r)) for r in rows]
 
-    def _build_query(self, wine: dict) -> str:
-        parts = [wine["producer_name"]]
-        if wine["cuvee_name"] and wine["cuvee_name"] != wine["producer_name"]:
-            parts.append(wine["cuvee_name"])
-        if wine["vintage"]:
-            parts.append(str(wine["vintage"]))
-        parts.append("site:wine-searcher.com")
-        return " ".join(parts)
+        result = []
+        for r in rows:
+            vintage_map: dict[Optional[int], str] = {}
+            if r[5]:
+                for pair in r[5].split(","):
+                    v_str, wkey = pair.split(":", 1)
+                    v = int(v_str) if v_str != "0" else None
+                    vintage_map[v] = wkey
+            result.append({
+                "producer_norm":   r[0],
+                "producer_name":   r[1],
+                "cuvee_norm":      r[2],
+                "cuvee_name":      r[3],
+                "appellation_norm": r[4],
+                "vintage_map":     vintage_map,  # {vintage_int_or_None → wine_key}
+                "coverage_tier":   r[6],
+            })
+        return result
 
-    def _scrape_wine(
+    # ── Per-cuvée scrape ──────────────────────────────────────────────────────
+
+    def _scrape_cuvee(
         self,
-        client: "httpx.Client",
-        fc_headers: dict,
+        fx_client,
         frankfurter_base: str,
         source_key: int,
         batch_id: str,
-        wine: dict,
+        cuvee: dict,
         fx_cache: dict,
         result: ScrapeResult,
     ) -> None:
-        query = self._build_query(wine)
-
-        try:
-            resp = self._fetch(lambda: client.post(
-                _FIRECRAWL_SEARCH_URL,
-                headers=fc_headers,
-                json={"query": query, "limit": 1, "location": "Belgium"},
-            ))
-        except Exception as exc:
-            write_dlq(
-                self.conn, source_key, batch_id, "network_error", str(exc),
-                {"wine_key": wine["wine_key"], "query": query},
-            )
-            result.rows_dlq += 1
-            return
-
+        url = _build_ws_url(cuvee)
         result.rows_fetched += 1
 
-        if resp.status_code == 401:
-            write_dlq(
-                self.conn, source_key, batch_id, "auth_error",
-                f"Firecrawl returned 401 — check {_ENV_KEY}",
-                {"wine_key": wine["wine_key"]},
-            )
-            result.rows_dlq += 1
-            return
+        markdown = _scrape_page(url)
 
-        if resp.status_code == 429:
-            write_dlq(
-                self.conn, source_key, batch_id, "auth_error",
-                "Firecrawl rate limit (429) — increase _REQUEST_DELAY",
-                {"wine_key": wine["wine_key"]},
-            )
-            result.rows_dlq += 1
-            return
+        # Always mark as attempted (whether we got results or not) so the
+        # next batch skips this cuvée for _RESUME_DAYS days.
+        self._mark_attempted(cuvee, source_key)
 
-        if not resp.is_success:
+        if not markdown:
             write_dlq(
                 self.conn, source_key, batch_id, "network_error",
-                f"HTTP {resp.status_code}",
-                {"wine_key": wine["wine_key"]},
+                "firecrawl scrape returned no content",
+                {"producer": cuvee["producer_norm"], "cuvee": cuvee["cuvee_norm"], "url": url},
             )
             result.rows_dlq += 1
             return
 
-        try:
-            data = resp.json()
-        except Exception as exc:
-            write_dlq(
-                self.conn, source_key, batch_id, "parse_error",
-                f"JSON decode failed: {exc}",
-                {"wine_key": wine["wine_key"]},
-            )
-            result.rows_dlq += 1
-            return
-
-        results = data.get("data") or []
-        if not results:
+        listings = _parse_listings(markdown)
+        if not listings:
             result.rows_skipped_unchanged += 1
             return
-
-        first = results[0]
-        description = first.get("description") or ""
-        source_url = first.get("url") or _FIRECRAWL_SEARCH_URL
-
-        price_local, currency = _parse_avg_price(description)
-        if price_local is None:
-            result.rows_skipped_unchanged += 1
-            return
-
-        # FX conversion to EUR
-        if currency not in fx_cache:
-            fx_cache[currency] = _fetch_eur_rate(client, currency, frankfurter_base)
-        rate = fx_cache.get(currency)
-
-        if rate is None:
-            write_dlq(
-                self.conn, source_key, batch_id, "validation_error",
-                f"FX rate unavailable for {currency}→EUR",
-                {"wine_key": wine["wine_key"], "price": price_local, "currency": currency},
-            )
-            result.rows_dlq += 1
-            return
-
-        price_eur = round(price_local * rate, 2)
-
-        if not (_PRICE_MIN_EUR <= price_eur <= _PRICE_MAX_EUR):
-            result.rows_skipped_unchanged += 1
-            return
-
-        content_hash = hashlib.sha256(
-            f"{wine['wine_key']}:wine-searcher.com:{price_eur:.2f}:EUR".encode()
-        ).hexdigest()
 
         recorded_at = int(datetime.now(timezone.utc).timestamp())
 
-        inserted = insert_staging_candidate(
-            self.conn,
-            wine_key=wine["wine_key"],
-            source_key=source_key,
-            retailer="wine-searcher.com",
-            recorded_at=recorded_at,
-            currency_code="EUR",
-            amount_local=price_eur,
-            amount_eur=price_eur,
-            source_url=source_url,
-            content_hash=content_hash,
-            batch_id=batch_id,
+        for listing in listings:
+            vintage = listing["vintage"]
+
+            # Skip pre-2000 vintages
+            if vintage is not None and vintage < _VINTAGE_MIN:
+                continue
+
+            # Match listing vintage back to a wine_key in this cuvée
+            wine_key = cuvee["vintage_map"].get(vintage)
+            if wine_key is None:
+                # Vintage not in DB for this cuvée → skip rather than fabricate
+                result.rows_skipped_unchanged += 1
+                continue
+
+            # FX to EUR
+            currency = listing["currency"]
+            if currency not in fx_cache:
+                fx_cache[currency] = (
+                    _eur_rate(fx_client, currency, frankfurter_base)
+                    if fx_client else (1.0 if currency == "EUR" else None)
+                )
+            rate = fx_cache.get(currency)
+            if rate is None:
+                result.rows_skipped_unchanged += 1
+                continue
+
+            price_eur = round(listing["price_local"] * rate, 2)
+            if not (_PRICE_MIN_EUR <= price_eur <= _PRICE_MAX_EUR):
+                result.rows_skipped_unchanged += 1
+                continue
+
+            content_hash = hashlib.sha256(
+                f"{wine_key}:{listing['retailer']}:{vintage}:{price_eur:.2f}".encode()
+            ).hexdigest()
+
+            inserted = insert_staging_candidate(
+                self.conn,
+                wine_key=wine_key,
+                source_key=source_key,
+                retailer=listing["retailer"],
+                recorded_at=recorded_at,
+                currency_code="EUR",
+                amount_local=price_eur,
+                amount_eur=price_eur,
+                source_url=listing["source_url"],
+                content_hash=content_hash,
+                batch_id=batch_id,
+            )
+            if inserted:
+                result.rows_inserted += 1
+            else:
+                result.rows_skipped_unchanged += 1
+
+    # ── Progress tracking ─────────────────────────────────────────────────────
+
+    def _mark_attempted(self, cuvee: dict, source_key: int) -> None:
+        """
+        Upsert a sentinel into ops_content_hashes to record that this cuvée
+        was attempted.  Subsequent _load_cuvees calls exclude it for _RESUME_DAYS.
+        """
+        now = int(datetime.now(timezone.utc).timestamp())
+        key = _progress_key(cuvee)
+        self.conn.execute(
+            """
+            INSERT INTO ops_content_hashes
+                (url, source_key, last_hash, last_fetched_at, fetch_count)
+            VALUES (?, ?, 'attempted', ?, 1)
+            ON CONFLICT(url) DO UPDATE SET
+                last_hash       = 'attempted',
+                last_fetched_at = excluded.last_fetched_at,
+                fetch_count     = fetch_count + 1
+            """,
+            (key, source_key, now),
         )
-        if inserted:
-            result.rows_inserted += 1
-        else:
-            result.rows_skipped_unchanged += 1
+        self.conn.commit()

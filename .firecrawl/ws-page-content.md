@@ -1,0 +1,1 @@
+![Logo](https://www.wine-searcher.com/images/logo/ws_logo_grey.svg)

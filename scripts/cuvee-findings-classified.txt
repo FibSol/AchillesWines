@@ -1,0 +1,1128 @@
+CUVEE SIMILARITY FINDINGS — CLASSIFIED
+Total pairs scanned: 4980
+
+SUMMARY
+  French article divergence (Le/La/Les):  23
+  English article divergence (The):       23
+  Gender clash (Le vs La on same root):   6
+  Other article:                          6
+  Edit-1 real spelling/accent typos:      295
+  Edit-1 singular/plural only:            44
+  Edit-1 numbered series (skip):          175
+  Edit-2 real typos:                      174
+
+========================================================================
+  FRENCH ARTICLE DIVERGENCE — fix by keeping the 'with article' form as canonical  (23 pairs)
+========================================================================
+  [Bouchard Père & Fils]
+      A: "Gouttes d'Or Premier Cru"
+      B: "Les Gouttes d'Or Premier Cru"
+  [Cave du Marmandais]
+      A: 'La Vieille Eglise Réserve'
+      B: 'Vieille Eglise Réserve'
+  [Château Angélus]
+      A: "Carillon d'Angélus"
+      B: "Le Carillon d'Angelus"
+  [Château Angélus]
+      A: "Carillon d'Angélus"
+      B: "Le Carillon d'Angélus"
+  [Château Ausone]
+      A: "Chapelle d'Ausone"
+      B: "La Chapelle d'Ausone"
+  [Château Calon-Ségur]
+      A: 'C de Calon Ségur'
+      B: 'Le C de Calon Segur'
+  [Château Cos d'Estournel]
+      A: 'Les Pagodes de Cos'
+      B: 'Pagodes de Cos'
+  [Château Lafite Rothschild]
+      A: 'Carruades de Lafite'
+      B: 'Les Carruades de Lafite'
+  [Château Montrose]
+      A: 'Dame de Montrose'
+      B: 'La Dame de Montrose'
+  [Château Potensac]
+      A: 'Chapelle de Potensac'
+      B: 'La Chapelle de Potensac'
+  [Domaine Faiveley]
+      A: 'Charmes'
+      B: 'Les Charmes'
+  [Domaine Ostertag]
+      A: 'Les Vieilles Vignes'
+      B: 'Vieilles Vignes'
+  [Domaine René Bouvier]
+      A: 'Crais de chêne'
+      B: 'Les Crais de chêne'
+  [Domaine Vrignaud]
+      A: 'La Champréaux'
+      B: 'Les Champréaux'
+  [Domaine de la Mordorée]
+      A: 'La Reine des Bois'
+      B: 'Reine des Bois'
+  [Les Maîtres Vignerons de la presqu'île de Saint-Tropez]
+      A: 'Cave de Saint-Roch les Vignes'
+      B: 'La Cave de Saint-Roch-les-Vignes'
+  [Louis Latour]
+      A: 'Charmes'
+      B: 'Les Charmes'
+  [Maison Champy]
+      A: 'Champs Pimont Premier Cru'
+      B: 'Les Champs Pimont Premier Cru'
+  [Newton]
+      A: 'Le Puzzle'
+      B: 'The Puzzle'
+  [Pascal Jolivet]
+      A: 'Château du Nozay'
+      B: 'Le Chateau du Nozay'
+  [Remoissenet Père et Fils]
+      A: 'Charmes'
+      B: 'Les Charmes'
+  [Simonnet-Febvre]
+      A: 'Les Preuses'
+      B: 'Preuses'
+  [Vincent Girardin]
+      A: 'Les Perrières'
+      B: 'Perrières'
+
+========================================================================
+  ENGLISH ARTICLE DIVERGENCE — review needed  (23 pairs)
+========================================================================
+  [Adelaida]
+      A: 'Glenrose Vineyard Reserve'
+      B: 'The Glenrose Vineyard Reserve'
+  [Adelaida]
+      A: 'Glenrose Vineyard Roussanne-Grenache Blanc'
+      B: 'The Glenrose Vineyard Roussanne-Grenache Blanc'
+  [Calcareous]
+      A: 'The Twisted Sisters'
+      B: 'Twisted Sisters'
+  [Cass]
+      A: "Rockin' One"
+      B: "The Rockin' One"
+  [Cayuse]
+      A: 'The Widowmaker'
+      B: 'Widowmaker'
+  [D'Arenberg]
+      A: "The d'Arry's Original"
+      B: "d'Arry's Original"
+  [Domaine Carneros]
+      A: 'Famous Gate'
+      B: 'The Famous Gate'
+  [EOS]
+      A: 'French Connection'
+      B: 'The French Connection'
+  [Fairview]
+      A: 'Beacon'
+      B: 'The Beacon'
+  [Four Vines]
+      A: 'Peasant'
+      B: 'The Peasant'
+  [Jim Barry]
+      A: 'Armagh'
+      B: 'The Armagh'
+  [Norman]
+      A: 'Monster'
+      B: 'The Monster'
+  [Peachy Canyon]
+      A: 'The Vortex'
+      B: 'Vortex'
+  [Peirano]
+      A: 'Heritage Collection'
+      B: 'The Heritage Collection'
+  [Peirano]
+      A: 'Heritage Collection, Six Clones'
+      B: 'The Heritage Collection Six Clones'
+  [Pepperwood Grove]
+      A: 'Big Green Box'
+      B: 'The Big Green Box'
+  [Sleight of Hand]
+      A: 'Archimage'
+      B: 'The Archimage'
+  [Trinity Hill]
+      A: 'Gimblett'
+      B: 'The Gimblett'
+  [Yalumba]
+      A: 'The Y Series'
+      B: 'Y Series'
+  [Yalumba]
+      A: 'The Y Series Rosé'
+      B: 'Y Series Rosé'
+  [Yalumba]
+      A: 'The Y Series Sangiovese'
+      B: 'Y Series Sangiovese'
+  [Yalumba]
+      A: 'The Y Series Unwooded'
+      B: 'Y Series Unwooded'
+  [Yellow Tail]
+      A: 'Reserve'
+      B: 'The Reserve'
+
+========================================================================
+  GENDER CLASH (Le vs La) — review needed  (6 pairs)
+========================================================================
+  [Château Bouissel]
+      A: 'La Syrah de Bouissel'
+      B: 'Le Syrah de Bouissel'
+  [Château Haut-Brion]
+      A: 'La Clarté de Haut-Brion'
+      B: 'Le Clarté de Haut-Brion'
+  [Joseph Mellot]
+      A: 'La Grande Cuvée des Edvins'
+      B: 'Le Grande Cuvée des Edvins'
+  [Joseph Mellot]
+      A: 'La Montarlet'
+      B: 'Le Montarlet'
+  [Les Vins de Vienne]
+      A: 'La Chambée'
+      B: 'Le Chambée'
+  [M. Chapoutier]
+      A: 'La Bernardine'
+      B: 'Le Bernardine'
+
+========================================================================
+  OTHER ARTICLE — review  (6 pairs)
+========================================================================
+  [Alvear]
+      A: 'Añada'
+      B: 'de Añada'
+  [Bodegas Carrau]
+      A: 'De Reserva'
+      B: 'Reserva'
+  [Château Chasse-Spleen]
+      A: 'Héritage de Chasse Spleen'
+      B: "L'Héritage de Chasse-Spleen"
+  [Château Chasse-Spleen]
+      A: 'Héritage de Chasse-Spleen'
+      B: "L'Héritage de Chasse-Spleen"
+  [Domaine de Chevalier]
+      A: 'Esprit de Chevalier'
+      B: "L'Esprit de Chevalier"
+  [Mionetto]
+      A: 'Il Prosecco'
+      B: 'Prosecco'
+
+========================================================================
+  EDIT-1 REAL TYPOS / SPELLING / ACCENT — fix candidates  (295 pairs)
+========================================================================
+  [Acorn]
+      A: 'Alegria Vineyard'
+      B: 'Alegría Vineyards'
+  [Acorn]
+      A: 'Alegria Vineyards Axiom'
+      B: 'Allegria Vineyards Axiom'
+  [Adega Cooperativa de Borba]
+      A: 'Monte Claros Reserva Branco'
+      B: 'Montes Claros Reserva Branco'
+  [Alidis]
+      A: 'Expresión'
+      B: 'Expression'
+  [Alma Rosa]
+      A: 'El Jabali Vineyard'
+      B: 'El Jagali Vineyard'
+  [Andrew Peace]
+      A: 'Master Peace'
+      B: 'Masterpeace'
+  [Antucura]
+      A: 'Gran Vin'
+      B: 'Grand Vin'
+  [Arbor Crest]
+      A: 'Conner Lee Vineyard'
+      B: 'Connor Lee Vineyard'
+  [B.R. Cohn]
+      A: 'Olive Hill Estate Vineyards'
+      B: 'Oliver Hill Estate Vineyards'
+  [Bacalhôa Wines of Portugal]
+      A: 'Serras de Azeitão Selecção do Enólogo'
+      B: 'Serras de Azeitão Seleção do Enólogo'
+  [Bellangelo]
+      A: 'Porto Elana'
+      B: 'Porto Elena'
+  [Bischöfliche Weingüter Trier]
+      A: 'Ayer Kupp Spätlese'
+      B: 'Ayler Kupp Spätlese'
+  [Bischöfliche Weingüter Trier]
+      A: 'Scharzhofberger Spätlese'
+      B: 'Scharzhoferger Spätlese'
+  [Black Kite]
+      A: "Redwood's Edge"
+      B: "Redwoods' Edge"
+  [Bodega NQN]
+      A: 'Malma Reserva'
+      B: 'Malma Reserve'
+  [Bodegas Faustino]
+      A: 'Faustino V Reserva'
+      B: 'Faustino V Riserva'
+  [Bodegas Vega Sicilia]
+      A: 'Macán Classico - Benjamin de Rothschild & Vega Sicilia'
+      B: 'Macán Clásico - Benjamin de Rothschild & Vega Sicilia'
+  [Bollig-Lehnert]
+      A: 'Piesperter Goldtröpfchen Spätlese'
+      B: 'Piesporter Goldtröpfchen Spätlese'
+  [Bollinger]
+      A: 'La Grand Année Brut'
+      B: 'La Grande Année Brut'
+  [Bortolomiol]
+      A: 'Banda Rossa Millesimato Extra Dry'
+      B: 'Bandarossa Millesimato Extra Dry'
+  [Bourassa Vineyards]
+      A: 'Rhapsody 3'
+      B: 'Rhapsody3'
+  [Boutari]
+      A: 'Grand Reserve'
+      B: 'Grande Reserve'
+  [Brander]
+      A: 'Cuvée Nicholas'
+      B: 'Cuvée Nicolas'
+  [Bründlmayer]
+      A: 'Langenloiser Steinmassel'
+      B: 'Langenloiser Steinmassl'
+  [Budimir]
+      A: 'Sub Rosa'
+      B: 'Svb Rosa'
+  [Cambria]
+      A: 'Tepesquet Vineyard'
+      B: 'Tepusquet Vineyard'
+  [Canonbah Bridge]
+      A: "Ram's Leap"
+      B: 'Rams Leap'
+  [Carmen]
+      A: "Wine Maker's Reserve"
+      B: "Winemaker's Reserve"
+  [Casa Larga]
+      A: 'Fiore Delle Stelle Ice Wine'
+      B: 'Fiori Delle Stelle Ice Wine'
+  [Casa do Valle]
+      A: 'Grand Escolha'
+      B: 'Grande Escolha'
+  [Casale del Giglio]
+      A: 'Petit Verdot'
+      B: 'Petite Verdot'
+  [Château Dauzac]
+      A: 'La Bastide Dauzac'
+      B: 'Labastide Dauzac'
+  [Château Eugénie]
+      A: "Cuvée Réserve de l'Aiëul"
+      B: "Cuvée Réservée de l'Aïeul"
+  [Château Philippe-le-Hardi]
+      A: 'La Brigadière Vieilles Vignes'
+      B: 'La Brigardière Vieilles Vignes'
+  [Château Ponzac]
+      A: 'Patiement'
+      B: 'Patiemment'
+  [Château Prieuré-Lichine]
+      A: 'Confidence de Prieuré Lichine'
+      B: 'Confidences de Prieuré-Lichine'
+  [Château Valandraud]
+      A: '3 de Valandraud'
+      B: 'B de Valandraud'
+  [Château de Fuissé]
+      A: 'Les Brulées'
+      B: 'Les Brûlés'
+  [Château de Santenay]
+      A: 'Vieille Vignes'
+      B: 'Vieilles Vignes'
+  [Cimarone]
+      A: 'Gran Premio Three Creek Vineyard'
+      B: 'Grand Premio Three Creek Vineyard'
+  [Clarendon Hills]
+      A: 'Piggot Range'
+      B: 'Piggott Range'
+  [Cleto Chiarli]
+      A: 'Vigneto Enrico Cialdini'
+      B: 'Vigneto Enrico Cialoini'
+  [Clos La Chance]
+      A: 'Liebeler Vineyard'
+      B: 'Liebler Vineyard'
+  [Clos Solène]
+      A: 'Hommage A Nois Pairs Reserve'
+      B: 'Hommage à nos Pairs Reserve'
+  [Colli del Soligo]
+      A: 'Millesimato Exra Dry'
+      B: 'Millesimato Extra Dry'
+  [Companhia das Quintas]
+      A: 'Herdade da Farizoa Reserva'
+      B: 'Herdade de Farizoa Reserva'
+  [Companhia das Quintas]
+      A: 'Quinta da Pancas Reserva'
+      B: 'Quinta de Pancas Reserva'
+  [Concha y Toro]
+      A: 'Casillero del Diablo Reserva'
+      B: 'Casillero del Diablo Reserve'
+  [Concha y Toro]
+      A: 'Terrunyo Costa Los Boldes Vineyard Block 6'
+      B: 'Terrunyo Costa Los Boldos Vineyard Block 6'
+  [Coppo]
+      A: 'Camp du Rouss'
+      B: 'Campu du Rouss'
+  [Cortes de Cima]
+      A: 'Aragonez'
+      B: 'Aragonês'
+  [Costaripa]
+      A: 'Pieve Croce'
+      B: 'Pievecroce'
+  [Cousiño-Macul]
+      A: 'Doña Isadora'
+      B: 'Doña Isidora'
+  [Croft]
+      A: 'Quinta da Roêda Vintage'
+      B: 'Quinta de Roêda Vintage'
+  [D'Arenberg]
+      A: "d'Arry's Original"
+      B: "d'Arrys Original"
+  [Damien et Romain Bouchard]
+      A: 'Vaillon Premier Cru'
+      B: 'Vaillons Premier Cru'
+  [Dante Irurtia]
+      A: 'Posada Del Virrey Reserve'
+      B: 'Posada del Virrey Reserva'
+  [Dashe Cellars]
+      A: 'Todd Brothers Ranch Old Vines'
+      B: 'Tood Brothers Ranch Old Vines'
+  [Deerfield Ranch]
+      A: 'Los Chamazal Vineyard'
+      B: 'Los Chamizal Vineyard'
+  [Delaforce]
+      A: "His Eminence's Choice 10-Years-Old Tawny"
+      B: "His Eminence's Choice 10-year old tawny"
+  [Domaine Albert Mann]
+      A: 'Grand H - Pinot Noir'
+      B: 'Grand P - Pinot Noir'
+  [Domaine Christian Moreau Père et Fils]
+      A: 'Vaillon Premier Cru'
+      B: 'Vaillons Premier Cru'
+  [Domaine Georges Vernay]
+      A: "La Croix de l'Oiseau"
+      B: 'La Croix de lOiseau'
+  [Domaine Isabelle et Pierre Clément]
+      A: 'Isabelle et Pierre Clément Châtenay'
+      B: 'Isabelle et Pierre Clément Châtenoy'
+  [Domaine Jean Bousquet]
+      A: 'Grand Reserve'
+      B: 'Grande Reserve'
+  [Domaine Nicole Lamarche]
+      A: 'Les Charmes'
+      B: 'Les Chaumes'
+  [Domaine Pommier]
+      A: 'Croix au Moines'
+      B: 'Croix aux Moines'
+  [Domaine Sainte-Marie]
+      A: 'Vie Vité Extraordinaire'
+      B: 'VieVité Extraordinaire'
+  [Domaine Ste. Michelle]
+      A: 'Blanc de Blanc'
+      B: 'Blanc de Blancs'
+  [Domaine Vincent Girardin]
+      A: 'Les Charmes Premier Cru'
+      B: 'Les Chaumes Premier Cru'
+  [Domaine Vincent Girardin]
+      A: 'Les Chaumes Premier Cru'
+      B: 'Les Chaumées Premier Cru'
+  [Domaine des Baumard]
+      A: 'Carte Turqoise'
+      B: 'Carte Turquoise'
+  [Domaines Schlumberger]
+      A: 'Cuvée Ernest Sélection des Grains Nobles'
+      B: 'Cuvée Ernest Séléction de Grains Nobles'
+  [Dopff & Irion]
+      A: 'Domaine du Château de Riquewihr Les Maquisards'
+      B: 'Domaines du Château de Riquewihr Les Maquisards'
+  [Dopff & Irion]
+      A: 'Domaine du Château de Riquewihr Les Sorcières'
+      B: 'Domaines du Château de Riquewihr Les Sorcières'
+  [Dow's]
+      A: '10-year old tawny'
+      B: '20 Year Old Tawny'
+  [Dow's]
+      A: '20 Year Old Tawny'
+      B: '30-year old tawny'
+  [Dow's]
+      A: '20 Year Old Tawny'
+      B: '40-year old tawny'
+  [Dr. H. Thanisch (Erben Müller-Burggraef)]
+      A: 'Berncasteler Doctor Kabinett'
+      B: 'Bernkasteler Doctor Kabinett'
+  [Dr. H. Thanisch (Erben Müller-Burggraef)]
+      A: 'Braunberger Juffer-Sonnenuhr Spatlëse'
+      B: 'Brauneberger Juffer-Sonnenuhr Spätlese'
+  [Dr. H. Thanisch (Erben Thanisch)]
+      A: 'Berkasteler Badstube Spätlese'
+      B: 'Bernkasteler Badstube Spätlese'
+  [Dr. H. Thanisch (Erben Thanisch)]
+      A: 'Berncasteler Doctor Auslese'
+      B: 'Bernkasteler Doctor Auslese'
+  [Dr. H. Thanisch (Erben Thanisch)]
+      A: 'Berncasteler Doctor Spätlese'
+      B: 'Bernkasteler Doctor Spätlese'
+  [Dr. Heyden]
+      A: 'Oppenheimer Sachträger Spätlese'
+      B: 'Oppenheimer Sackträger Spätlese'
+  [Dry Creek Vineyard]
+      A: 'Endeavor'
+      B: 'Endeavour'
+  [Dry Creek Vineyard]
+      A: 'Heritage'
+      B: 'Meritage'
+  [Duca di Salaparuta]
+      A: "Calanican Nero d'Avola & Merlot"
+      B: "Calanìca Nero d'Avola-Merlot"
+  [Duca di Salaparuta]
+      A: 'Colomba Palatino'
+      B: 'Colomba Platino'
+  [Duca di Salaparuta]
+      A: "Terra D'Agala"
+      B: "Terre d'Agala"
+  [Dutton-Goldfield]
+      A: 'Dutton Ranch Emerald Ridge Vineyard'
+      B: 'Dutton Ranch Emereld Ridge Vineyard'
+  [Dürnberg]
+      A: 'Ortolan Cuvée Prestige'
+      B: 'Ortolan Cuvée Prestive'
+  [Eagle Eye]
+      A: 'Estate Alpha Wolf Ranch'
+      B: 'Estate AlphaWOLF Ranch'
+  [Echeverria]
+      A: 'Family Reserva'
+      B: 'Family Reserve'
+  [Errazuriz]
+      A: "Don Maximiano Founder's Reserva"
+      B: "Don Maximiano Founder's Reserve"
+  [Falcone]
+      A: 'Annaté II'
+      B: 'Annaté III'
+  [Falua]
+      A: 'Conde de Vimioso Colheita Seleccionada'
+      B: 'Conde de Vimioso Colheita Selecionada'
+  [Falua]
+      A: 'Conde de Vimioso Colheita Seleccionada'
+      B: 'Conde de Vimioso Colheita Selectionada'
+  [Falua]
+      A: 'Conde de Vimioso Colheita Selecionada'
+      B: 'Conde de Vimioso Colheita Selectionada'
+  [Feudi del Pisciotto]
+      A: 'Carolina Marenga'
+      B: 'Carolina Marengo'
+  [Finca Santa Justina]
+      A: 'Gamela Reserva'
+      B: 'Gemela Reserva'
+  [Fonseca]
+      A: '10 Year Old Tawny'
+      B: '40-year old tawny'
+  [Fonseca]
+      A: '20 Year Old Tawny'
+      B: '40-year old tawny'
+  [Force Majeure]
+      A: 'Collaboration Series II Ciel du Cheval Vineyard'
+      B: 'Collaboration Series III Ciel du Cheval Vineyard'
+  [Fournier Père et Fils]
+      A: 'Grand Cuvée Fournier Vieilles Vignes'
+      B: 'Grande Cuvée Fournier Vieilles Vignes'
+  [Garnier et Fils]
+      A: 'Grains Dorées'
+      B: 'Grains Dorés'
+  [Gianfranco Bovio]
+      A: 'Vigna Gattera'
+      B: 'Vigne Gattera'
+  [Grand Rêve]
+      A: 'Collaboration Series I Ciel du Cheval Vineyard Red Wine'
+      B: 'Collaboration Series II Ciel du Cheval Vineyard Red Wine'
+  [Grand Rêve]
+      A: 'Collaboration Series II Ciel du Cheval Vineyard Red Wine'
+      B: 'Collaboration Series III Ciel du Cheval Vineyard Red Wine'
+  [Gritsch Mauritiushof]
+      A: 'Steinportz Smaragd'
+      B: 'Steinporz Smaragd'
+  [Gulfi]
+      A: 'NeromÃ ccarj'
+      B: 'Neromàccarj'
+  [Gérard Bertrand]
+      A: 'Château de Villamajou Grand Vin'
+      B: 'Château de Villemajou Grand Vin'
+  [Heartland]
+      A: "Director's Cut"
+      B: "Directors' Cut"
+  [Henri Bourgeois]
+      A: 'La Côte des Monts Damnés'
+      B: 'La Côtes des Monts Damnés'
+  [Henri Bourgeois]
+      A: 'Le M.D. de Bourgeois'
+      B: 'Le MD de Bourgeois'
+  [Henriot]
+      A: 'Cuvée des Enchant-eleurs Brut'
+      B: 'Cuvée des Enchanteleurs Brut'
+  [Henry's Drive Vignerons]
+      A: 'The Postmistress Blanc de Blanc'
+      B: 'The Postmistress Blanc de Blancs'
+  [Herdade da Malhadinha Nova]
+      A: 'Aragonês da Peceguina'
+      B: 'Aragonês de Peceguina'
+  [Herdade da Malhadinha Nova]
+      A: 'Monte da Peceguina Branco'
+      B: 'Monte de Peceguina Branco'
+  [Herdade do Esporão]
+      A: 'Vinha da Defesa'
+      B: 'Vinha de Defesa'
+  [Hosmer]
+      A: "Vinter's Reserve"
+      B: "Vintner's Reserve"
+  [Huntington]
+      A: 'Castello Vineyard'
+      B: 'Costello Vineyard'
+  [Isenhower]
+      A: "Bachelor's Button"
+      B: "Batchelor's Button"
+  [Jackson Estate]
+      A: 'Vintage Widow'
+      B: 'Vintage Window'
+  [Jean-Baptiste Adam]
+      A: 'Kaefferkopf Vieilles Vignes'
+      B: 'Kaefferkopf Vielles Vignes'
+  [Jean-Luc Colombo]
+      A: 'Terre Brûlées'
+      B: 'Terres Brulées'
+  [Jean-Luc Colombo]
+      A: 'Terre Brûlées'
+      B: 'Terres Brûlées'
+  [Joan Simó]
+      A: 'Les Eres Vinyas Velles'
+      B: 'Les Eres Vinyes Velles'
+  [Johannishof]
+      A: 'G Kabinett'
+      B: 'V Kabinett'
+  [Johannishof]
+      A: 'Johannisberg G Kabinett'
+      B: 'Johannisberg V Kabinett'
+  [Johannishof]
+      A: 'Rüdesheim Berg Rottland Erstes Gewächs'
+      B: 'Rüedesheim Berg Rottland Erstes Gewächs'
+  [Joseph Mellot]
+      A: 'Le Troncsec'
+      B: 'Le Tronsec'
+  [Justin]
+      A: 'Isoceles Reserve'
+      B: 'Isosceles Reserve'
+  [Kenneth Volk]
+      A: 'Santa Maria Cuvee'
+      B: 'Santa Marie Cuvée'
+  [Kokomo]
+      A: "Gopher Hill Block Peter's Vineyard"
+      B: 'Gopher Hill Block Peters Vineyard'
+  [Kopke]
+      A: '10-Years-Old Tawny'
+      B: '10-year old tawny'
+  [Kopke]
+      A: '10-year old tawny'
+      B: '30-Year-Old Tawny'
+  [Kopke]
+      A: '20-Years-Old Tawny'
+      B: '20-year old tawny'
+  [Kopke]
+      A: '20-year old tawny'
+      B: '30-Year-Old Tawny'
+  [Kopke]
+      A: '30-Year-Old Tawny'
+      B: '40-year old tawny'
+  [Kopke]
+      A: 'Quinta São Luis Vintage'
+      B: 'Quinta São Luiz Vintage'
+  [La Chablisienne]
+      A: 'Mont de Milieu Premier Cru'
+      B: 'Monte de Milieu Premier Cru'
+  [La Clarine Farm]
+      A: 'Suma Kaw'
+      B: 'Sumu Kaw'
+  [Labouré-Roi]
+      A: 'Les Hautes Tours'
+      B: 'Les Hauts Tours'
+  [Lamborn Family Vineyards]
+      A: 'Vintage V'
+      B: 'Vintage VI'
+  [Le Vigne]
+      A: 'Di Ranchita Vista'
+      B: 'Di Ranchito Vista'
+  [Lee Family Farm]
+      A: 'Rio Tinto Silvaspoon Vineyard'
+      B: 'Rio Tinto, Silvaspoons Vineyard'
+  [Leplan-Vermeersch]
+      A: 'GT-G Grand Terroir'
+      B: 'GT-S Grand Terroir'
+  [Librandi]
+      A: 'Duca San Felice Riserva'
+      B: 'Duca Sanfelice Riserva'
+  [Llano Estacado]
+      A: 'Cellar Select'
+      B: 'Celler Select'
+  [Loimer]
+      A: 'Schell Mann an der Südbahn'
+      B: 'Schellmann An der Südbahn'
+  [Lost Canyon]
+      A: 'Ruxtan Vineyard'
+      B: 'Ruxton Vineyard'
+  [Louis Latour]
+      A: 'Les Charmes'
+      B: 'Les Chaumes'
+  [Louis Sipp]
+      A: 'Nature 5'
+      B: "Nature's"
+  [Lucien Albrecht]
+      A: 'Sélection de Grains Nobles'
+      B: 'Sélections de Grains Nobles'
+  [Lucien Albrecht]
+      A: 'Vendages Tardives'
+      B: 'Vendanges Tardives'
+  [Lynmar]
+      A: 'La Sereinité'
+      B: 'La Serenité'
+  [Machherndl]
+      A: 'Kollmitz Smaragd'
+      B: 'Kollmütz Smaragd'
+  [Marco Negri]
+      A: 'Marsilio'
+      B: 'Marsillo'
+  [Matarromera]
+      A: 'Gran Reserva'
+      B: 'Grand Reserva'
+  [Midnight]
+      A: 'Mare Nectaris Reserve'
+      B: 'Mare Nectarus Reserve'
+  [Miguel Torres]
+      A: 'Santa Digna Reserva'
+      B: 'Santa Digna Reserve'
+  [Milliaire]
+      A: 'Clock spring'
+      B: 'Clockspring'
+  [Montalbera]
+      A: "L'Equilibrio"
+      B: 'Lequilibrio'
+  [Montaudon]
+      A: 'Grand Brut Rosé'
+      B: 'Grande Brut Rosé'
+  [Morgan]
+      A: "Cotes du Crow's"
+      B: 'Cotes du Crows'
+  [Morgan]
+      A: 'Double L Vineyard'
+      B: 'Double L Yineyard'
+  [Morgan]
+      A: 'R&D; Franscioni Vineyard'
+      B: 'R&S Franscioni Vineyard'
+  [Mosby]
+      A: 'Vigna Della Casa Vecchia'
+      B: 'Vigna Della Casa Vechia'
+  [Muscardini]
+      A: 'Monte Rosso Vineyard'
+      B: 'Monto Rosso Vineyard'
+  [Méo-Camuzet]
+      A: 'Les Charmes'
+      B: 'Les Chaumes'
+  [Niepoort]
+      A: '10 Years Old Tawny'
+      B: '10-year old tawny'
+  [Niepoort]
+      A: '20 Years Old Tawny'
+      B: '20-year old tawny'
+  [Niepoort]
+      A: '30 Years Old Tawny'
+      B: '30-year old tawny'
+  [O. Fournier]
+      A: 'Alfa Spiga'
+      B: 'AlfaSpiga'
+  [Offley]
+      A: '10-year old tawny'
+      B: '30 Year Old Tawny'
+  [Offley]
+      A: '20-year old tawny'
+      B: '30 Year Old Tawny'
+  [Olsen Estates]
+      A: 'Petit Verdot'
+      B: 'Petite Verdot'
+  [Palmer]
+      A: "Proprietor's Reserve"
+      B: 'Proprietors Reserve'
+  [Parés Baltà]
+      A: 'Blanc de Pacs Organic Farming Parellada-Xarel-lo-Macabeu'
+      B: 'Blanc de Pacs Organic Farming Parellada-Xarello-Macabeu'
+  [Pascual Toso]
+      A: 'Maipo Vineyards'
+      B: 'Maipú Vineyards'
+  [Pascual Toso]
+      A: 'Reserva Barrancas Vineyards'
+      B: 'Reserve Barrancas Vineyards'
+  [Pasquale Pelissero]
+      A: 'Bricco San Giulano'
+      B: 'Bricco San Giuliano'
+  [Passopisciaro]
+      A: 'Contrada C'
+      B: 'Contrada G'
+  [Passopisciaro]
+      A: 'Contrada C'
+      B: 'Contrada R'
+  [Passopisciaro]
+      A: 'Contrada C'
+      B: 'Contrada S'
+  [Passopisciaro]
+      A: 'Contrada G'
+      B: 'Contrada R'
+  [Passopisciaro]
+      A: 'Contrada G'
+      B: 'Contrada S'
+  [Passopisciaro]
+      A: 'Contrada R'
+      B: 'Contrada S'
+  [Patz & Hall]
+      A: 'Chenoweth Ranch'
+      B: 'Chenowith Ranch'
+  [Paul Hobbs]
+      A: 'Beckstoffer To Kalon Vineyard'
+      B: 'Beckstoffer Tokalon Vineyard'
+  [Peachy Canyon]
+      A: 'Especial'
+      B: 'Especiale'
+  [Pelvillain Frères]
+      A: 'Albatros'
+      B: 'Albatross'
+  [Perlage]
+      A: 'Canah Brut'
+      B: 'Canan Brut'
+  [Philo Ridge]
+      A: 'Unfiltered'
+      B: 'Unfltered'
+  [Poggio Argentiera]
+      A: 'Bella Marsilia'
+      B: 'Bellamarsilia'
+  [Poças]
+      A: '10 Year Old Tawny'
+      B: '10 Years Old Tawny'
+  [Poças]
+      A: '10 Year Old Tawny'
+      B: '20-year old tawny'
+  [Poças]
+      A: '10 Year Old Tawny'
+      B: '30-year old tawny'
+  [Poças]
+      A: '10 Year Old Tawny'
+      B: '40-year old tawny'
+  [Poças]
+      A: '10 Years Old Tawny'
+      B: '30-years old Tawny'
+  ... 95 more
+
+========================================================================
+  EDIT-1 SINGULAR/PLURAL — probably same wine  (44 pairs)
+========================================================================
+  [Acorn]
+      A: 'Alegria Vineyard Axiom'
+      B: 'Alegria Vineyards Axiom'
+  [Ayoub]
+      A: '??? Vineyard'
+      B: '??? Vineyards'
+  [Ballentine]
+      A: 'Pocai Vineyard Old Vine'
+      B: 'Pocai Vineyard Old Vines'
+  [Bella]
+      A: 'Maple Vineyard'
+      B: 'Maple Vineyards'
+  [Benegas]
+      A: 'Libertad Vineyard'
+      B: 'Libertad Vineyards'
+  [Castle]
+      A: 'Sangiacomo Vineyard'
+      B: 'Sangiacomo Vineyards'
+  [Chehalem]
+      A: 'Ridgecrest Vineyard'
+      B: 'Ridgecrest Vineyards'
+  [Claudia Springs]
+      A: 'Rhodes Vineyard'
+      B: 'Rhodes Vineyards'
+  [Cline]
+      A: 'Ancient Vine'
+      B: 'Ancient Vines'
+  [Columbia Crest]
+      A: 'Reserve Coyote Canyon Vineyard'
+      B: 'Reserve Coyote Canyon Vineyards'
+  [Domaine Alfred]
+      A: 'Chamisal Vineyard'
+      B: 'Chamisal Vineyards'
+  [Donkey & Goat]
+      A: 'Perli Vineyard'
+      B: 'Perli Vineyards'
+  [Everett Ridge]
+      A: 'Old Vine'
+      B: 'Old Vines'
+  [Fenestra]
+      A: 'Silvaspoons Vineyard'
+      B: 'Silvaspoons Vineyards'
+  [Gary Farrell]
+      A: 'Bradford Mountain Vineyard'
+      B: 'Bradford Mountain Vineyards'
+  [Gary Farrell]
+      A: 'Rochioli-Allen Vineyard'
+      B: 'Rochioli-Allen Vineyards'
+  [Greenwood Ridge]
+      A: 'Scherrer Vineyard'
+      B: 'Scherrer Vineyards'
+  [Howell Mountain Vineyards]
+      A: 'Old Vine'
+      B: 'Old Vines'
+  [Ironstone]
+      A: 'Old Vine'
+      B: 'Old Vines'
+  [J. Wilkes]
+      A: 'Bien Nacido Vineyard Block Q'
+      B: 'Bien Nacido Vineyards Block Q'
+  [J. Wilkes]
+      A: 'Solomon Hills Vineyard'
+      B: 'Solomon Hills Vineyards'
+  [Kokomo]
+      A: 'Green Pastures Vineyard'
+      B: 'Green Pastures Vineyards'
+  [Kokomo]
+      A: 'Windsor Oaks Vineyard'
+      B: 'Windsor Oaks Vineyards'
+  [Kokomo]
+      A: "Winemaker's Reserve Peters Vineyard"
+      B: "Winemaker's Reserve Peters Vineyards"
+  [Ledson]
+      A: 'Old Vine'
+      B: 'Old Vines'
+  [Martin Ranch]
+      A: 'Thérèse Vineyards Dos Niñas Vineyard'
+      B: 'Thérèse Vineyards Dos Niñas Vineyards'
+  [Merryvale]
+      A: 'Juliana Vineyard'
+      B: 'Juliana Vineyards'
+  [Morgan]
+      A: 'R&D; Franscioni Vineyard'
+      B: 'R&D; Franscioni Vineyards'
+  [Pascual Toso]
+      A: 'Alta Reserve Las Barrancas Vineyard'
+      B: 'Alta Reserve Las Barrancas Vineyards'
+  [Pellegrini]
+      A: 'Old Vine'
+      B: 'Old Vines'
+  [Pessagno]
+      A: 'Spring Grove Vineyard'
+      B: 'Spring Grove Vineyards'
+  [Pezzi King]
+      A: 'Old Vine'
+      B: 'Old Vines'
+  [Ram's Gate]
+      A: 'Bush Crispo Vineyard'
+      B: 'Bush Crispo Vineyards'
+  [Sanctuary]
+      A: 'Bien Nacido Vineyard'
+      B: 'Bien Nacido Vineyards'
+  [Saxon Brown]
+      A: 'Casa Santinamaria Vineyard'
+      B: 'Casa Santinamaria Vineyards'
+  [Selene]
+      A: 'Hyde Vineyard'
+      B: 'Hyde Vineyards'
+  [Simaine Cellars]
+      A: 'Larry Venturi Vineyard'
+      B: 'Larry Venturi Vineyards'
+  [Sinor-LaVallee]
+      A: 'Aubaine Vineyard'
+      B: 'Aubaine Vineyards'
+  [Symington Family Estates]
+      A: 'Altano Organically Farmed Vineyard'
+      B: 'Altano Organically Farmed Vineyards'
+  [Tamarack Cellars]
+      A: 'Sagemoor Vineyard Reserve'
+      B: 'Sagemoor Vineyards Reserve'
+  [Ventisquero]
+      A: 'Vertice Apalta Vineyard'
+      B: 'Vertice Apalta Vineyards'
+  [Von Strasser]
+      A: 'Estate Vineyard'
+      B: 'Estate Vineyards'
+  [Wilridge]
+      A: 'Klipsun Vineyard'
+      B: 'Klipsun Vineyards'
+  [Z-52]
+      A: 'Clockspring Vineyard Old Vine'
+      B: 'Clockspring Vineyard Old Vines'
+
+========================================================================
+  EDIT-2 REAL TYPOS  (174 pairs)
+========================================================================
+  [Acorn]
+      A: 'Alegria Vineyard Axiom'
+      B: 'Allegria Vineyards Axiom'
+  [Alpha Domus]
+      A: 'The Aviator'
+      B: 'The Navigator'
+  [Arista]
+      A: 'Mononi Vineyard'
+      B: 'Toboni Vineyard'
+  [Baravéou]
+      A: 'Bandol Rosé'
+      B: 'Bandol Rouge'
+  [Baron Knyphausen]
+      A: 'Kiedricher Sandgrub Spätlese'
+      B: 'Kiedricher Sandrug Spätlese'
+  [Benanti]
+      A: 'Bianco di Caselle'
+      B: 'Biancodicaselle'
+  [Benanti]
+      A: 'Rosso di Verzella'
+      B: 'Rossodiverzella'
+  [Bersi Serlini]
+      A: 'Brut Cuvèe 4 Millesimato'
+      B: 'Brut Cuvée Millesimato'
+  [Bodegas Roda]
+      A: 'Roda I Reserva'
+      B: 'Roda Reserva'
+  [Botalcura]
+      A: 'La Porfia Gran Reserva'
+      B: 'La Porfia Grand Reserve'
+  [Bourassa Vineyards]
+      A: 'Symphony 3 Proprietors Reserve'
+      B: "Symphony3 Proprietor's Reserve"
+  [Cadence]
+      A: 'Tapteil Vineyard Red Wine'
+      B: 'Taptiel Vineyard Red Wine'
+  [Carl Ehrhard]
+      A: 'Rüdesheim Kabinett Feinherb'
+      B: 'Rüdesheimer Kabinett Feinherb'
+  [Casa Santos Lima]
+      A: 'Quinta de Bons-Ventos'
+      B: 'Quinta dos Bons Ventos'
+  [Casal Paço Padreiro]
+      A: 'Afros Branco'
+      B: 'Aphros Branco'
+  [Casal Paço Padreiro]
+      A: 'Afros Tinto'
+      B: 'Aphros Tinto'
+  [Caves Aliança]
+      A: 'Quinta da Terrugem'
+      B: 'T Quinta da Terrugem'
+  [Château La Coste]
+      A: 'Grand Vin Rosé'
+      B: 'Grand Vin Rouge'
+  [Château Leoube]
+      A: 'Love by Léoube - Rosé'
+      B: 'Love by Léoube - Rouge'
+  [Château Malherbe]
+      A: 'Côtes-de-Provence Rosé'
+      B: 'Côtes-de-Provence Rouge'
+  [Château Miraval]
+      A: 'Miraval Rosé'
+      B: 'Miraval Rouge'
+  [Château Pradeaux]
+      A: 'Bandol Rosé'
+      B: 'Bandol Rouge'
+  [Château Revelette]
+      A: "Coteaux d'Aix Rosé"
+      B: "Coteaux d'Aix Rouge"
+  [Château Romanin]
+      A: 'Les Baux-de-Provence Rosé'
+      B: 'Les Baux-de-Provence Rouge'
+  [Château Sainte-Anne]
+      A: 'Bandol Rosé'
+      B: 'Bandol Rouge'
+  [Château Sainte-Marguerite]
+      A: 'Fantastique Rosé'
+      B: 'Fantastique Rouge'
+  [Château Vannières]
+      A: 'Bandol Rosé'
+      B: 'Bandol Rouge'
+  [Château Vignelaure]
+      A: "Coteaux d'Aix Rosé"
+      B: "Coteaux d'Aix Rouge"
+  [Château de Pibarnon]
+      A: 'Bandol Rosé'
+      B: 'Bandol Rouge'
+  [Clos Cibonne]
+      A: 'Cuvée Tradition Rosé'
+      B: 'Cuvée Tradition Rouge'
+  [Concha y Toro]
+      A: 'Terrunyo Costa Los Boldes Vineyard Block 3'
+      B: 'Terrunyo Costa Los Boldos Vineyard Block 5'
+  [Concha y Toro]
+      A: 'Terrunyo Costa Los Boldes Vineyard Block 3'
+      B: 'Terrunyo Costa Los Boldos Vineyard Block 6'
+  [Concha y Toro]
+      A: 'Terrunyo Costa Los Boldes Vineyard Block 6'
+      B: 'Terrunyo Costa Los Boldos Vineyard Block 5'
+  [Cottanera]
+      A: 'Barbazzale Rosato'
+      B: 'Barbazzale Rosso'
+  [Curtis]
+      A: 'Vogelzang Vineyard'
+      B: 'Vozelgang Vineyard'
+  [Cà Vittoria]
+      A: 'Costa dei Peschi Brut'
+      B: 'Costa del Pesche Brut'
+  [Damilano]
+      A: 'Le Cinque Vigne'
+      B: 'Lecinquevigne'
+  [Davis Family]
+      A: 'Horseshoe Bend Vineyard'
+      B: 'Horshehoe Bend Vineyard'
+  [Domaine Bunan]
+      A: 'Bandol Rosé Moulin des Costes'
+      B: 'Bandol Rouge Moulin des Costes'
+  [Domaine Croix-Rousse]
+      A: 'Côtes-de-Provence Rosé'
+      B: 'Côtes-de-Provence Rouge'
+  [Domaine Delaporte]
+      A: 'Sancerre Rosé'
+      B: 'Sancerre Rouge'
+  [Domaine François Cotat]
+      A: 'Chavignol Rosé'
+      B: 'Chavignol Rouge'
+  [Domaine Giudicelli]
+      A: 'Patrimonio Rosé'
+      B: 'Patrimonio Rouge'
+  [Domaine Jean-Baptiste Arena]
+      A: 'Patrimonio Rosé Grotte di Sole'
+      B: 'Patrimonio Rouge Grotte di Sole'
+  [Domaine Laroche]
+      A: 'Les Vaillons Vieilles Vignes Premier Cru'
+      B: 'Les Vaillons Viellies Vignes Premier Cru'
+  [Domaine Leccia]
+      A: 'Patrimonio Rosé'
+      B: 'Patrimonio Rouge'
+  [Domaine Leccia (Annette Leccia)]
+      A: 'Patrimonio Rosé Petra Bianca'
+      B: 'Patrimonio Rouge Petra Bianca'
+  [Domaine Lucien Crochet]
+      A: 'Sancerre Rosé'
+      B: 'Sancerre Rouge'
+  [Domaine Matthias et Emile Roblin]
+      A: 'Origine Rosé'
+      B: 'Origine Rouge'
+  [Domaine Moillard]
+      A: 'Epenots Premier Cru'
+      B: 'Epenottes Premier Cru'
+  [Domaine Paul Prieur et Fils]
+      A: 'Sancerre Rosé'
+      B: 'Sancerre Rouge'
+  [Domaine Ray-Jane]
+      A: 'Bandol Rosé'
+      B: 'Bandol Rouge'
+  [Domaine Richaume]
+      A: 'Côtes de Provence Rosé Sainte-Victoire'
+      B: 'Côtes de Provence Rouge Sainte-Victoire'
+  [Domaine Tempier]
+      A: 'Bandol Rosé'
+      B: 'Bandol Rouge'
+  [Domaine U Stiliccionu]
+      A: 'Antica Rosé'
+      B: 'Antica Rouge'
+  [Domaine Vacheron]
+      A: 'Sancerre Rosé'
+      B: 'Sancerre Rouge'
+  [Domaine Vincent Girardin]
+      A: 'Les Charmes Premier Cru'
+      B: 'Les Chaumées Premier Cru'
+  [Domaine Yves Leccia (E Croce)]
+      A: 'E Croce Rosé'
+      B: 'E Croce Rouge'
+  [Domaine de La Réaltière]
+      A: "Coteaux d'Aix Rosé"
+      B: "Coteaux d'Aix Rouge"
+  [Domaine de Sulauze]
+      A: "Coteaux d'Aix Rosé"
+      B: "Coteaux d'Aix Rouge"
+  ... 114 more

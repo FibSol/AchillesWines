@@ -46,6 +46,9 @@ _LIST_URL = "https://www.hachette-vins.com/vins/list/"
 VALID_CRITIC_CODES = {"WA", "Vinous", "BH", "JMIB", "RVF", "Decanter", "JS", "JG", "WS", "Hachette", "CT"}
 CRITIC_CODE = "Hachette"
 
+# appellation_key for the generic "France" fallback (dim_appellation.appellation_key=1854)
+_FRANCE_APPELLATION_KEY = 1854
+
 # Hachette rating text → /100 mapping
 _RATING_TEXT_TO_SCORE: dict[str, float] = {
     "exceptionnel": 100.0,
@@ -72,6 +75,63 @@ def _score_from_rating_text(text: str) -> Optional[float]:
 def _extract_vintage(text: str) -> Optional[int]:
     m = re.search(r"\b(199\d|20[0-3]\d)\b", text or "")
     return int(m.group(1)) if m else None
+
+
+def _ensure_dim_wine(
+    conn: sqlite3.Connection,
+    wine_key: str,
+    producer_norm: str,
+    cuvee_norm: str,
+    raw_name: str,
+    vintage: Optional[int],
+) -> bool:
+    """Ensure wine_key exists in dim_wine, creating dim_producer + dim_wine if needed.
+
+    Uses appellation_key=_FRANCE_APPELLATION_KEY (generic "France") as fallback since
+    Hachette HTML cards don't expose appellation data.  Returns True on success.
+    """
+    # Fast path: already in dim_wine
+    if conn.execute("SELECT 1 FROM dim_wine WHERE wine_key = ?", (wine_key,)).fetchone():
+        return True
+
+    # Look up (or create) the producer
+    prod_row = conn.execute(
+        "SELECT producer_key FROM dim_producer WHERE producer_norm = ?", (producer_norm,)
+    ).fetchone()
+
+    if prod_row:
+        producer_key = prod_row[0]
+    else:
+        try:
+            conn.execute(
+                "INSERT OR IGNORE INTO dim_producer "
+                "(producer_name, producer_norm, country_code, coverage_tier) "
+                "VALUES (?, ?, 'FR', 'long_tail')",
+                (raw_name, producer_norm),
+            )
+        except Exception:
+            return False
+        row = conn.execute(
+            "SELECT producer_key FROM dim_producer WHERE producer_norm = ?", (producer_norm,)
+        ).fetchone()
+        if not row:
+            return False
+        producer_key = row[0]
+
+    is_nv = 1 if vintage is None else 0
+    try:
+        conn.execute(
+            """INSERT OR IGNORE INTO dim_wine
+               (wine_key, producer_key, appellation_key, cuvee_name, cuvee_norm,
+                color, vintage, is_non_vintage, bottle_ml, canonical_name)
+               VALUES (?, ?, ?, ?, ?, 'red', ?, ?, 750, ?)""",
+            (wine_key, producer_key, _FRANCE_APPELLATION_KEY,
+             raw_name, cuvee_norm, vintage, is_nv, raw_name),
+        )
+        conn.commit()
+        return True
+    except Exception:
+        return False
 
 
 class HachetteVinsGuideScraper(BaseScraper):
@@ -189,6 +249,16 @@ class HachetteVinsGuideScraper(BaseScraper):
                     content_hash = hashlib.sha256(
                         f"{wine_key}:{CRITIC_CODE}:{score_raw}".encode()
                     ).hexdigest()
+
+                    # Ensure dim_wine exists before inserting fact_rating (FK guard)
+                    if not _ensure_dim_wine(
+                        self.conn, wine_key, producer_norm, cuvee_norm, raw_name, vintage
+                    ):
+                        write_dlq(self.conn, SOURCE_KEY, batch_id, "unmatched_wine",
+                                   f"Cannot create dim_wine for: {raw_name!r}",
+                                   {"wine_key": wine_key, "score": score_raw})
+                        result.rows_dlq += 1
+                        continue
 
                     try:
                         self.conn.execute(

@@ -54,6 +54,11 @@ services:
       DATABASE_URL: /data/achilles.db
       # Optional API keys for non-default sources — set in .env (gitignored).
       FRANKFURTER_API_BASE: ${FRANKFURTER_API_BASE:-https://api.frankfurter.app}
+      FIRECRAWL_API_KEY: ${FIRECRAWL_API_KEY}
+      # CellarTracker parallel sweep tuning
+      ACHILLES_CT_WORKERS: ${ACHILLES_CT_WORKERS:-15}
+      ACHILLES_CT_MIN_SCORE: ${ACHILLES_CT_MIN_SCORE:-0}
+      ACHILLES_CT_WAIT_MS: ${ACHILLES_CT_WAIT_MS:-2500}
     volumes:
       - achilles-data:/data
       - achilles-logs:/app/logs

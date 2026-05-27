@@ -46,7 +46,10 @@ RUN apt-get update \
         tini \
         ca-certificates \
         sqlite3 \
+        nodejs \
+        npm \
     && rm -rf /var/lib/apt/lists/* \
+    && npm install -g firecrawl --silent \
     && groupadd --system --gid 1001 achilles \
     && useradd  --system --uid 1001 --gid achilles --home /app achilles \
     && mkdir -p /data /app/logs \
