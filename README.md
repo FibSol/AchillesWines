@@ -1,165 +1,343 @@
 # Achilles's Wines
 
-> Vinothèque pour la maison. Multilingue, multi-source, multi-région.
-> Strict data quality, design Athena, déploiement Raspberry Pi 5 + Home Assistant.
+> Personal home wine cellar app. Multilingual, multi-source, strict data quality.  
+> Design Athena · Raspberry Pi 5 + Home Assistant deployment.
 
-## Vision
+---
 
-Une application personnelle pour gérer une cave familiale, suivre les prix et ratings, identifier les meilleurs rapports qualité-prix, planifier les achats annuels, et proposer des accords mets-vins basés sur ce qu'on a réellement en cave.
+## What it does
 
-**Distinguished from burgundy-manager :**
-- Multilingue FR/EN/NL/DE/ES/IT
-- Stricte data quality (multi-source obligatoire pour les prix et les ratings)
-- Design Athena (dark luxe sommellerie)
-- Pensé pour le déploiement RPi 5 + Home Assistant dès l'architecture
-- Producer registry pré-validé pour empêcher les mismatches type Raveneau/Bordeaux
-- 37 scrapers actifs (retail FR/BE, presse critique, vintage charts, crowd reviews, données officielles)
+A full-stack personal wine cellar app that:
+- Tracks your bottles across 36 storage locations (4 320 max capacity)
+- Scrapes prices from 37 sources (FR/BE retailers, wine press, official registries)
+- Enforces strict multi-source validation — no data enters `fact_price` or `fact_rating` from a single source
+- Gives you a **Best Value** ranking, **Vintage heatmap**, **Interactive map**, and **Menu pairing**
+- Runs entirely on your home network — no cloud, no subscription
 
-## Quick start (en local pendant le POC)
+---
+
+## Install — Local development (Windows)
+
+> These steps assume Windows 10/11, Node.js 20+ and Python 3.12 installed.
+
+### 1. Clone the repo
 
 ```powershell
-cd C:\Claude\achilles-wines
-npm install
-npm run db:migrate
-npm run db:seed
-npm run dev
-# Open http://localhost:3000
+cd C:\Claude
+git clone https://github.com/FibSol/AchillesWines.git achilles-wines
+cd achilles-wines
 ```
 
-Le scraper sidecar Python :
+### 2. Install Node dependencies
+
+```powershell
+npm install
+```
+
+> `better-sqlite3` compiles a native addon. If it fails, install the Windows build tools first:
+> ```powershell
+> npm install --global windows-build-tools
+> ```
+
+### 3. Set up the environment
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Open `.env` in your editor. The defaults work for local dev — the only thing worth filling in now is an optional `ANTHROPIC_API_KEY` if you want LLM email fallback parsing.
+
+### 4. Create and migrate the database
+
+```powershell
+npm run db:migrate
+npm run db:seed
+```
+
+This creates `data/achilles.db` with the schema (17 tables) and seeds 36 cellar locations, 13 data sources, and a demo wine.
+
+### 5. (Optional) Import from burgundy-manager
+
+If you have an existing `burgundy-manager` database, run the import scripts to bring over ~8 700 producers, appellations, and cuvées:
+
+```powershell
+npx tsx scripts/import-from-burgundy-manager.ts
+```
+
+> The script reads `C:\Users\Nicolas\Bourgogne\burgundy-manager\data\burgundy.db` by default.
+> See `scripts/import-from-burgundy-manager.ts` for the `--source` flag to override the path.
+
+### 6. Start the web app
+
+```powershell
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). The dashboard shows live stats from the DB.
+
+### 7. Set up the Python scraper sidecar
+
+In a second terminal:
+
 ```powershell
 cd C:\Claude\achilles-wines\scraper
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -e .
+```
+
+Run a quick test:
+
+```powershell
 python -m achilles_scraper.cli --help
 ```
 
+Run a scraper manually (example — Millesima, 50 products):
+
+```powershell
+python -m achilles_scraper.cli run --source millesima --limit 50
+```
+
+Trigger the promoter (moves staged prices to `fact_price` if ≥2 sources agree ±15%):
+
+```powershell
+python -m achilles_scraper.cli promote
+```
+
+### 8. (Optional) Configure scraper credentials
+
+Some sources require a login. Set credentials in `.env`:
+
+```dotenv
+# Example: iDealwine account
+ACHILLES_AUTH_IDEALWINE_USERNAME=your@email.com
+ACHILLES_AUTH_IDEALWINE_PASSWORD=yourpassword
+```
+
+See [docs/AUTH.md](docs/AUTH.md) for the full list and test-login instructions, and [docs/EMAIL.md](docs/EMAIL.md) for the IMAP newsletter ingestion setup.
+
+---
+
+## Install — Production on Raspberry Pi 5 + Home Assistant
+
+See **[docs/INSTALL_HAOS.md](docs/INSTALL_HAOS.md)** for the full step-by-step guide (no Linux experience required).
+
+**Summary of steps:**
+1. Install the Advanced SSH add-on in Home Assistant
+2. SSH in and clone the repo to `/share/achilles-wines`
+3. `cp .env.example .env` and fill in your settings
+4. `docker compose build` (takes 10–15 min on first run, ARM64 compile)
+5. `docker compose up -d`
+6. Open `http://<your-rpi-ip>:8080` in any browser on your local network
+
+The compose stack runs 3 containers: `web` (Next.js), `scraper` (Python sidecar), `nginx` (reverse proxy).  
+Auto-restart on reboot is built in via `restart: unless-stopped`.
+
+---
+
+## Migrate dev → production
+
+Once you're happy with the local state (≥80% of scrapers have run at least once):
+
+```powershell
+# Dry run first
+.\scripts\migrate-dev-to-prod.ps1 --dry-run
+
+# Live run
+.\scripts\migrate-dev-to-prod.ps1
+```
+
+Set `ACHILLES_RPI_HOST` in your local `.env` to the RPi IP before running.  
+The script dumps `dim_producer`, `dim_appellation`, `dim_wine`, `fact_price`, `fact_rating`, `cellar_*`, SCP to the RPi, stops the addon, applies, restarts, and prints row counts.
+
+---
+
+## Run the test suites
+
+```powershell
+# TypeScript + Vitest (frontend tests)
+npx vitest run
+
+# TypeScript type check
+npx tsc --noEmit
+
+# Python unit tests (scraper)
+cd scraper
+python -m pytest scraper/tests/ -v
+```
+
+Current status: **209/209 Python · 72/72 Vitest · 0 TS errors**
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────┐     ┌──────────────────────────────┐
+│  Next.js 16 (web)       │     │  Python sidecar (scraper)    │
+│  ├─ /[locale]/*         │     │  ├─ 37 scrapers              │
+│  ├─ /api/*              │◄────│  ├─ job_runner (APScheduler) │
+│  ├─ Drizzle + SQLite    │     │  ├─ promoter (tri-source)    │
+│  └─ next-intl (6 langs) │     │  └─ cli (manual runs)        │
+└────────────┬────────────┘     └──────────────────────────────┘
+             │ shared SQLite WAL (achilles-data volume)
+             ▼
+┌─────────────────────────┐
+│  nginx (reverse proxy)  │
+│  :8080 → web:3000       │
+└─────────────────────────┘
+```
+
+Full documentation: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+
+---
+
+## Data quality gates
+
+The previous project (`burgundy-manager`) accumulated data bugs (Raveneau matched to Bordeaux, Laroche to Sancerre). Achilles's Wines enforces 6 gates:
+
+| # | Gate | What it does |
+|---|------|-------------|
+| 1 | **Producer registry** | Pre-validated seed (8 700 domaines + official syndicats CIVB/BIVB/CIVC/etc.) |
+| 2 | **Hard region gate** | `appellation ∈ producer.allowed_appellations` — mismatches → DLQ |
+| 3 | **Tri-source rule (price)** | ≥2 sources agree ±15% → `fact_price`; mono-source → `staging` |
+| 4 | **Bi-source rule (rating)** | ≥2 critic sources per wine → `fact_rating`; Vivino tiebreaker only |
+| 5 | **Critic enum** | Closed set: WA, Vinous, BH, JMIB, RVF, Decanter, JS, JG, WS, Hachette, CT, XW, WE |
+| 6 | **DLQ** | All rejected rows land at `/quarantaine` for manual review |
+
+---
+
 ## Documentation
 
-### Projet & architecture
-- [**docs/TEAM.md**](docs/TEAM.md) — Les 5 rôles : Helena, Hector, Patroclus, Odysseus, Cassandra
-- [**docs/ARCHITECTURE.md**](docs/ARCHITECTURE.md) — Stack, déploiement Docker, flux ETL
-- [**DECISIONS.md**](DECISIONS.md) — ADRs (Architecture Decision Records)
-- [**PROGRESS.md**](PROGRESS.md) — Log append-only daté
-- [**NEXT.md**](NEXT.md) — Backlog priorisé
+### Project & architecture
+- [**docs/TEAM.md**](docs/TEAM.md) — The 5 team roles: Helena, Hector, Patroclus, Odysseus, Cassandra
+- [**docs/ARCHITECTURE.md**](docs/ARCHITECTURE.md) — Stack, Docker deployment, ETL pipeline
+- [**DECISIONS.md**](DECISIONS.md) — Architecture Decision Records (ADR-001 → ADR-014)
+- [**PROGRESS.md**](PROGRESS.md) — Append-only delivery log (reverse-chronological)
+- [**NEXT.md**](NEXT.md) — Prioritised backlog
 
-### Données & qualité
-- [**docs/NOMENCLATURE.md**](docs/NOMENCLATURE.md) — Normalisation, `wine_key` composite, enums canoniques
-- [**docs/DATA_SOURCES.md**](docs/DATA_SOURCES.md) — Sources tier A/B/C/D/E/F, conformité robots.txt, token economy
-- [**docs/NAMING-CLEANUP.md**](docs/NAMING-CLEANUP.md) — Pipeline post-batch : cleanup-producer → cleanup-cuvee → dedupe → merge-VdF
+### Data & quality
+- [**docs/NOMENCLATURE.md**](docs/NOMENCLATURE.md) — Normalisation, `wine_key` composite hash, canonical enums
+- [**docs/DATA_SOURCES.md**](docs/DATA_SOURCES.md) — Source tiers A–F, robots.txt compliance, token economy
+- [**docs/NAMING-CLEANUP.md**](docs/NAMING-CLEANUP.md) — Post-batch cleanup pipeline
 
-### Connaissance vin (base de référence)
-- [**docs/FR-REGIONS.md**](docs/FR-REGIONS.md) — 15 régions viticoles officielles ONIVINS + sous-régions
-- [**docs/FR-IGP-REFERENCE.md**](docs/FR-IGP-REFERENCE.md) — 75 IGP / Vin de Pays (FranceAgriMer 2022, INAO 2024)
-- [**docs/VIN-DE-FRANCE.md**](docs/VIN-DE-FRANCE.md) — Modèle Vin de France (désignation nationale, pas régionale)
-- [**docs/BORDEAUX-VALIDATION.md**](docs/BORDEAUX-VALIDATION.md) — Structure officielle Bordeaux + règles de validation DB
+### Wine knowledge base
+- [**docs/FR-REGIONS.md**](docs/FR-REGIONS.md) — 15 official French wine regions + sub-regions
+- [**docs/FR-IGP-REFERENCE.md**](docs/FR-IGP-REFERENCE.md) — 75 IGP / Vin de Pays
+- [**docs/VIN-DE-FRANCE.md**](docs/VIN-DE-FRANCE.md) — Vin de France designation model
+- [**docs/BORDEAUX-VALIDATION.md**](docs/BORDEAUX-VALIDATION.md) — Official Bordeaux structure + DB validation rules
 
 ### Infrastructure
-- [**docs/BACKUP.md**](docs/BACKUP.md) — SQLite online-backup → GPG AES-256 → NAS, rétention 7j + 4 semaines
-- [**docs/AUTH.md**](docs/AUTH.md) — Système d'authentification scrapers (env vars, test_login, ADR-010)
-- [**docs/EMAIL.md**](docs/EMAIL.md) — Ingestion newsletters par IMAP (parser HTML générique, .eml replay, ADR-011)
-- [**docs/INSTALL_HAOS.md**](docs/INSTALL_HAOS.md) — Guide installation Home Assistant OS sur RPi 5
+- [**docs/INSTALL_HAOS.md**](docs/INSTALL_HAOS.md) — Step-by-step install on Raspberry Pi 5 + HAOS
+- [**docs/BACKUP.md**](docs/BACKUP.md) — SQLite online-backup → GPG AES-256 → NAS, 7d + 4w retention
+- [**docs/AUTH.md**](docs/AUTH.md) — Scraper authentication (env vars, test_login, ADR-010)
+- [**docs/EMAIL.md**](docs/EMAIL.md) — Newsletter ingestion via IMAP (HTML parser, .eml replay, ADR-011)
+
+---
 
 ## Design
 
-**Athena** — dark luxe sommellerie moderne :
-- bg `#0F0E17` noir profond
-- primary `#A53860` magenta vin
-- surface `#F7F4EA` crème
-- accent `#E5B25D` or champagne (décoratif/données)
-- titres : Fraunces italic variable (via next/font)
-- body : Inter 400/500/700 (via next/font)
-- carte : dark tiles CartoDB + markers magenta
+**Athena** — dark luxe sommellerie:
 
-## Langues
+| Token | Value | Role |
+|-------|-------|------|
+| bg | `#0F0E17` | Background (noir profond) |
+| primary | `#A53860` | Interactive (buttons, active state) |
+| surface | `#F7F4EA` | Foreground text (crème) |
+| accent | `#E5B25D` | Decorative / data (or champagne) |
+| font-serif | Fraunces italic variable | Headings (via next/font) |
+| font-sans | Inter 400/500/700 | Body (via next/font) |
 
-- Français (défaut)
-- English
-- Nederlands
-- Deutsch
-- Español
-- Italiano
+Map: CartoDB dark tiles + magenta CircleMarker producers + champagne appellation pins.
 
-**Règle absolue** : les noms de vins (producer, cuvée, appellation) ne sont JAMAIS traduits.
+---
 
 ## Stack
 
-- **Frontend** : Next.js 16.2.6 · TypeScript strict · Tailwind v4 · next-intl 4 · React-Leaflet · Recharts · next-pwa
-- **Backend** : Next.js API routes · Drizzle ORM 0.45 · better-sqlite3 12.10 (WAL)
-- **Scraping** : Python 3.12 · httpx · selectolax · APScheduler · rapidfuzz · pydantic · rich · click
-- **Déploiement** : Docker Compose addon Home Assistant · nginx reverse proxy · GPG backup quotidien NAS
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Next.js 16.2.6 · TypeScript strict · Tailwind v4 · next-intl 4 · React 19 |
+| UI components | Radix UI · React-Leaflet · Recharts · Lucide icons |
+| Backend | Next.js API routes · Drizzle ORM 0.45 · better-sqlite3 12.10 (WAL) |
+| Scraping | Python 3.12 · httpx · selectolax · APScheduler · rapidfuzz · pydantic · rich · click |
+| Testing | Vitest (TS) · pytest (Python) |
+| Deployment | Docker Compose · nginx · Home Assistant add-on · GPG backup |
 
-## Anti-hallucination
-
-Le projet précédent (burgundy-manager) a accumulé des bugs de matching (Raveneau attaché à Bordeaux, Laroche à Sancerre). Achilles's Wines impose 6 gates :
-
-1. **Producer registry pré-validé** (seed manuel + syndicats officiels CIVB/BIVB/CIVC/etc.)
-2. **Hard region gate** (`appellation ∈ producer.allowed_appellations` obligatoire)
-3. **Tri-source rule prix** (≥2 sources concordent ±15% pour entrer dans `fact_price`)
-4. **Critic enum fermé** (WA, Vinous, BH, JMIB, RVF, Decanter, JS, JG, WS, Hachette, CT, XW, WE)
-5. **Content-hash diff** (évite re-parsing via ETag/MD5)
-6. **DLQ visible** à `/quarantaine` avec review manuelle
-
-Voir [docs/ARCHITECTURE.md § Flux ETL](docs/ARCHITECTURE.md) pour le détail.
+---
 
 ## Roadmap
 
-### Sprint 1-3 (fondations) — TERMINÉ
-- [x] Scaffold Next.js 16 + Drizzle schema 16 tables + i18n 6 langues + thème Athena
-- [x] Import producer registry (~8 700 domaines depuis burgundy-manager)
-- [x] Dashboard + Domaines/[id] + Cellar + Best Value + Vintages + Map + Menu
-- [x] Premier scraper Millesima end-to-end + DLQ + job queue UI
+### Sprints 1–3 (foundations) ✅
+- Scaffold Next.js 16 + Drizzle schema (17 tables) + i18n 6 languages + Athena theme
+- Import producer registry (~8 700 domaines from burgundy-manager)
+- Dashboard · Domaines/[id] · Cellar · Best Value · Vintages · Map · Menu
+- First Millesima scraper end-to-end + DLQ + job queue UI
 
-### Sprint 4-9 (UI core + ingestion) — TERMINÉ
-- [x] Page Best Value : scoring `(rating^2)/log(price)` + scatter
-- [x] Page Vintages : heatmap région × année + drill-down
-- [x] Page Domaine/[id] : charts prix et ratings, drinking window
-- [x] Cellar drag-and-drop + CSV import/export + ConfidenceBadge
-- [x] Menu pairing : composer multi-service + algo keyword-based
-- [x] Email newsletter ingestion IMAP + .eml replay (ADR-011)
-- [x] Authentification scrapers env-vars + test_login UI (ADR-010)
+### Sprints 4–9 (UI core + ingestion) ✅
+- Best Value scoring `(rating²)/log(price)` + scatter
+- Vintage heatmap region × year + drill-down
+- Cellar drag-and-drop + CSV import/export + ConfidenceBadge
+- Menu pairing: multi-course composer + keyword-based scoring
+- Email newsletter ingestion via IMAP + .eml replay (ADR-011)
+- Scraper auth system: env-vars + test_login UI (ADR-010)
+- Dockerfiles multi-stage + docker-compose + nginx (ADR-007/008)
+- Backup SQLite GPG-AES256 → NAS + restore (ADR-009)
+- Home Assistant add-on config + automations
 
-### Sprint 10-13 (robustesse + couverture) — TERMINÉ
-- [x] 37 scrapers actifs (retail FR/BE, presse, vintage, crowd, officiel)
-- [x] Identity fix : wine_key déterministe cross-sources (1 752 wine_keys multi-source)
-- [x] Promoteur batch : staging → fact_price via tri-source ±15%
-- [x] Dockerfiles multi-stage + docker-compose + nginx (ADR-007/008)
-- [x] Backup SQLite GPG-AES256 → NAS + restore (ADR-009)
-- [x] INAO AOC registry 315 entrées → 915 dim_appellation rows
-- [x] WineEnthusiast 129 971 reviews (Kaggle, critic_code=WE)
-- [x] Staging dedup UNIQUE index + purge 56 460 doublons
+### Sprints 10–13 (robustness + coverage) ✅
+- 37 scrapers active (FR/BE retail, press, vintage charts, crowd, official)
+- wine_key deterministic cross-source identity fix
+- Promoter batch: staging → fact_price via tri-source ±15%
+- Staging dedup UNIQUE index + purge 56 460 duplicates
+- WineEnthusiast 129 971 reviews (Kaggle, critic_code=WE)
+- APScheduler cron per source, parallel ThreadPoolExecutor
+- Retry + backoff for transient site errors
+- Session caching in `ops_auth_sessions` (ADR-010 extension)
 
-### Sprint 14 — Couverture France 60 % strict (en cours)
-- [x] INAO appellation registry complet (820 → 915 dim_appellation rows) — [#30](https://github.com/FibSol/AchillesWines/issues/30)
-- [ ] Producer registry expansion : CIVB + BIVB + Inter-Rhône + InterLoire + CIVC + CIVA — [#31](https://github.com/FibSol/AchillesWines/issues/31)
-- [ ] Colonne `coverage_tier` (notable/mid/long_tail) + dashboard `/admin/coverage` — [#32](https://github.com/FibSol/AchillesWines/issues/32) [#36](https://github.com/FibSol/AchillesWines/issues/36)
-- [ ] Promoter fact_rating : gate ≥2 sources critiques — [#33](https://github.com/FibSol/AchillesWines/issues/33)
-- [ ] Wine-Searcher scraper (prix multi-shop) — [#34](https://github.com/FibSol/AchillesWines/issues/34)
-- [ ] Purge fact_price mono-source — [#38](https://github.com/FibSol/AchillesWines/issues/38)
+### Sprint 14 (France coverage 60% strict) ✅
+- INAO appellation registry (315-entry taxonomy → 915 dim_appellation rows) — [#30](https://github.com/FibSol/AchillesWines/issues/30)
+- Producer registry expansion: CIVB + BIVB + Inter-Rhône + InterLoire + CIVC + CIVA + CIVL → 33 492 producers — [#31](https://github.com/FibSol/AchillesWines/issues/31)
+- `coverage_tier` column (notable/mid/long_tail) + `/admin/coverage` KPI dashboard — [#32](https://github.com/FibSol/AchillesWines/issues/32) [#36](https://github.com/FibSol/AchillesWines/issues/36)
+- Promoter gate ≥2 critic sources for `fact_rating` — [#33](https://github.com/FibSol/AchillesWines/issues/33)
+- Wine-Searcher Pro API scraper (EUR prices, notable tier first) — [#34](https://github.com/FibSol/AchillesWines/issues/34)
+- iDealwine historical auction scraper (pre-2010 vintages) — [#35](https://github.com/FibSol/AchillesWines/issues/35)
+- Vivino tiebreaker scraper (gated: staging only, ≥2 pro critics required) — [#37](https://github.com/FibSol/AchillesWines/issues/37)
+- Mono-source fact_price purge audit (1 778 rows — all clean, 0 mono-source) — [#38](https://github.com/FibSol/AchillesWines/issues/38)
+- Dev → RPi production migration script — [#29](https://github.com/FibSol/AchillesWines/issues/29)
+- LLM fallback email parser (Claude Haiku, per-source opt-in) — [#21](https://github.com/FibSol/AchillesWines/issues/21)
 
-### Phase backlog (P3)
-- [ ] OCR étiquette via Claude Vision (photo → ajout cellar) — [#24](https://github.com/FibSol/AchillesWines/issues/24)
-- [ ] PWA push notifications promos — [#25](https://github.com/FibSol/AchillesWines/issues/25)
-- [ ] Recommandations par similarité vectorielle — [#26](https://github.com/FibSol/AchillesWines/issues/26)
-- [ ] Vintage divergence heatmap (sources × année) — [#27](https://github.com/FibSol/AchillesWines/issues/27)
-- [ ] X-Wines + soMLier crowd reviews import — [#28](https://github.com/FibSol/AchillesWines/issues/28)
+### Backlog (P3)
+- OCR wine label via Claude Vision (photo → add to cellar) — [#24](https://github.com/FibSol/AchillesWines/issues/24)
+- PWA push notifications for promos — [#25](https://github.com/FibSol/AchillesWines/issues/25)
+- Vector similarity recommendations — [#26](https://github.com/FibSol/AchillesWines/issues/26)
+- Vintage divergence heatmap (sources × year) — [#27](https://github.com/FibSol/AchillesWines/issues/27)
+- X-Wines + soMLier crowd reviews import — [#28](https://github.com/FibSol/AchillesWines/issues/28)
+- Wine-Searcher vintage-chart enrichment (`fact_vintage_rating`) — [#40](https://github.com/FibSol/AchillesWines/issues/40)
+- Manual review: naming pollution CSV (~6 400 rows) — [#41](https://github.com/FibSol/AchillesWines/issues/41)
+- Populate `bridge_wine_variety` via appellation-default rules — [#42](https://github.com/FibSol/AchillesWines/issues/42)
+- LWIN integration (deferred until Liv-ex subscription)
 
-## Métriques (2026-05-23)
+---
 
-| KPI | Valeur actuelle |
-|-----|----------------|
-| Producteurs (dim_producer) | ~8 700 domaines |
+## Metrics (2026-05-27)
+
+| KPI | Value |
+|-----|-------|
+| Producers (dim_producer) | 33 492 |
 | Appellations (dim_appellation) | 915 AOC/IGP |
-| Cuvées (dim_wine) | ~3 650 |
-| Prix validés (fact_price) | 2 355 rows |
-| Ratings critiques (fact_rating) | 130 021 rows (WE 129 971 + hachette) |
-| Scrapers actifs | 37 |
-| Langues | 6 (FR/EN/NL/DE/ES/IT) |
-| Cave max | 36 emplacements × 120 bouteilles = 4 320 max |
-| Latence API cible | < 150 ms |
-| DB size cible | < 500 MB/an |
+| Wines (dim_wine) | ~3 650 canonical cuvées |
+| Validated prices (fact_price) | 3 140 rows (multi-source ≥2) |
+| Critic ratings (fact_rating) | ~130 500 rows (WE + RVF + Hachette + CT + Vivino + more) |
+| Vintage ratings (fact_vintage_rating) | 1 059 rows |
+| Active scrapers | 37 |
+| Python tests | 209 / 209 ✅ |
+| Vitest tests | 72 / 72 ✅ |
+| Languages | 6 (FR / EN / NL / DE / ES / IT) |
+| Cellar capacity | 36 locations × 120 bottles = 4 320 max |
 
-## Contribution & propriété
+---
 
-Personal/local use only. Pas d'open-source pour l'instant. Successor de `C:\Users\Nicolas\Bourgogne\burgundy-manager` (devenu legacy).
+## Ownership
+
+Personal / local use only. Successor to `C:\Users\Nicolas\Bourgogne\burgundy-manager` (now legacy).  
+Repository: [FibSol/AchillesWines](https://github.com/FibSol/AchillesWines)
