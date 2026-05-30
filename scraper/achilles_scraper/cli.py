@@ -92,6 +92,7 @@ _ALL_SOURCES = [
     "kaggle_reviews",     # WineEnthusiast reviews via Kaggle API (v2, 130k, has title)
     "kaggle_reviews_v1",  # WineEnthusiast reviews via Kaggle API (v1, 150k, NV only)
     "cellartracker_xlquery",  # CellarTracker official xlquery.asp export — own cellar + 30 critic columns
+    "somlier",               # soMLier Mendeley Data wine dataset (manual-download stub)
 ]
 
 
@@ -152,6 +153,7 @@ def _load_scrapers():
     from .scrapers.xwines import XWinesScraper
     from .scrapers.kaggle_reviews import KaggleReviewsScraper, KaggleReviewsV1Scraper
     from .scrapers.cellartracker_xlquery import CellarTrackerXlqueryScraper
+    from .scrapers.somlier import SoMLierScraper
 
     SCRAPERS["millesima"] = MillesimaScraper
     SCRAPERS["millesima_be"] = MillesimaBeScraper
@@ -200,6 +202,7 @@ def _load_scrapers():
     SCRAPERS["kaggle_reviews"] = KaggleReviewsScraper
     SCRAPERS["kaggle_reviews_v1"] = KaggleReviewsV1Scraper
     SCRAPERS["cellartracker_xlquery"] = CellarTrackerXlqueryScraper
+    SCRAPERS["somlier"] = SoMLierScraper
 
 
 @click.group()

@@ -158,7 +158,7 @@ Wine press (E_press_critic → write to fact_rating):
 - [ ] Algorithme de similarité vectorielle pour recommandations — [#26](https://github.com/FibSol/AchillesWines/issues/26)
 - [ ] LWIN integration si abonnement Liv-ex obtenu un jour
 - [x] Recharts Vintage divergence heatmap (sources × année) — [#27](https://github.com/FibSol/AchillesWines/issues/27) ✓ 2026-05-30
-- [ ] X-Wines + Mendeley soMLier snapshot import (crowd reviews) — [#28](https://github.com/FibSol/AchillesWines/issues/28)
+- [x] X-Wines + Mendeley soMLier snapshot import (crowd reviews) — [#28](https://github.com/FibSol/AchillesWines/issues/28) ✓ 2026-05-30
 - [ ] **P2 · 4h** [Patroclus] Wine-Searcher vintage-chart enrichment → `fact_vintage_rating` (Phase 1A) — [#40](https://github.com/FibSol/AchillesWines/issues/40)
 - [x] **P2 · 3h** [Helena+Cassandra] Manual review of naming pollution CSV (~6 400 rows flagged by cleanup scripts) — [#41](https://github.com/FibSol/AchillesWines/issues/41) ✓ 2026-05-27
 - [x] **P2 · 4h** [Patroclus] Populate `bridge_wine_variety` via appellation-default grape rules + scraper composition data — [#42](https://github.com/FibSol/AchillesWines/issues/42) ✓ 2026-05-30

@@ -275,7 +275,7 @@ class XWinesScraper(BaseScraper):
             aggregated[(wine_id, vintage)].append(score)
 
         console.print(
-            f"[cyan]xwines[/] {sum(len(v) for v in aggregated.values())} ratings → "
+            f"[cyan]xwines[/] {sum(len(v) for v in aggregated.values())} ratings -> "
             f"{len(aggregated)} (wine, vintage) pairs"
         )
         result.rows_fetched = sum(len(v) for v in aggregated.values())
