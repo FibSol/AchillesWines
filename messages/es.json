@@ -75,6 +75,18 @@
       "verified": "Verificado ({count} fuentes)",
       "reviewed": "Fuente única",
       "needs_review": "En revisión"
+    },
+    "filters": {
+      "country": "País",
+      "allCountries": "Todos los países",
+      "allRegions": "Todas las regiones",
+      "allVintages": "Todas las añadas",
+      "minPrice": "Mín (€)",
+      "maxPrice": "Máx (€)",
+      "minRating": "Punt. mín",
+      "maxRating": "Punt. máx",
+      "clearFilters": "Borrar filtros",
+      "noResults": "Ningún vino coincide con los filtros."
     }
   },
   "vintages": {
@@ -94,7 +106,15 @@
       "t5": "Legendario"
     },
     "densityLabel": "vinos (sin nota)",
-    "backToVintages": "Volver a añadas"
+    "backToVintages": "Volver a añadas",
+    "divergenceTitle": "Divergencia de puntuaciones por fuente y añada",
+    "divergenceSubtitle": "Puntuación crítica media por año de cosecha. Pasa el cursor para ver los detalles.",
+    "divergenceLegend": "Puntuación /100",
+    "divergenceTooltipYear": "Añada",
+    "divergenceTooltipCritic": "Crítico",
+    "divergenceTooltipAvg": "Puntuación media",
+    "divergenceTooltipCount": "Vinos puntuados",
+    "divergenceTooltipDivergence": "Desv. estándar"
   },
   "map": {
     "title": "Mapa de bodegas",

@@ -75,6 +75,18 @@
       "verified": "Geverifieerd ({count} bronnen)",
       "reviewed": "Één bron",
       "needs_review": "In review"
+    },
+    "filters": {
+      "country": "Land",
+      "allCountries": "Alle landen",
+      "allRegions": "Alle regio's",
+      "allVintages": "Alle jaargangen",
+      "minPrice": "Min (€)",
+      "maxPrice": "Max (€)",
+      "minRating": "Min score",
+      "maxRating": "Max score",
+      "clearFilters": "Filters wissen",
+      "noResults": "Geen wijnen voldoen aan de filters."
     }
   },
   "vintages": {
@@ -94,7 +106,15 @@
       "t5": "Legendarisch"
     },
     "densityLabel": "wijnen (geen score)",
-    "backToVintages": "Terug naar jaargangen"
+    "backToVintages": "Terug naar jaargangen",
+    "divergenceTitle": "Scoredivergentie per bron & jaargang",
+    "divergenceSubtitle": "Gemiddelde criticscore per jaargang. Hover voor details.",
+    "divergenceLegend": "Score /100",
+    "divergenceTooltipYear": "Jaargang",
+    "divergenceTooltipCritic": "Criticus",
+    "divergenceTooltipAvg": "Gem. score",
+    "divergenceTooltipCount": "Beoordeelde wijnen",
+    "divergenceTooltipDivergence": "Std. afwijking"
   },
   "map": {
     "title": "Kaart wijnhuizen",

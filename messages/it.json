@@ -75,6 +75,18 @@
       "verified": "Verificato ({count} fonti)",
       "reviewed": "Fonte singola",
       "needs_review": "In revisione"
+    },
+    "filters": {
+      "country": "Paese",
+      "allCountries": "Tutti i paesi",
+      "allRegions": "Tutte le regioni",
+      "allVintages": "Tutte le annate",
+      "minPrice": "Min (€)",
+      "maxPrice": "Max (€)",
+      "minRating": "Val. min",
+      "maxRating": "Val. max",
+      "clearFilters": "Cancella filtri",
+      "noResults": "Nessun vino corrisponde ai filtri."
     }
   },
   "vintages": {
@@ -94,7 +106,15 @@
       "t5": "Leggendario"
     },
     "densityLabel": "vini (nessun punteggio)",
-    "backToVintages": "Torna alle annate"
+    "backToVintages": "Torna alle annate",
+    "divergenceTitle": "Divergenza punteggi per fonte e annata",
+    "divergenceSubtitle": "Punteggio critico medio per anno. Passa il cursore per i dettagli.",
+    "divergenceLegend": "Punteggio /100",
+    "divergenceTooltipYear": "Annata",
+    "divergenceTooltipCritic": "Critico",
+    "divergenceTooltipAvg": "Punteggio medio",
+    "divergenceTooltipCount": "Vini valutati",
+    "divergenceTooltipDivergence": "Dev. std."
   },
   "map": {
     "title": "Mappa cantine",

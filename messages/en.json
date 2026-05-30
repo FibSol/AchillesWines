@@ -75,6 +75,18 @@
       "verified": "Verified ({count} sources)",
       "reviewed": "Single source",
       "needs_review": "In review"
+    },
+    "filters": {
+      "country": "Country",
+      "allCountries": "All countries",
+      "allRegions": "All regions",
+      "allVintages": "All vintages",
+      "minPrice": "Min (€)",
+      "maxPrice": "Max (€)",
+      "minRating": "Min rating",
+      "maxRating": "Max rating",
+      "clearFilters": "Clear filters",
+      "noResults": "No wines match the filters."
     }
   },
   "vintages": {
@@ -94,7 +106,15 @@
       "t5": "Legendary"
     },
     "densityLabel": "wines (no score)",
-    "backToVintages": "Back to vintages"
+    "backToVintages": "Back to vintages",
+    "divergenceTitle": "Score divergence by source & vintage",
+    "divergenceSubtitle": "Average critic score per vintage year. Hover for details.",
+    "divergenceLegend": "Score /100",
+    "divergenceTooltipYear": "Vintage",
+    "divergenceTooltipCritic": "Critic",
+    "divergenceTooltipAvg": "Avg score",
+    "divergenceTooltipCount": "Wines rated",
+    "divergenceTooltipDivergence": "Std dev"
   },
   "map": {
     "title": "Producer map",

@@ -75,6 +75,18 @@
       "verified": "Vérifié ({count} sources)",
       "reviewed": "Source unique",
       "needs_review": "En revue"
+    },
+    "filters": {
+      "country": "Pays",
+      "allCountries": "Tous les pays",
+      "allRegions": "Toutes les régions",
+      "allVintages": "Tous les millésimes",
+      "minPrice": "Min (€)",
+      "maxPrice": "Max (€)",
+      "minRating": "Note min",
+      "maxRating": "Note max",
+      "clearFilters": "Effacer les filtres",
+      "noResults": "Aucun vin ne correspond aux filtres."
     }
   },
   "vintages": {
@@ -94,7 +106,15 @@
       "t5": "Légendaire"
     },
     "densityLabel": "vins (sans note)",
-    "backToVintages": "Retour aux millésimes"
+    "backToVintages": "Retour aux millésimes",
+    "divergenceTitle": "Divergence des scores par source & millésime",
+    "divergenceSubtitle": "Score critique moyen par année. Survoler pour les détails.",
+    "divergenceLegend": "Score /100",
+    "divergenceTooltipYear": "Millésime",
+    "divergenceTooltipCritic": "Critique",
+    "divergenceTooltipAvg": "Score moyen",
+    "divergenceTooltipCount": "Vins notés",
+    "divergenceTooltipDivergence": "Écart-type"
   },
   "map": {
     "title": "Carte des domaines",

@@ -1,11 +1,56 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { db } from "@/db";
-import { dimWine, dimAppellation, factVintageRating } from "@/db/schema";
-import { eq, isNotNull, gte, and, sql } from "drizzle-orm";
+import { dimWine, dimAppellation, factVintageRating, factRating } from "@/db/schema";
+import { eq, isNotNull, gte, lte, and, sql } from "drizzle-orm";
 import { PageShell } from "@/components/page-shell";
 import { VintageHeatmap, type VintageCell, type HeatmapLabels } from "@/components/VintageHeatmap";
+import { VintageDivergenceHeatmap, type DivergenceCell, type DivergenceLabels } from "@/components/VintageDivergenceHeatmap";
 
 export const dynamic = "force-dynamic";
+
+async function getDivergenceData(): Promise<DivergenceCell[]> {
+  try {
+    const rows = await db
+      .select({
+        year: dimWine.vintage,
+        critic: factRating.criticCode,
+        avg: sql<number>`round(avg(${factRating.scoreNormalized100}), 1)`,
+        count: sql<number>`cast(count(*) as integer)`,
+        divergence: sql<number>`round(
+          sqrt(
+            max(0,
+              avg(${factRating.scoreNormalized100} * ${factRating.scoreNormalized100})
+              - avg(${factRating.scoreNormalized100}) * avg(${factRating.scoreNormalized100})
+            )
+          ),
+          1
+        )`,
+      })
+      .from(factRating)
+      .innerJoin(dimWine, eq(factRating.wineKey, dimWine.wineKey))
+      .where(
+        and(
+          isNotNull(dimWine.vintage),
+          gte(dimWine.vintage, 1990),
+          lte(dimWine.vintage, 2024),
+        )
+      )
+      .groupBy(dimWine.vintage, factRating.criticCode)
+      .having(sql`count(*) >= 3`);
+
+    return rows
+      .filter((r) => r.year !== null)
+      .map((r) => ({
+        year: r.year as number,
+        critic: r.critic,
+        avg: Number(r.avg),
+        count: Number(r.count),
+        divergence: Number(r.divergence),
+      }));
+  } catch {
+    return [];
+  }
+}
 
 async function getHeatmapData(): Promise<{
   cells: VintageCell[];
@@ -105,7 +150,10 @@ export default async function VintagesPage({
   setRequestLocale(locale);
   const t = await getTranslations("vintages");
 
-  const { cells, regions, years } = await getHeatmapData();
+  const [{ cells, regions, years }, divergenceCells] = await Promise.all([
+    getHeatmapData(),
+    getDivergenceData(),
+  ]);
 
   const labels: HeatmapLabels = {
     noData: t("noData"),
@@ -121,9 +169,31 @@ export default async function VintagesPage({
     },
   };
 
+  const divergenceLabels: DivergenceLabels = {
+    title: t("divergenceTitle"),
+    subtitle: t("divergenceSubtitle"),
+    legend: t("divergenceLegend"),
+    tooltipYear: t("divergenceTooltipYear"),
+    tooltipCritic: t("divergenceTooltipCritic"),
+    tooltipAvg: t("divergenceTooltipAvg"),
+    tooltipCount: t("divergenceTooltipCount"),
+    tooltipDivergence: t("divergenceTooltipDivergence"),
+    noData: t("noData"),
+  };
+
   return (
     <PageShell title={t("title")} subtitle={t("subtitle")} badge="Sprint 4 · P1">
       <VintageHeatmap cells={cells} regions={regions} years={years} labels={labels} />
+
+      {/* Divergence heatmap — score by critic × vintage */}
+      <section className="mt-10 space-y-3">
+        <div>
+          <h2 className="text-lg font-semibold text-[rgba(250,247,245,0.92)] tracking-tight">
+            {t("divergenceTitle")}
+          </h2>
+        </div>
+        <VintageDivergenceHeatmap cells={divergenceCells} labels={divergenceLabels} />
+      </section>
     </PageShell>
   );
 }

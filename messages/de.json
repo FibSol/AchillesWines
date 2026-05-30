@@ -75,6 +75,18 @@
       "verified": "Verifiziert ({count} Quellen)",
       "reviewed": "Einzelquelle",
       "needs_review": "In Prüfung"
+    },
+    "filters": {
+      "country": "Land",
+      "allCountries": "Alle Länder",
+      "allRegions": "Alle Regionen",
+      "allVintages": "Alle Jahrgänge",
+      "minPrice": "Min (€)",
+      "maxPrice": "Max (€)",
+      "minRating": "Min-Note",
+      "maxRating": "Max-Note",
+      "clearFilters": "Filter löschen",
+      "noResults": "Keine Weine entsprechen den Filtern."
     }
   },
   "vintages": {
@@ -94,7 +106,15 @@
       "t5": "Legendär"
     },
     "densityLabel": "Weine (kein Score)",
-    "backToVintages": "Zurück zu Jahrgängen"
+    "backToVintages": "Zurück zu Jahrgängen",
+    "divergenceTitle": "Score-Divergenz nach Quelle & Jahrgang",
+    "divergenceSubtitle": "Durchschnittlicher Kritiker-Score pro Jahrgang. Hover für Details.",
+    "divergenceLegend": "Score /100",
+    "divergenceTooltipYear": "Jahrgang",
+    "divergenceTooltipCritic": "Kritiker",
+    "divergenceTooltipAvg": "Ø Score",
+    "divergenceTooltipCount": "Bewertete Weine",
+    "divergenceTooltipDivergence": "Std.-Abw."
   },
   "map": {
     "title": "Karte der Weingüter",
