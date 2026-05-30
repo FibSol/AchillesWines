@@ -1,5 +1,10 @@
 # Achilles's Wines — Progress Log
 
+## 2026-05-30
+
+### Patroclus (Backend)
+- [Patroclus] **#42 Populate bridge_wine_variety via appellation-default grape rules**: Built `scraper/achilles_scraper/varieties.py` — comprehensive `APPELLATION_VARIETIES` dict covering 130+ French appellations across all major regions (Burgundy, Bordeaux, Champagne, Loire, Rhône, Alsace, Beaujolais, Languedoc-Roussillon, Provence, Sud-Ouest, Jura/Savoie, Corsica). Each appellation maps to variety dicts with `variety_norm`, `variety_name`, `color_family`, `is_primary`, `pct_min/pct_max`. Implemented `get_varieties_for_appellation()`, `ensure_variety_in_db()`, and `upsert_bridge_wine_variety()` (idempotent INSERT OR REPLACE). One-shot population script `scripts/populate-bridge-wine-variety.py` iterates all 220 198 dim_wine rows joined with dim_appellation, seeds varieties, upserts bridge rows. Result: bridge_wine_variety 0→148 353 rows covering all known FR appellations. 40 pytest unit tests in `scraper/tests/test_varieties.py` (19 appellation coverage tests, 3 unknown-appellation, 6 idempotency/upsert, 1 is_primary, 3 ensure_variety, 8 structural integrity). All 40 pass. tsc --noEmit clean. Strategy B (scraper composition fields): checked all scrapers — none extract grape composition fields, so no wiring needed. · files: scraper/achilles_scraper/varieties.py, scripts/populate-bridge-wine-variety.py, scraper/tests/test_varieties.py
+
 ## 2026-05-27
 
 ### Cassandra (Data Steward)
