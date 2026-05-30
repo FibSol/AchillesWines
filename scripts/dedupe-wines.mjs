@@ -127,19 +127,40 @@ const samples = [];
 
 function normApp(s) { return (s || '').toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim(); }
 
+// Two appellations are related iff they are equal (normalised) or one is a
+// strict word-boundary PREFIX of the other in the ORIGINAL string.
+//
+// Checking originals (not normalised) is critical: normApp converts hyphens to
+// spaces, which would make "Corton" a prefix of "Corton Charlemagne" — correct
+// in the normalised domain but wrong because the original hyphen signals a
+// *compound* name, not a parent-child hierarchy.
+//
+// Valid pairs  (nextChar === ' '):  Saint-Emilion / Saint-Emilion Grand Cru
+//                                   Bourgogne / Bourgogne Aligoté
+//                                   Chablis / Chablis Grand Cru
+// Excluded pairs (nextChar === '-'): Corton / Corton-Charlemagne
+// Excluded (not a prefix at all):   Chambertin / Charmes-Chambertin
+//                                   Echezeaux / Grands-Echezeaux
+//                                   Bâtard-Montrachet / Criots-Bâtard-Montrachet
+function appellationsRelated(aName, bName) {
+  if (normApp(aName) === normApp(bName)) return true;
+  const al = aName.trim().toLowerCase(), bl = bName.trim().toLowerCase();
+  const [shorter, longer] = al.length <= bl.length ? [al, bl] : [bl, al];
+  if (!longer.startsWith(shorter)) return false;
+  return longer[shorter.length] === ' ';
+}
+
 // Split a group of empty-cuvée rows into appellation-containment clusters.
-// Two rows belong together only if their appellation names are equal OR one is
-// a substring of the other (Saint-Emilion ⊂ Saint-Emilion Grand Cru Classé).
+// Two rows belong together only if their appellations are related per the
+// strict prefix rule above.
 function clusterByAppellationChain(rows) {
   const clusters = [];
   for (const r of rows) {
-    const rn = normApp(r.appellation_name);
     let placed = false;
     for (const c of clusters) {
-      const compatible = c.every(other => {
-        const on = normApp(other.appellation_name);
-        return rn === on || rn.includes(on) || on.includes(rn);
-      });
+      const compatible = c.every(other =>
+        appellationsRelated(r.appellation_name, other.appellation_name)
+      );
       if (compatible) { c.push(r); placed = true; break; }
     }
     if (!placed) clusters.push([r]);
