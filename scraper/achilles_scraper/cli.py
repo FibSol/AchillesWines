@@ -653,5 +653,79 @@ def list_sources():
     console.print(t)
 
 
+@cli.command("compute-similarity")
+@click.option("--limit", default=None, type=int, help="Max wines to process (default: all eligible)")
+@click.option("--top-k", default=20, type=int, show_default=True, help="Top-K similar wines to keep per wine")
+@click.option("--batch-size", default=500, type=int, show_default=True, help="Matrix block size for cosine computation")
+def compute_similarity(limit: int | None, top_k: int, batch_size: int):
+    """Compute wine feature-vector similarity scores and persist to wine_similarity.
+
+    Builds fixed-length feature vectors (color, region, variety, score, price,
+    vintage) for all wines with at least one price or rating row, then computes
+    pairwise cosine similarity in NumPy batches and writes the top-K most similar
+    wines per wine into wine_similarity.
+    """
+    import time as _time
+    from .config import config
+    from .db import get_db
+
+    config.ensure_dirs()
+    conn = get_db(config.db_path)
+
+    # Count eligible wines
+    eligible_count = conn.execute(
+        """
+        SELECT COUNT(DISTINCT dw.wine_key)
+        FROM dim_wine dw
+        WHERE EXISTS (SELECT 1 FROM fact_price fp WHERE fp.wine_key = dw.wine_key)
+           OR EXISTS (SELECT 1 FROM fact_rating fr WHERE fr.wine_key = dw.wine_key)
+        """
+    ).fetchone()[0]
+
+    if limit:
+        eligible_count = min(eligible_count, limit)
+
+    console.print(f"[bold]Computing similarity[/bold] — eligible wines: {eligible_count}, top-K={top_k}")
+    console.print()
+
+    t0 = _time.time()
+    last_print = [0]
+
+    def progress(processed: int, total: int, rows_written: int) -> None:
+        elapsed = _time.time() - t0
+        if processed - last_print[0] >= 500 or processed == total:
+            console.print(
+                f"  [{processed}/{total}]  rows written: {rows_written}"
+                f"  elapsed: {elapsed:.1f}s"
+            )
+            last_print[0] = processed
+
+    try:
+        from .similarity import compute_all_similarities
+    except ImportError as exc:
+        console.print(f"[red]numpy is required: {exc}[/red]")
+        console.print("[yellow]Run: scraper\\.venv\\Scripts\\pip.exe install numpy[/yellow]")
+        return
+
+    rows_written = compute_all_similarities(
+        conn,
+        top_k=top_k,
+        batch_size=batch_size,
+        progress_callback=progress,
+    )
+
+    elapsed = _time.time() - t0
+    console.print()
+
+    t = Table(title="Similarity result")
+    t.add_column("Metric")
+    t.add_column("Value", justify="right")
+    t.add_row("Wines processed", str(eligible_count))
+    t.add_row("Rows written (wine_similarity)", str(rows_written))
+    t.add_row("Top-K per wine", str(top_k))
+    t.add_row("Elapsed", f"{elapsed:.1f}s")
+    console.print(t)
+
+
 if __name__ == "__main__":
     cli()

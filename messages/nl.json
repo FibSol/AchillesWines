@@ -336,6 +336,12 @@
     "colDlq": "DLQ",
     "colActions": "Acties"
   },
+  "similarity": {
+    "title": "U vindt misschien ook",
+    "subtitle": "Gebaseerd op druivenras, regio en scoreprofiel",
+    "similarityScore": "Match",
+    "noResults": "Nog geen gelijkaardige wijnen gevonden"
+  },
   "adminCoverage": {
     "title": "Dekkingsdashboard",
     "subtitle": "Volg de 60%-doelstelling voor Franse topproducenten (ADR-013)",

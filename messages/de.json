@@ -336,6 +336,12 @@
     "colDlq": "DLQ",
     "colActions": "Aktionen"
   },
+  "similarity": {
+    "title": "Das könnte Ihnen auch gefallen",
+    "subtitle": "Basierend auf Rebsorte, Region und Bewertungsprofil",
+    "similarityScore": "Übereinstimmung",
+    "noResults": "Noch keine ähnlichen Weine gefunden"
+  },
   "adminCoverage": {
     "title": "Abdeckungs-Dashboard",
     "subtitle": "Ziel: 60 % der bedeutenden französischen Produzenten (ADR-013)",

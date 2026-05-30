@@ -11,12 +11,15 @@ import {
   cellarInventory,
   factPrice,
   factRating,
+  wineSimilarity,
 } from "@/db/schema";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { PageShell } from "@/components/page-shell";
 import { ConfidenceBadge, deriveConfidence } from "@/components/ConfidenceBadge";
 import { CuveeEvolutionChart, type CuveeYearPoint } from "@/components/DomaineCharts";
 import { DomaineDetailTable, type DetailRow } from "@/components/DomaineDetailTable";
+import { SimilarWines } from "@/components/SimilarWines";
+import type { SimilarWineItem } from "@/app/api/wines/[wineKey]/similar/route";
 import { ArrowLeft, MapPin, Globe, Grape, Award } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -251,6 +254,54 @@ async function loadProducerDetail(producerKey: number): Promise<LoadedData | nul
   return { producer, varieties, cuveeSummaries, cuveeYearPoints, detailRows };
 }
 
+/* ─── Similar wines loader ───────────────────────────────────────────────── */
+
+async function loadSimilarWines(
+  wineKey: string,
+  limit = 10,
+): Promise<SimilarWineItem[]> {
+  const rows = await db
+    .select({
+      wine_key: wineSimilarity.similarWineKey,
+      similarity_score: wineSimilarity.score,
+      producer_name: dimProducer.producerName,
+      cuvee_name: dimWine.cuveeName,
+      vintage: dimWine.vintage,
+      color: dimWine.color,
+      appellation_name: dimAppellation.appellationName,
+      avg_score: sql<number | null>`(
+        SELECT ROUND(AVG(fr.score_normalized_100), 1)
+        FROM fact_rating fr
+        WHERE fr.wine_key = ${wineSimilarity.similarWineKey}
+      )`,
+      min_price: sql<number | null>`(
+        SELECT MIN(fp.amount_eur)
+        FROM fact_price fp
+        WHERE fp.wine_key = ${wineSimilarity.similarWineKey}
+          AND fp.amount_eur > 0
+      )`,
+    })
+    .from(wineSimilarity)
+    .innerJoin(dimWine, eq(dimWine.wineKey, wineSimilarity.similarWineKey))
+    .innerJoin(dimProducer, eq(dimProducer.producerKey, dimWine.producerKey))
+    .innerJoin(dimAppellation, eq(dimAppellation.appellationKey, dimWine.appellationKey))
+    .where(eq(wineSimilarity.wineKey, wineKey))
+    .orderBy(sql`${wineSimilarity.score} DESC`)
+    .limit(limit);
+
+  return rows.map((r) => ({
+    wine_key: r.wine_key,
+    producer_name: r.producer_name,
+    cuvee_name: r.cuvee_name,
+    vintage: r.vintage,
+    appellation_name: r.appellation_name,
+    color: r.color,
+    avg_score: r.avg_score,
+    min_price: r.min_price,
+    similarity_score: r.similarity_score,
+  }));
+}
+
 /* ─── Sub-components ─────────────────────────────────────────────────────── */
 
 function ColorDot({ color }: { color: string }) {
@@ -305,6 +356,7 @@ export default async function DomainePage({
   const tCommon = await getTranslations("common");
   const tConf = await getTranslations("confidence");
   const tColors = await getTranslations("colors");
+  const tSim = await getTranslations("similarity");
 
   const producerKey = Number.parseInt(id, 10);
   if (!Number.isFinite(producerKey)) notFound();
@@ -329,6 +381,13 @@ export default async function DomainePage({
 
   const cuveeNames = cuveeSummaries.map((c) => c.cuveeName);
   const hasVintageData = cuveeYearPoints.length > 0;
+
+  // Load similar wines for the best-rated wine of this producer
+  const bestWineKey =
+    detailRows.find((r) => r.bestRating !== null)?.wineKey ??
+    detailRows[0]?.wineKey ??
+    null;
+  const similarWines = bestWineKey ? await loadSimilarWines(bestWineKey, 10) : [];
 
   const colorLabels: Record<string, string> = {
     red: tColors("red"),
@@ -664,6 +723,19 @@ export default async function DomainePage({
           }}
           colorLabels={colorLabels}
           confidenceLabels={confidenceLabels}
+        />
+      </section>
+
+      {/* ── 6. Similar wines ─────────────────────────────────────────────── */}
+      <section className="mb-8">
+        <SimilarWines
+          wines={similarWines}
+          labels={{
+            title: tSim("title"),
+            subtitle: tSim("subtitle"),
+            match: tSim("similarityScore"),
+            noResults: tSim("noResults"),
+          }}
         />
       </section>
     </PageShell>

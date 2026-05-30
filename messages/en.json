@@ -336,6 +336,12 @@
     "colDlq": "DLQ",
     "colActions": "Actions"
   },
+  "similarity": {
+    "title": "Wines you might also like",
+    "subtitle": "Based on variety, region, and score profile",
+    "similarityScore": "Match",
+    "noResults": "No similar wines found yet"
+  },
   "adminCoverage": {
     "title": "Coverage Dashboard",
     "subtitle": "Track the 60% French notable producer coverage target (ADR-013)",

@@ -763,6 +763,35 @@ export const opsAuthSessions = sqliteTable(
 );
 
 /* ============================================================================
+ * SIMILARITY
+ * ========================================================================== */
+
+/**
+ * Pre-computed cosine similarity scores between wine feature vectors.
+ * Populated by `achilles-scraper compute-similarity`.
+ * Top-K=20 most similar wines per wine_key.
+ */
+export const wineSimilarity = sqliteTable(
+  "wine_similarity",
+  {
+    wineKey: text("wine_key")
+      .notNull()
+      .references(() => dimWine.wineKey),
+    similarWineKey: text("similar_wine_key")
+      .notNull()
+      .references(() => dimWine.wineKey),
+    score: real("score").notNull(),
+    computedAt: text("computed_at")
+      .notNull()
+      .default(sql`(datetime('now'))`),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.wineKey, t.similarWineKey] }),
+    scoreIdx: index("idx_wine_similarity_key").on(t.wineKey, t.score),
+  })
+);
+
+/* ============================================================================
  * Exports
  * ========================================================================== */
 
@@ -777,6 +806,7 @@ export type CellarLocation = typeof cellarLocations.$inferSelect;
 export type CellarInventory = typeof cellarInventory.$inferSelect;
 export type CellarConsumption = typeof cellarConsumption.$inferSelect;
 export type DeadLetter = typeof opsDeadLetter.$inferSelect;
+export type WineSimilarity = typeof wineSimilarity.$inferSelect;
 export type JobQueue = typeof opsJobQueue.$inferSelect;
 export type ScraperSchedule = typeof opsScraperSchedule.$inferSelect;
 export type StagingRatingCandidate = typeof stagingRatingCandidates.$inferSelect;

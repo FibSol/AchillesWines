@@ -336,6 +336,12 @@
     "colDlq": "DLQ",
     "colActions": "Azioni"
   },
+  "similarity": {
+    "title": "Potrebbe piacerti anche",
+    "subtitle": "Basato su vitigno, regione e profilo dei punteggi",
+    "similarityScore": "Affinità",
+    "noResults": "Nessun vino simile trovato ancora"
+  },
   "adminCoverage": {
     "title": "Dashboard di copertura",
     "subtitle": "Monitorare l'obiettivo del 60% dei produttori francesi notevoli (ADR-013)",

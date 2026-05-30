@@ -336,6 +336,12 @@
     "colDlq": "DLQ",
     "colActions": "Actions"
   },
+  "similarity": {
+    "title": "Vous pourriez aussi aimer",
+    "subtitle": "Basé sur le cépage, la région et le profil de notes",
+    "similarityScore": "Affinité",
+    "noResults": "Aucun vin similaire trouvé pour l'instant"
+  },
   "adminCoverage": {
     "title": "Tableau de couverture",
     "subtitle": "Suivre la cible 60 % des producteurs français notables (ADR-013)",
