@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.2 — 2026-05-31
+
+- Fix "Show in sidebar" toggle missing — ingress config was only present in `ha-addon/config.yaml`, not in the deployed `addon/config.yaml`
+- Add `CHANGELOG.md` to addon directory so the Changelog tab renders in HA
+
 ## 1.1.1 — 2026-05-31
 
 - Add HA ingress sidebar entry (`ingress: true`, `panel_icon`, `panel_title`) — "Show in sidebar" toggle now appears in the add-on Info tab
