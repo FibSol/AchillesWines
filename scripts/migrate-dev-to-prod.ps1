@@ -1,6 +1,16 @@
 ﻿# =============================================================================
 # Achilles's Wines - Full-DB dev-to-prod copy (Issue #29)
 #
+# !!! IMPORTANT - READ docs/DEPLOY-HA.md FIRST !!!
+# The SSH/SCP *apply* logic in this script assumes it can reach /data/achilles.db
+# directly over SSH. That does NOT work for the real Home Assistant deployment:
+# Achilles runs as an HA add-on whose /data is isolated from the SSH add-on
+# container, and external SSH auth to the box is unreliable. The proven procedure
+# (VACUUM INTO snapshot -> LAN HTTP pull -> docker-helper swap inside the add-on
+# data dir) lives in docs/DEPLOY-HA.md. The snapshot-building step below is still
+# correct and reusable; the apply phase is kept only for a hypothetical
+# direct-SSH host.
+#
 # Copies the ENTIRE dev SQLite database to the Home Assistant Raspberry Pi,
 # replacing the prod DB file wholesale. Dev is the single source of truth:
 # this overwrites EVERYTHING on prod, including dim_source and all ops_* tables
