@@ -157,6 +157,7 @@ Wine press (E_press_critic → write to fact_rating):
 - [ ] Push notifications PWA pour promos — [#25](https://github.com/FibSol/AchillesWines/issues/25)
 - [x] Algorithme de similarité vectorielle pour recommandations — [#26](https://github.com/FibSol/AchillesWines/issues/26) ✓ 2026-05-30
 - [ ] LWIN integration si abonnement Liv-ex obtenu un jour
+- [ ] **P3 · 3h** [Hector] HA ingress sidebar — nginx rewrite layer so "Show in sidebar" toggle works out of the box (no manual Webpage dashboard step) — [#46](https://github.com/FibSol/AchillesWines/issues/46)
 - [x] Recharts Vintage divergence heatmap (sources × année) — [#27](https://github.com/FibSol/AchillesWines/issues/27) ✓ 2026-05-30
 - [x] X-Wines + Mendeley soMLier snapshot import (crowd reviews) — [#28](https://github.com/FibSol/AchillesWines/issues/28) ✓ 2026-05-30
 - [ ] **P2 · 4h** [Patroclus] Wine-Searcher vintage-chart enrichment → `fact_vintage_rating` (Phase 1A) — [#40](https://github.com/FibSol/AchillesWines/issues/40)
