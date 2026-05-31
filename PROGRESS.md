@@ -2,6 +2,9 @@
 
 ## 2026-05-31
 
+### Patroclus (Data Import)
+- [Patroclus] **RVF N°701 complete systematic read: all tasting pages p.70-143 covered**; `scraper/scripts/import_rvf_n701_complete.py` — 85 new ratings + 99 new prices (including 2023/2024 vintage reference prices for Bordeaux primeurs). Sections covered: Blancs méditerranéens (Châteauneuf-du-Pape blanc, Corse, Patrimonio, Vacqueyras, Cairanne, Muscat de Beaumes-de-Venise), Domaine Tempier Bandol vertical (La Migoua 1979-2023 + 2023/2024 current releases), Bordeaux Primeurs 2025 (Saint-Émilion GC/GCC + Castillon with 2025 scores AND 2024/2023 market reference prices). Non-FR sections (Spanish/Italian/Sardinian) correctly excluded per sanity check. Sanity check PASS: no scores >100, no prices <=0, FR-only wines. batch_id='rvf_n701_complete'. · files: scraper/scripts/import_rvf_n701_complete.py, PROGRESS.md
+
 ### Hector (Infra / Docs)
 - [Hector] **v1.1.1 — HA ingress sidebar + install doc update**: Bumped `addon/config.yaml` and `ha-addon/config.yaml` to v1.1.1. Updated `docs/INSTALL_HAOS.md` Part 10 to replace the manual `panel_iframe` / hardcoded-IP instructions with the correct ingress-based sidebar flow (`ingress: true` + `panel_icon` + `panel_title` in add-on config — HA creates the sidebar entry automatically). · files: addon/config.yaml, ha-addon/config.yaml, docs/INSTALL_HAOS.md
 
