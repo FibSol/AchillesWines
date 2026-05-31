@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.3 — 2026-05-31
+
+- Fix 404 on sidebar click: Next.js asset paths break through HA ingress proxy; switch sidebar to `panel_iframe` pointing at `homeassistant.local:3000` (direct port, no path rewriting needed)
+- Update install guide Part 10 with correct `panel_iframe` configuration and explanation
+
 ## 1.1.2 — 2026-05-31
 
 - Fix "Show in sidebar" toggle missing — ingress config was only present in `ha-addon/config.yaml`, not in the deployed `addon/config.yaml`

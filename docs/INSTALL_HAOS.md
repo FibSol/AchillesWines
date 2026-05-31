@@ -209,23 +209,31 @@ You should see the Achilles's Wines dashboard. 🎉
 
 ## Part 10 — Home Assistant sidebar entry
 
-The add-on creates the sidebar entry **automatically** — no manual configuration needed.
+The add-on exposes the app on port **3000**. Add a sidebar shortcut via `panel_iframe` in your
+Home Assistant `configuration.yaml`:
 
-The add-on's `config.yaml` sets:
+1. Open your HA `configuration.yaml` (in the Terminal add-on: `nano /config/configuration.yaml`)
+2. Add these lines:
+
 ```yaml
-ingress: true
-panel_icon: "mdi:glass-wine"
-panel_title: "Achilles"
+panel_iframe:
+  achilles_wines:
+    title: "Achilles's Wines"
+    url: "http://homeassistant.local:3000"
+    icon: mdi:glass-wine
+    require_admin: false
 ```
 
-Once the add-on is **installed and running**, a wine-glass icon labelled **Achilles** appears in
-the HA sidebar. Clicking it opens the app inside Home Assistant via the ingress proxy — no port
-or IP address to remember, and it works from outside your home network too (if your HA instance
-is remotely accessible).
+3. Go to **Developer Tools → YAML → Check Configuration**, then **Restart Home Assistant**
+4. A wine-glass icon labelled **Achilles's Wines** appears in the HA sidebar
 
-> **If the icon does not appear:** go to **Settings → Add-ons → Achilles's Wines → Info** and
-> make sure the add-on is started. A full HA restart (**Settings → System → Restart**) also
-> forces the sidebar to refresh.
+`homeassistant.local` resolves to your RPi via mDNS — no hardcoded IP address needed.
+Port `3000` matches the `ports` entry in the add-on `config.yaml`.
+
+> **Why not ingress?** The add-on ships with `ingress: true` which adds a "Show in sidebar"
+> toggle in the Info tab. However, Next.js serves assets at absolute paths (e.g. `/_next/static/…`)
+> that break when loaded through the HA ingress proxy. The `panel_iframe` approach bypasses this
+> limitation by opening the app on its direct port.
 
 ---
 
