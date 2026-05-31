@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.4 — 2026-05-31
+
+- Fix sidebar setup: use HA Settings → Dashboards → Webpage instead of ingress or panel_iframe (both broken with Next.js asset paths)
+- Update install guide Part 10 with correct UI-based approach
+
 ## 1.1.3 — 2026-05-31
 
 - Fix 404 on sidebar click: Next.js asset paths break through HA ingress proxy; switch sidebar to `panel_iframe` pointing at `homeassistant.local:3000` (direct port, no path rewriting needed)

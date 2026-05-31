@@ -209,31 +209,22 @@ You should see the Achilles's Wines dashboard. 🎉
 
 ## Part 10 — Home Assistant sidebar entry
 
-The add-on exposes the app on port **3000**. Add a sidebar shortcut via `panel_iframe` in your
-Home Assistant `configuration.yaml`:
+1. Go to **Settings → Dashboards**
+2. Click **+ Add Dashboard** (bottom right)
+3. Choose **Webpage**
+4. Fill in:
+   - **Title:** Achilles's Wines
+   - **URL:** `http://<your-rpi-ip>:3000`  *(your RPi's local IP, e.g. `192.168.0.251`)*
+   - **Icon:** `mdi:glass-wine`
+   - **Show in sidebar:** ON
+5. Click **Create**
 
-1. Open your HA `configuration.yaml` (in the Terminal add-on: `nano /config/configuration.yaml`)
-2. Add these lines:
+A wine-glass icon labelled **Achilles's Wines** appears immediately in the HA sidebar.
 
-```yaml
-panel_iframe:
-  achilles_wines:
-    title: "Achilles's Wines"
-    url: "http://homeassistant.local:3000"
-    icon: mdi:glass-wine
-    require_admin: false
-```
-
-3. Go to **Developer Tools → YAML → Check Configuration**, then **Restart Home Assistant**
-4. A wine-glass icon labelled **Achilles's Wines** appears in the HA sidebar
-
-`homeassistant.local` resolves to your RPi via mDNS — no hardcoded IP address needed.
-Port `3000` matches the `ports` entry in the add-on `config.yaml`.
-
-> **Why not ingress?** The add-on ships with `ingress: true` which adds a "Show in sidebar"
-> toggle in the Info tab. However, Next.js serves assets at absolute paths (e.g. `/_next/static/…`)
-> that break when loaded through the HA ingress proxy. The `panel_iframe` approach bypasses this
-> limitation by opening the app on its direct port.
+> **Why not the "Show in sidebar" ingress toggle?** The add-on Info tab shows a "Show in sidebar"
+> toggle, but it routes through HA's ingress proxy. Next.js serves assets at absolute paths
+> (`/_next/static/…`) that break through the proxy, resulting in a 404. The Webpage dashboard
+> panel above bypasses this by connecting directly to port 3000.
 
 ---
 
