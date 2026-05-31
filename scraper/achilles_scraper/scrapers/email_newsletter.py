@@ -214,12 +214,10 @@ class EmailNewsletterScraper(BaseScraper):
                                 result.rows_dlq += 1
                         self.conn.commit()
 
-                        # Mark \Seen (not deleted) once at least one offer was persisted.
-                        # Per ADR-011: emails are NEVER deleted — \Seen flags them so the
-                        # next run skips them, but they remain visible and recoverable in
-                        # the Gmail UI. If all inserts failed, leave UNSEEN for retry.
+                        # Delete from mailbox once at least one offer was persisted.
+                        # If all inserts failed (e.g. DB lock), leave UNSEEN for retry.
                         if inserted_this_msg > 0:
-                            mb.mark_seen(uid)
+                            mb.delete(uid)
                     except MailboxError as e:
                         print(f"  uid={uid!r} mailbox error: {e}")
                         result.rows_dlq += 1
