@@ -207,20 +207,25 @@ You should see the Achilles's Wines dashboard. 🎉
 
 ---
 
-## Part 10 — Add it to the Home Assistant sidebar (optional)
+## Part 10 — Home Assistant sidebar entry
 
-If you want a shortcut in HA:
+The add-on creates the sidebar entry **automatically** — no manual configuration needed.
 
-1. In HA, go to **Settings → Dashboards**
-2. Click **Add dashboard** (the `+` button)
-3. Choose **Webpage** (iframe)
-4. Fill in:
-   - **Title:** Achilles's Wines
-   - **URL:** `http://192.168.1.42:8080`  *(your RPi IP)*
-   - **Icon:** `mdi:glass-wine`
-5. Click **Create**
+The add-on's `config.yaml` sets:
+```yaml
+ingress: true
+panel_icon: "mdi:glass-wine"
+panel_title: "Achilles"
+```
 
-The app now appears as an icon in your HA sidebar.
+Once the add-on is **installed and running**, a wine-glass icon labelled **Achilles** appears in
+the HA sidebar. Clicking it opens the app inside Home Assistant via the ingress proxy — no port
+or IP address to remember, and it works from outside your home network too (if your HA instance
+is remotely accessible).
+
+> **If the icon does not appear:** go to **Settings → Add-ons → Achilles's Wines → Info** and
+> make sure the add-on is started. A full HA restart (**Settings → System → Restart**) also
+> forces the sidebar to refresh.
 
 ---
 

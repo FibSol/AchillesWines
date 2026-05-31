@@ -2,6 +2,9 @@
 
 ## 2026-05-31
 
+### Hector (Infra / Docs)
+- [Hector] **v1.1.1 — HA ingress sidebar + install doc update**: Bumped `addon/config.yaml` and `ha-addon/config.yaml` to v1.1.1. Updated `docs/INSTALL_HAOS.md` Part 10 to replace the manual `panel_iframe` / hardcoded-IP instructions with the correct ingress-based sidebar flow (`ingress: true` + `panel_icon` + `panel_title` in add-on config — HA creates the sidebar entry automatically). · files: addon/config.yaml, ha-addon/config.yaml, docs/INSTALL_HAOS.md
+
 ### Patroclus (Data Import)
 - [Patroclus] **RVF N°701 (June 2026) ratings + prices import**: Wrote `scraper/scripts/import_rvf_n701.py` — manual-extraction import of 111 wines from RVF magazine (Bordeaux primeurs 2025, Châteauneuf-du-Pape blancs, Languedoc blancs, rosés, crémants). Range scores converted to midpoints (capped at 100). All wines inserted into dim_producer + dim_wine (idempotent INSERT OR IGNORE); 21 new producers created. Ratings → staging_rating_candidates (needs_review=1, critic_code='RVF', scale='/100', batch_id='rvf_n701_import'); prices → staging_price_candidates. Result: 111 ratings + 100 prices in staging (11 wines had no price). Zero appellation fallbacks — all appellations resolved directly. Sanity check `scraper/scripts/sanity_check_rvf_n701.py` runs 8 checks (score range, fallback rate, duplicates, country_code, negative prices, outliers, producer match rate, wine key collisions) — PASS. · files: scraper/scripts/import_rvf_n701.py, scraper/scripts/sanity_check_rvf_n701.py
 
