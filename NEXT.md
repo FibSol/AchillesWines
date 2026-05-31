@@ -153,7 +153,7 @@ Wine press (E_press_critic → write to fact_rating):
 
 ## Idées différées (P3 backlog)
 
-- [ ] OCR étiquette via Claude Vision (photo → ajout cellar) — [#24](https://github.com/FibSol/AchillesWines/issues/24)
+- [x] OCR étiquette via Claude Vision (photo → ajout cellar) — [#24](https://github.com/FibSol/AchillesWines/issues/24) ✓ 2026-05-31
 - [ ] Push notifications PWA pour promos — [#25](https://github.com/FibSol/AchillesWines/issues/25)
 - [x] Algorithme de similarité vectorielle pour recommandations — [#26](https://github.com/FibSol/AchillesWines/issues/26) ✓ 2026-05-30
 - [ ] LWIN integration si abonnement Liv-ex obtenu un jour

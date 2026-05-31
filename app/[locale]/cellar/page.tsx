@@ -69,6 +69,9 @@ export default async function CellarPage({ params }: { params: Promise<{ locale:
     moved: t("moved"),
     empty: t("emptyLocation"),
     dragHint: t("dragHint"),
+    ocrScan: t("ocrScan"),
+    ocrScanning: t("ocrScanning"),
+    ocrError: t("ocrError"),
   };
 
   const csvLabels: CsvLabels = {

@@ -221,6 +221,9 @@
     "moved": "Verschoben",
     "emptyLocation": "Leer",
     "dragHint": "Ziehe Flaschen zwischen Standorten. Klicke eine Flasche zum Trinken oder Verschieben.",
+    "ocrScan": "Etikett scannen",
+    "ocrScanning": "Wird gescannt…",
+    "ocrError": "Etikett unleserlich — erneut versuchen",
     "csv": {
       "importTitle": "Inventar importieren",
       "importHint": "Lade eine CSV mit Spalten hoch: wine_key (oder producer_name + cuvee_name + vintage), location_id, qty, optional purchase_price_eur, purchase_source, notes, purchase_date.",

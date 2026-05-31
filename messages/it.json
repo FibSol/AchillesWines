@@ -221,6 +221,9 @@
     "moved": "Spostata",
     "emptyLocation": "Vuoto",
     "dragHint": "Trascina le bottiglie tra le postazioni. Clicca una bottiglia per consumarla o spostarla.",
+    "ocrScan": "Scansiona etichetta",
+    "ocrScanning": "Scansione…",
+    "ocrError": "Etichetta illeggibile — riprova",
     "csv": {
       "importTitle": "Importa inventario",
       "importHint": "Carica un CSV con colonne: wine_key (o producer_name + cuvee_name + vintage), location_id, qty, e opzionalmente purchase_price_eur, purchase_source, notes, purchase_date.",

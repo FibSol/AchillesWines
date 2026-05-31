@@ -1,5 +1,10 @@
 # Achilles's Wines — Progress Log
 
+## 2026-05-31
+
+### Patroclus + Odysseus
+- [Patroclus+Odysseus] **#24 OCR label scan → cellar add form**: POST /api/cellar/ocr (Claude claude-haiku-4-5 vision, base64 multipart, returns producer/cuvée/vintage/appellation/confidence). Camera button in AddBottleDialog pre-fills search query from extracted fields. 3 new i18n keys (ocrScan/ocrScanning/ocrError) in all 6 languages. @anthropic-ai/sdk installed. tsc --noEmit clean. · files: app/api/cellar/ocr/route.ts, components/CellarBoard.tsx, app/[locale]/cellar/page.tsx, messages/en.json, messages/fr.json, messages/de.json, messages/nl.json, messages/es.json, messages/it.json, .env.example
+
 ## 2026-05-30
 
 ### Patroclus + Odysseus

@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
-import { Plus, X, Wine, Warehouse, Search, GlassWater } from "lucide-react";
+import { Camera, CheckCircle2, Loader2, Plus, X, Wine, Warehouse, Search, GlassWater } from "lucide-react";
 
 export interface CellarLocationRow {
   locationId: number;
@@ -42,6 +42,9 @@ export interface CellarLabels {
   moved: string;
   empty: string;
   dragHint: string;
+  ocrScan: string;
+  ocrScanning: string;
+  ocrError: string;
 }
 
 interface WineSearchResult {
@@ -293,6 +296,9 @@ function AddBottleDialog({
   const [pickedLocationId, setPickedLocationId] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [ocrState, setOcrState] = useState<"idle" | "scanning" | "done" | "error">("idle");
+  const [ocrResult, setOcrResult] = useState<{ producer?: string | null; cuvee?: string | null; vintage?: number | null; confidence?: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -302,6 +308,8 @@ function AddBottleDialog({
     setQty(1);
     setPickedLocationId(locationId);
     setErr(null);
+    setOcrState("idle");
+    setOcrResult(null);
   }, [open, locationId]);
 
   useEffect(() => {
@@ -326,6 +334,26 @@ function AddBottleDialog({
       ctrl.abort();
     };
   }, [query, open]);
+
+  async function handleOcrFile(file: File) {
+    if (file.size > 5 * 1024 * 1024) return; // 5 MB guard
+    setOcrState("scanning");
+    setOcrResult(null);
+    const fd = new FormData();
+    fd.append("image", file);
+    try {
+      const r = await fetch("/api/cellar/ocr", { method: "POST", body: fd });
+      if (!r.ok) { setOcrState("error"); return; }
+      const data = await r.json() as { producer?: string | null; cuvee?: string | null; vintage?: number | null; confidence?: string };
+      setOcrResult(data);
+      setOcrState("done");
+      // Pre-fill the search query with producer + cuvée + vintage
+      const parts = [data.producer, data.cuvee, data.vintage].filter(Boolean);
+      setQuery(parts.join(" "));
+    } catch {
+      setOcrState("error");
+    }
+  }
 
   async function submit() {
     if (!picked || !pickedLocationId) return;
@@ -363,6 +391,44 @@ function AddBottleDialog({
           </div>
 
           <div className="space-y-3">
+            {/* OCR label scanner */}
+            <div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleOcrFile(f); e.target.value = ""; }}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={ocrState === "scanning"}
+                className="btn btn-ghost text-xs flex items-center gap-1.5 w-full justify-center border border-dashed border-[color:var(--color-border)] rounded-md py-2 hover:border-[color:var(--color-coral-400)] disabled:opacity-50"
+              >
+                {ocrState === "scanning" ? (
+                  <><Loader2 className="size-3.5 animate-spin" />{labels.ocrScanning}</>
+                ) : (
+                  <><Camera className="size-3.5" />{labels.ocrScan}</>
+                )}
+              </button>
+              {ocrState === "done" && ocrResult && (
+                <div className="mt-1.5 px-2 py-1.5 rounded bg-[rgba(255,92,138,0.06)] border border-[color:var(--color-border)] text-[10px] text-[color:var(--color-fg-muted)] flex items-start gap-2">
+                  <CheckCircle2 className="size-3.5 text-[color:var(--color-coral-400)] shrink-0 mt-0.5" />
+                  <span>
+                    <span className="font-semibold text-[color:var(--color-fg)]">{ocrResult.producer}</span>
+                    {ocrResult.cuvee && <> · {ocrResult.cuvee}</>}
+                    {ocrResult.vintage && <> · {ocrResult.vintage}</>}
+                    {ocrResult.confidence && <span className="ml-1 opacity-60">({ocrResult.confidence})</span>}
+                  </span>
+                </div>
+              )}
+              {ocrState === "error" && (
+                <p className="mt-1 text-[10px] text-[color:var(--color-coral-400)]">{labels.ocrError}</p>
+              )}
+            </div>
+
             <div>
               <label className="text-xs uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)] mb-1 block">
                 {labels.wine}

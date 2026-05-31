@@ -221,6 +221,9 @@
     "moved": "Verplaatst",
     "emptyLocation": "Leeg",
     "dragHint": "Sleep flessen tussen locaties. Klik op een fles om te drinken of te verplaatsen.",
+    "ocrScan": "Etiket scannen",
+    "ocrScanning": "Scannen…",
+    "ocrError": "Etiket onleesbaar — probeer opnieuw",
     "csv": {
       "importTitle": "Voorraad importeren",
       "importHint": "Upload een CSV met kolommen: wine_key (of producer_name + cuvee_name + vintage), location_id, qty, en optioneel purchase_price_eur, purchase_source, notes, purchase_date.",

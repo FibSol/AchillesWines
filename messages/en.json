@@ -221,6 +221,9 @@
     "moved": "Moved",
     "emptyLocation": "Empty",
     "dragHint": "Drag bottles between locations. Click a bottle to consume or move.",
+    "ocrScan": "Scan label",
+    "ocrScanning": "Scanning…",
+    "ocrError": "Could not read label — try again",
     "csv": {
       "importTitle": "Import inventory",
       "importHint": "Upload a CSV with columns: wine_key (or producer_name + cuvee_name + vintage), location_id, qty, and optionally purchase_price_eur, purchase_source, notes, purchase_date.",
