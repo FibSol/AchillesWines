@@ -2,6 +2,9 @@
 
 ## 2026-05-31
 
+### Patroclus (Data Steward)
+- [Patroclus] RVF N°701 direct promotion: 375 ratings → fact_rating, 331 prices → fact_price (user accepted single-source risk, ADR-003 exception noted). · files: scraper/scripts/promote_rvf_n701_direct.py, PROGRESS.md
+
 ### Patroclus (Data Import)
 - [Patroclus] **RVF N°701 Bordeaux prices complete: p.124-143 read; import_rvf_n701_bordeaux_prices.py** — 179 new 2025 scores, 96 new 2024 prices, 100 new 2023 prices added for Pomerol, Pauillac, Saint-Julien, Margaux, Saint-Estèphe, Pessac-Léognan, Sauternes. batch_id='rvf_n701_bdx_prices'. Sanity check: Pétrus 99/100 @ 2024:2160€/2023:3150€; Le Pin 2024:2780€; Margaux 99/100; Léoville-Las Cases 98.5/100; Haut-Brion 98.5/100. · files: scraper/scripts/import_rvf_n701_bordeaux_prices.py, PROGRESS.md
 
