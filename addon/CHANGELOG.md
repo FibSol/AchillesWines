@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1 — 2026-05-31
+
+- Add HA ingress sidebar entry (`ingress: true`, `panel_icon`, `panel_title`) — "Show in sidebar" toggle now appears in the add-on Info tab
+- Fix install guide (Part 10) to document automatic ingress sidebar; no manual `panel_iframe` config needed
+
 ## 1.0.5
 
 - Add schedule configuration panel on admin/auth page — set cron schedules per scraper from the web UI
