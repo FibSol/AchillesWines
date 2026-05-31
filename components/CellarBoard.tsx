@@ -310,9 +310,15 @@ function AddBottleDialog({
   const [ocrState, setOcrState] = useState<"idle" | "scanning" | "done" | "error">("idle");
   const [ocrResult, setOcrResult] = useState<{ producer?: string | null; cuvee?: string | null; vintage?: number | null; confidence?: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // iOS WebKit dispatches a stray pointer/focus event right after the dialog
+  // opens, which Radix's dismissable layer misreads as an outside click and
+  // closes the dialog instantly. Ignore outside-interactions in the first
+  // moments after opening so the dialog stays put on touch devices.
+  const openedAtRef = useRef(0);
 
   useEffect(() => {
     if (!open) return;
+    openedAtRef.current = Date.now();
     setQuery("");
     setResults([]);
     setPicked(null);
@@ -391,7 +397,16 @@ function AddBottleDialog({
     <Dialog.Root open={open} onOpenChange={(v) => !v && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-[rgba(13,6,26,0.7)] backdrop-blur-sm z-40" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[min(560px,90vw)] max-h-[85vh] overflow-hidden glass-card p-6 flex flex-col">
+        <Dialog.Content
+          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[min(560px,90vw)] max-h-[85vh] overflow-hidden glass-card p-6 flex flex-col"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => {
+            if (Date.now() - openedAtRef.current < 600) e.preventDefault();
+          }}
+          onInteractOutside={(e) => {
+            if (Date.now() - openedAtRef.current < 600) e.preventDefault();
+          }}
+        >
           <div className="flex items-center justify-between mb-4">
             <Dialog.Title className="text-lg font-display text-[color:var(--color-fg)]">
               {labels.addBottle}
@@ -569,9 +584,12 @@ function ConsumeDialog({
   const [moveTo, setMoveTo] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  // See AddBottleDialog: guard against iOS instant-dismiss right after opening.
+  const openedAtRef = useRef(0);
 
   useEffect(() => {
     if (!bottle) return;
+    openedAtRef.current = Date.now();
     setMode("consume");
     setQty(1);
     setScore("");
@@ -629,7 +647,16 @@ function ConsumeDialog({
     <Dialog.Root open={bottle !== null} onOpenChange={(v) => !v && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-[rgba(13,6,26,0.7)] backdrop-blur-sm z-40" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[min(480px,90vw)] glass-card p-6">
+        <Dialog.Content
+          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[min(480px,90vw)] glass-card p-6"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => {
+            if (Date.now() - openedAtRef.current < 600) e.preventDefault();
+          }}
+          onInteractOutside={(e) => {
+            if (Date.now() - openedAtRef.current < 600) e.preventDefault();
+          }}
+        >
           <div className="flex items-center justify-between mb-3">
             <Dialog.Title className="text-base font-display text-[color:var(--color-fg)]">
               {bottle?.producerName} ·{" "}
