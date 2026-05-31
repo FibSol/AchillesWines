@@ -189,7 +189,8 @@ export function CellarBoard({ locations, bottles, labels }: Props) {
                     </p>
                   ) : (
                     cellBottles.map((b) => (
-                      <div
+                      <button
+                        type="button"
                         key={b.inventoryId}
                         draggable
                         onDragStart={(e) => {
@@ -202,7 +203,7 @@ export function CellarBoard({ locations, bottles, labels }: Props) {
                           setDropTarget(null);
                         }}
                         onClick={() => setConsumeBottle(b)}
-                        className={`group cursor-grab active:cursor-grabbing rounded px-1.5 py-1 bg-[rgba(255,92,138,0.07)] hover:bg-[rgba(255,92,138,0.18)] transition ${
+                        className={`group block w-full text-left cursor-grab active:cursor-grabbing rounded px-1.5 py-1 bg-[rgba(255,92,138,0.07)] hover:bg-[rgba(255,92,138,0.18)] transition [touch-action:manipulation] ${
                           draggingId === b.inventoryId ? "opacity-40" : ""
                         }`}
                         title={`${b.producerName} · ${b.cuveeName}`}
@@ -223,7 +224,7 @@ export function CellarBoard({ locations, bottles, labels }: Props) {
                             )}
                           </span>
                         </div>
-                      </div>
+                      </button>
                     ))
                   )}
                 </div>
