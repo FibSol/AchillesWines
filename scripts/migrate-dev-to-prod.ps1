@@ -1,15 +1,27 @@
-# =============================================================================
-# Achilles's Wines — Dev-to-prod DB migration (Issue #29)
+﻿# =============================================================================
+# Achilles's Wines - Full-DB dev-to-prod copy (Issue #29)
+#
+# Copies the ENTIRE dev SQLite database to the Home Assistant Raspberry Pi,
+# replacing the prod DB file wholesale. Dev is the single source of truth:
+# this overwrites EVERYTHING on prod, including dim_source and all ops_* tables
+# (scraper registry + job history). If you need a surgical, data-only copy that
+# preserves prod's scraper state, use git history for the previous table-by-table
+# version of this script.
 #
 # Usage:
 #   .\scripts\migrate-dev-to-prod.ps1
-#   .\scripts\migrate-dev-to-prod.ps1 --dry-run
+#   .\scripts\migrate-dev-to-prod.ps1 -DryRun
+#   .\scripts\migrate-dev-to-prod.ps1 -SkipGate     # bypass the >=80% scraper gate
 #
 # What it does:
-#   1. Pre-flight: gate check (>= 80% scrapers done), env var, SSH connectivity
-#   2. Dump selected tables from data/achilles.db via Python sqlite3 module
-#   3. SCP dump to RPi at /tmp/achilles-migration-YYYYMMDD.sql
-#   4. SSH: backup prod DB, stop add-on, apply dump, restart, verify row counts
+#   1. Pre-flight: dev DB, Python venv, scraper gate, env var, SSH connectivity
+#   2. VACUUM INTO a clean single-file snapshot (folds in WAL, defragments)
+#   3. integrity_check the snapshot, then gzip it
+#   4. SCP the .gz to the RPi /tmp
+#   5. SSH: stop add-on, backup prod DB, gunzip+swap into place, clear stale WAL,
+#      restart add-on
+#   6. Verify: integrity_check + row counts on prod
+#   7. Cleanup local + remote temp files
 #
 # Env vars:
 #   ACHILLES_RPI_HOST   Required. RPi IP or hostname (e.g. 192.168.1.x / achilles.local)
@@ -17,18 +29,21 @@
 #   ACHILLES_RPI_DB     Optional. Remote DB path (default: /data/achilles.db)
 #   ACHILLES_RPI_PORT   Optional. SSH port (default: 22)
 #
-# Tables migrated (data):
-#   dim_producer, dim_appellation, dim_wine, bridge_wine_variety
-#   fact_price, fact_rating, fact_vintage_rating
-#   staging_price_candidates
-#   cellar_locations, cellar_inventory, cellar_consumption
+# Why VACUUM INTO and not a plain copy:
+#   The dev DB runs in WAL mode - recent writes live in achilles.db-wal. Copying
+#   the bare .db file would ship a torn/stale database. VACUUM INTO produces a
+#   consistent, defragmented single file that is safe to take while the DB is open.
 #
-# Tables NOT migrated (preserved from prod):
-#   dim_source, ops_* tables (scraper config + job history stay on prod)
+# Why a full-file copy is safe across architectures:
+#   The SQLite on-disk format is platform-independent, so a Windows-built file
+#   loads fine on the ARM Pi. No better-sqlite3 rebuild is needed. The Drizzle
+#   migration ledger (__drizzle_migrations) travels with the file, so the add-on's
+#   boot-time `npm run db:migrate` is a no-op.
 # =============================================================================
 
 param(
-    [switch]$DryRun
+    [switch]$DryRun,
+    [switch]$SkipGate
 )
 
 Set-Location (Split-Path $PSScriptRoot -Parent)
@@ -36,7 +51,7 @@ Set-Location (Split-Path $PSScriptRoot -Parent)
 
 $ErrorActionPreference = "Stop"
 
-# ── Colours ──────────────────────────────────────────────────────────────────
+# -- Colours ------------------------------------------------------------------
 function Write-Header  { param($msg) Write-Host "`n=== $msg ===" -ForegroundColor Cyan }
 function Write-Step    { param($msg) Write-Host "  >> $msg" -ForegroundColor Yellow }
 function Write-Ok      { param($msg) Write-Host "  OK  $msg" -ForegroundColor Green }
@@ -50,12 +65,30 @@ function Abort {
     exit 1
 }
 
-# ── Config ────────────────────────────────────────────────────────────────────
-$PYTHON   = ".\scraper\.venv\Scripts\python.exe"
-$DEV_DB   = ".\data\achilles.db"
-$TODAY    = Get-Date -Format "yyyyMMdd"
-$DUMP_TMP = [System.IO.Path]::GetTempPath() + "achilles-migration-${TODAY}.sql"
-$RPI_DUMP = "/tmp/achilles-migration-${TODAY}.sql"
+# Run a Python script via a temp .py file. Passing source through `python -c`
+# in Windows PowerShell 5.1 strips embedded double-quotes, so we write the
+# script to disk and execute the file instead. Returns the captured output;
+# sets $script:PyExit to the exit code.
+function Invoke-Python {
+    param([string]$Source)
+    $tmpPy = [System.IO.Path]::GetTempPath() + "achilles-py-" + [System.Guid]::NewGuid().ToString("N") + ".py"
+    try {
+        [System.IO.File]::WriteAllText($tmpPy, $Source, (New-Object System.Text.UTF8Encoding($false)))
+        $out = & $PYTHON $tmpPy 2>&1
+        $script:PyExit = $LASTEXITCODE
+        return $out
+    } finally {
+        if (Test-Path $tmpPy) { Remove-Item $tmpPy -Force -ErrorAction SilentlyContinue }
+    }
+}
+
+# -- Config --------------------------------------------------------------------
+$PYTHON    = ".\scraper\.venv\Scripts\python.exe"
+$DEV_DB    = ".\data\achilles.db"
+$TODAY     = Get-Date -Format "yyyyMMdd-HHmmss"
+$SNAP_TMP  = [System.IO.Path]::GetTempPath() + "achilles-snapshot-${TODAY}.db"
+$GZ_TMP    = "${SNAP_TMP}.gz"
+$RPI_GZ    = "/tmp/achilles-snapshot-${TODAY}.db.gz"
 
 $RPI_HOST = $env:ACHILLES_RPI_HOST
 $RPI_USER = if ($env:ACHILLES_RPI_USER) { $env:ACHILLES_RPI_USER } else { "pi" }
@@ -63,51 +96,47 @@ $RPI_DB   = if ($env:ACHILLES_RPI_DB)   { $env:ACHILLES_RPI_DB }   else { "/data
 $RPI_PORT = if ($env:ACHILLES_RPI_PORT) { $env:ACHILLES_RPI_PORT } else { "22" }
 $RPI_BACK = "${RPI_DB}.bak-${TODAY}"
 
-# Tables to export (ORDER MATTERS — FK deps: dim first, then bridge, then fact)
-$TABLES = @(
-    "dim_producer",
-    "dim_appellation",
-    "dim_wine",
-    "bridge_wine_variety",
-    "fact_price",
-    "fact_rating",
-    "fact_vintage_rating",
-    "staging_price_candidates",
-    "cellar_locations",
-    "cellar_inventory",
-    "cellar_consumption"
-)
-
 $GATE_PCT = 80   # minimum % of enabled scrapers that must have a 'done' run
+
+# Tables verified post-copy (for the row-count report only - the whole file is copied)
+$VERIFY_TABLES = @(
+    "dim_source", "dim_producer", "dim_appellation", "dim_variety", "dim_wine",
+    "bridge_wine_variety", "fact_price", "fact_rating", "fact_vintage_rating",
+    "staging_price_candidates",
+    "cellar_locations", "cellar_inventory", "cellar_consumption"
+)
 
 if ($DryRun) {
     Write-Host ""
-    Write-Host "*** DRY-RUN MODE — no SCP / SSH commands will be executed ***" -ForegroundColor Magenta
+    Write-Host "*** DRY-RUN MODE - snapshot is built locally, but no SCP / SSH runs ***" -ForegroundColor Magenta
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # 1. PRE-FLIGHT CHECKS
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 Write-Header "Pre-flight checks"
 
 # 1a. Dev DB exists
 Write-Step "Dev DB at $DEV_DB"
 if (-not (Test-Path $DEV_DB)) {
-    Abort "Dev DB not found at $DEV_DB — run scrapers first."
+    Abort "Dev DB not found at $DEV_DB - run scrapers first."
 }
-Write-Ok "$DEV_DB found"
+$devSizeMb = [math]::Round((Get-Item $DEV_DB).Length / 1MB, 1)
+Write-Ok "$DEV_DB found ($devSizeMb MB)"
 
 # 1b. Python venv exists
 Write-Step "Python venv at $PYTHON"
 if (-not (Test-Path $PYTHON)) {
-    Abort "Python not found at $PYTHON — run: cd scraper && python -m venv .venv && pip install -e ."
+    Abort "Python not found at $PYTHON - run: cd scraper && python -m venv .venv && pip install -e ."
 }
 Write-Ok "Python venv OK"
 
 # 1c. Gate check: >= GATE_PCT% of enabled scrapers have at least one 'done' run
-Write-Step "Scraper gate check (>= ${GATE_PCT}% done)"
-
-$gatePy = @"
+if ($SkipGate) {
+    Write-Warn "Scraper gate check SKIPPED (-SkipGate)"
+} else {
+    Write-Step "Scraper gate check (>= ${GATE_PCT}% done)"
+    $gatePy = @"
 import sqlite3, sys
 db = sqlite3.connect(r'$($DEV_DB -replace "\\", "/")')
 cur = db.cursor()
@@ -122,16 +151,15 @@ pct = (done / total * 100) if total > 0 else 0
 print(f"{done}/{total} ({pct:.1f}%)")
 sys.exit(0 if pct >= $GATE_PCT else 1)
 "@
-
-$gateResult = & $PYTHON -c $gatePy 2>&1
-$gateExit   = $LASTEXITCODE
-
-if ($gateExit -ne 0) {
-    Write-Fail "Gate not met: $gateResult — need >= ${GATE_PCT}% of enabled scrapers with a 'done' run."
-    Write-Host "  Run more scrapers via /admin/jobs or: achilles-scraper run --source <key>" -ForegroundColor DarkYellow
-    exit 1
+    $gateResult = Invoke-Python $gatePy
+    $gateExit   = $script:PyExit
+    if ($gateExit -ne 0) {
+        Write-Fail "Gate not met: $gateResult - need >= ${GATE_PCT}% of enabled scrapers with a 'done' run."
+        Write-Host "  Run more scrapers, or bypass with -SkipGate if you really mean to copy now." -ForegroundColor DarkYellow
+        exit 1
+    }
+    Write-Ok "Gate passed: $gateResult"
 }
-Write-Ok "Gate passed: $gateResult"
 
 # 1d. RPI_HOST env var
 Write-Step "ACHILLES_RPI_HOST env var"
@@ -147,7 +175,7 @@ if (-not $RPI_HOST) {
 "@ -ForegroundColor DarkYellow
     exit 1
 }
-Write-Ok "RPI_HOST = $RPI_HOST (user=$RPI_USER port=$RPI_PORT)"
+Write-Ok "RPI_HOST = $RPI_HOST (user=$RPI_USER port=$RPI_PORT db=$RPI_DB)"
 
 # 1e. SSH connectivity
 Write-Step "SSH connectivity to ${RPI_USER}@${RPI_HOST}:${RPI_PORT}"
@@ -164,12 +192,7 @@ if ($DryRun) {
   Possible fixes:
     - Make sure your SSH key is in ~/.ssh/authorized_keys on the RPi.
     - Or run: ssh-copy-id ${RPI_USER}@${RPI_HOST}
-    - If password auth, add: -o PasswordAuthentication=yes (but prefer key auth)
     - Test manually: ssh -p $RPI_PORT ${RPI_USER}@${RPI_HOST}
-
-  If you need to set up key auth:
-    ssh-keygen -t ed25519 -C "achilles-migration"
-    ssh-copy-id -p $RPI_PORT ${RPI_USER}@${RPI_HOST}
 
 "@ -ForegroundColor DarkYellow
         exit 1
@@ -177,128 +200,89 @@ if ($DryRun) {
     Write-Ok "SSH OK"
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 2. DUMP DEV TABLES TO SQL FILE
-# ─────────────────────────────────────────────────────────────────────────────
-Write-Header "Dumping dev DB tables → $DUMP_TMP"
+# -----------------------------------------------------------------------------
+# 2. BUILD A CLEAN SNAPSHOT (VACUUM INTO) + INTEGRITY CHECK + GZIP
+# -----------------------------------------------------------------------------
+Write-Header "Building clean snapshot"
+Write-Step "VACUUM INTO -> $SNAP_TMP  (this can take a minute on a 1.5 GB DB)"
 
-$tableList = ($TABLES | ForEach-Object { "'$_'" }) -join ", "
+$snapPy = @"
+import sqlite3, sys, os, gzip, shutil
 
-$dumpPy = @"
-import sqlite3, sys, os
+dev_db  = r'$($DEV_DB -replace "\\", "/")'
+snap    = r'$($SNAP_TMP -replace "\\", "/")'
+gz      = r'$($GZ_TMP -replace "\\", "/")'
 
-db_path   = r'$($DEV_DB -replace "\\", "/")'
-out_path  = r'$($DUMP_TMP -replace "\\", "/")'
-tables    = [$tableList]
+# Clean any leftover from a previous run
+for p in (snap, gz):
+    if os.path.exists(p):
+        os.remove(p)
 
-conn = sqlite3.connect(db_path)
-cur  = conn.cursor()
+# 1) VACUUM INTO - consistent, defragmented single-file snapshot (folds in WAL).
+snap_sql = snap.replace("'", "''")
+src = sqlite3.connect(dev_db)
+src.execute(f"VACUUM INTO '{snap_sql}'")
+src.close()
 
-lines = []
+# 2) integrity_check on the snapshot - never ship a corrupt file.
+chk = sqlite3.connect(snap)
+res = chk.execute("PRAGMA integrity_check").fetchone()[0]
+chk.close()
+if res != "ok":
+    print(f"INTEGRITY FAILED: {res}", file=sys.stderr)
+    sys.exit(2)
+print("  integrity_check: ok")
 
-# Header
-lines.append("-- Achilles's Wines — dev-to-prod migration dump")
-lines.append("-- Generated: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')")
-lines.append("-- Source DB: " + db_path)
-lines.append("-- Tables: " + ", ".join(tables))
-lines.append("")
-lines.append("PRAGMA foreign_keys = OFF;")
-lines.append("BEGIN;")
-lines.append("")
+snap_mb = os.path.getsize(snap) / (1024*1024)
+print(f"  snapshot size  : {snap_mb:,.1f} MB")
 
-total_rows = 0
-for table in tables:
-    # Count rows
-    count = cur.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
-    total_rows += count
-    print(f"  {table:<40} {count:>8} rows")
-    lines.append(f"-- TABLE: {table}  ({count} rows)")
-    lines.append(f"DELETE FROM {table};")
+# 3) gzip for transfer.
+with open(snap, "rb") as fin, gzip.open(gz, "wb", compresslevel=6) as fout:
+    shutil.copyfileobj(fin, fout, length=8*1024*1024)
+gz_mb = os.path.getsize(gz) / (1024*1024)
+print(f"  gzipped size   : {gz_mb:,.1f} MB")
 
-    if count == 0:
-        lines.append("")
-        continue
-
-    # Fetch all rows
-    cur.execute(f"SELECT * FROM {table}")
-    rows = cur.fetchall()
-    cols = [d[0] for d in cur.description]
-    col_list = ", ".join(f'"{c}"' for c in cols)
-
-    for row in rows:
-        def escape(v):
-            if v is None:
-                return "NULL"
-            if isinstance(v, (int, float)):
-                return str(v)
-            # Escape single quotes in strings
-            return "'" + str(v).replace("'", "''") + "'"
-        values = ", ".join(escape(v) for v in row)
-        lines.append(f"INSERT INTO {table} ({col_list}) VALUES ({values});")
-    lines.append("")
-
-lines.append("COMMIT;")
-lines.append("PRAGMA foreign_keys = ON;")
-lines.append("")
-
-conn.close()
-
-with open(out_path, "w", encoding="utf-8") as f:
-    f.write("\n".join(lines))
-
-size_kb = os.path.getsize(out_path) // 1024
-print(f"\n  Dump written: {out_path}")
-print(f"  Total rows  : {total_rows:,}")
-print(f"  File size   : {size_kb:,} KB")
+# Drop the uncompressed snapshot - we only ship the .gz.
+os.remove(snap)
+print(f"  gz ready       : {gz}")
 "@
 
-Write-Step "Row counts per table:"
-& $PYTHON -c $dumpPy
-if ($LASTEXITCODE -ne 0) {
-    Abort "Python dump failed (exit $LASTEXITCODE)."
+Invoke-Python $snapPy | ForEach-Object { Write-Host "  $_" }
+if ($script:PyExit -ne 0) {
+    Abort "Snapshot/integrity/gzip step failed (exit $script:PyExit). Prod DB untouched."
 }
-Write-Ok "Dump complete: $DUMP_TMP"
+Write-Ok "Snapshot built and verified: $GZ_TMP"
 
 if ($DryRun) {
     Write-Host ""
-    Write-Host "*** DRY-RUN: would SCP $DUMP_TMP → ${RPI_USER}@${RPI_HOST}:${RPI_DUMP}" -ForegroundColor Magenta
-    Write-Host "*** DRY-RUN: would backup $RPI_DB → $RPI_BACK on RPi" -ForegroundColor Magenta
-    Write-Host "*** DRY-RUN: would stop add-on, apply dump, restart, verify counts" -ForegroundColor Magenta
+    Write-Host "*** DRY-RUN: would SCP $GZ_TMP -> ${RPI_USER}@${RPI_HOST}:${RPI_GZ}" -ForegroundColor Magenta
+    Write-Host "*** DRY-RUN: would stop add-on, backup $RPI_DB -> $RPI_BACK" -ForegroundColor Magenta
+    Write-Host "*** DRY-RUN: would gunzip+swap into $RPI_DB, clear -wal/-shm, restart, verify" -ForegroundColor Magenta
     Write-Host ""
-    Write-Host "Dry run complete. Dump file preserved at: $DUMP_TMP" -ForegroundColor Cyan
+    Write-Host "Dry run complete. Snapshot preserved at: $GZ_TMP" -ForegroundColor Cyan
     exit 0
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 3. SCP DUMP TO RPI
-# ─────────────────────────────────────────────────────────────────────────────
-Write-Header "Copying dump to RPi"
-Write-Step "scp $DUMP_TMP → ${RPI_USER}@${RPI_HOST}:${RPI_DUMP}"
+# -----------------------------------------------------------------------------
+# 3. SCP SNAPSHOT TO RPI
+# -----------------------------------------------------------------------------
+Write-Header "Copying snapshot to RPi"
+Write-Step "scp $GZ_TMP -> ${RPI_USER}@${RPI_HOST}:${RPI_GZ}"
 
-scp -P $RPI_PORT "$DUMP_TMP" "${RPI_USER}@${RPI_HOST}:${RPI_DUMP}"
+scp -P $RPI_PORT "$GZ_TMP" "${RPI_USER}@${RPI_HOST}:${RPI_GZ}"
 if ($LASTEXITCODE -ne 0) {
-    Abort "SCP failed. Rollback: nothing applied yet — prod DB is intact."
+    Abort "SCP failed. Rollback: nothing applied yet - prod DB is intact."
 }
-Write-Ok "Dump uploaded to $RPI_DUMP"
+Write-Ok "Snapshot uploaded to $RPI_GZ"
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 4. APPLY ON RPI
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
+# 4. STOP ADD-ON, BACKUP, SWAP, RESTART
+# -----------------------------------------------------------------------------
 Write-Header "Applying on RPi"
 
-# 4a. Backup prod DB
-Write-Step "Backup prod DB: $RPI_DB → $RPI_BACK"
-ssh -p $RPI_PORT "${RPI_USER}@${RPI_HOST}" "cp '$RPI_DB' '$RPI_BACK' && echo 'backup ok'"
-if ($LASTEXITCODE -ne 0) {
-    Abort "Backup failed. Prod DB not modified."
-}
-Write-Ok "Prod DB backed up to $RPI_BACK"
-
-# 4b. Stop the add-on (tries HA supervisor first, falls back to docker)
+# 4a. Stop the add-on (HA supervisor first, docker/systemctl fallbacks)
 Write-Step "Stopping add-on (HA supervisor or docker)"
 $stopCmd = @"
-set -e
-# Try Home Assistant supervisor CLI first (available inside HA OS)
 if command -v ha >/dev/null 2>&1; then
     ha addons stop achilles_wines && echo 'stopped via ha CLI'
 elif command -v hassio >/dev/null 2>&1; then
@@ -310,31 +294,45 @@ elif docker ps --format '{{.Names}}' 2>/dev/null | grep -q 'achilles-web'; then
 elif systemctl is-active --quiet achilles 2>/dev/null; then
     sudo systemctl stop achilles && echo 'stopped via systemctl'
 else
-    echo 'WARN: could not identify running add-on/service — proceeding anyway'
+    echo 'WARN: could not identify running add-on/service - proceeding anyway'
 fi
 "@
 ssh -p $RPI_PORT "${RPI_USER}@${RPI_HOST}" $stopCmd
 if ($LASTEXITCODE -ne 0) {
-    Write-Warn "Stop command returned non-zero — the add-on may already be stopped. Continuing."
+    Write-Warn "Stop command returned non-zero - the add-on may already be stopped. Continuing."
 }
 Write-Ok "Add-on stopped (or was already stopped)"
 
-# 4c. Apply the SQL dump
-Write-Step "Applying dump to $RPI_DB"
-$applyCmd = "sqlite3 '$RPI_DB' < '$RPI_DUMP' && echo 'apply ok'"
+# 4b. Backup prod DB (now quiescent), swap in the new file, clear stale WAL/SHM.
+Write-Step "Backup prod DB, swap in snapshot, clear stale WAL/SHM"
+$applyCmd = @"
+set -e
+if [ -f '$RPI_DB' ]; then
+    cp '$RPI_DB' '$RPI_BACK'
+    echo "backup ok: $RPI_BACK"
+else
+    echo "no existing prod DB to back up (fresh install)"
+fi
+gunzip -c '$RPI_GZ' > '${RPI_DB}.new'
+# Stale WAL/SHM from the OLD db must not linger against the NEW file.
+rm -f '${RPI_DB}-wal' '${RPI_DB}-shm'
+mv '${RPI_DB}.new' '$RPI_DB'
+chmod 644 '$RPI_DB'
+echo "swap ok"
+"@
 ssh -p $RPI_PORT "${RPI_USER}@${RPI_HOST}" $applyCmd
 if ($LASTEXITCODE -ne 0) {
-    $rollbackMsg = "sqlite3 '$RPI_DB' < /dev/null && cp '$RPI_BACK' '$RPI_DB'"
-    Write-Fail "sqlite3 apply failed!"
+    Write-Fail "Swap failed!"
     Write-Host ""
-    Write-Host "  ROLLBACK command (run on RPi):" -ForegroundColor Red
-    Write-Host "    ssh ${RPI_USER}@${RPI_HOST} `"cp '$RPI_BACK' '$RPI_DB'`"" -ForegroundColor Red
+    Write-Host "  ROLLBACK (run on RPi):" -ForegroundColor Red
+    Write-Host "    ssh -p $RPI_PORT ${RPI_USER}@${RPI_HOST} `"cp '$RPI_BACK' '$RPI_DB' && rm -f '${RPI_DB}-wal' '${RPI_DB}-shm'`"" -ForegroundColor Red
+    Write-Host "  Then restart the add-on from the HA UI." -ForegroundColor Red
     Write-Host ""
     exit 1
 }
-Write-Ok "Dump applied"
+Write-Ok "Prod DB replaced (backup at $RPI_BACK)"
 
-# 4d. Restart the add-on
+# 4c. Restart the add-on
 Write-Step "Restarting add-on"
 $startCmd = @"
 set -e
@@ -349,36 +347,42 @@ elif docker ps -a --format '{{.Names}}' 2>/dev/null | grep -q 'achilles-web'; th
 elif systemctl list-units --type=service 2>/dev/null | grep -q achilles; then
     sudo systemctl start achilles && echo 'started via systemctl'
 else
-    echo 'WARN: could not identify service to restart — start it manually'
+    echo 'WARN: could not identify service to restart - start it manually'
 fi
 "@
 ssh -p $RPI_PORT "${RPI_USER}@${RPI_HOST}" $startCmd
 if ($LASTEXITCODE -ne 0) {
-    Write-Warn "Restart returned non-zero — check add-on status manually."
+    Write-Warn "Restart returned non-zero - check add-on status manually."
 }
 Write-Ok "Add-on restart initiated"
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 5. POST-MIGRATION VERIFICATION — row counts on prod
-# ─────────────────────────────────────────────────────────────────────────────
-Write-Header "Post-migration row counts (prod)"
+# -----------------------------------------------------------------------------
+# 5. POST-COPY VERIFICATION - integrity + row counts on prod
+# -----------------------------------------------------------------------------
+Write-Header "Post-copy verification (prod)"
 
-$verifyCols = ($TABLES | ForEach-Object {
+Write-Step "integrity_check on $RPI_DB"
+$integ = ssh -p $RPI_PORT "${RPI_USER}@${RPI_HOST}" "sqlite3 '$RPI_DB' 'PRAGMA integrity_check;'" 2>&1
+if ($LASTEXITCODE -eq 0 -and $integ -match "ok") {
+    Write-Ok "integrity_check: ok"
+} else {
+    Write-Warn "integrity_check did not return ok (got: $integ). Investigate before trusting prod."
+}
+
+$verifyCols = ($VERIFY_TABLES | ForEach-Object {
     "SELECT '$_' AS tbl, COUNT(*) AS n FROM $_"
 }) -join " UNION ALL "
-
-$verifyCmd = "sqlite3 -separator '|' '$RPI_DB' `"$verifyCols`""
+$verifyCmd  = "sqlite3 -separator '|' '$RPI_DB' `"$verifyCols`""
 $prodCounts = ssh -p $RPI_PORT "${RPI_USER}@${RPI_HOST}" $verifyCmd 2>&1
 
 if ($LASTEXITCODE -ne 0) {
     Write-Warn "Could not query prod DB for row counts (add-on may still be starting)."
-    Write-Warn "Verify manually: ssh ${RPI_USER}@${RPI_HOST} `"sqlite3 $RPI_DB 'SELECT COUNT(*) FROM dim_producer'`""
 } else {
     Write-Host ""
     Write-Host "  Table                                     Prod rows" -ForegroundColor Cyan
     Write-Host "  -------                                   ---------" -ForegroundColor Cyan
     foreach ($line in ($prodCounts -split "`n")) {
-        if ($line -match "^(.+)\|(\d+)$") {
+        if ($line -match "^(.+)\|(\d+)\s*$") {
             $tbl = $Matches[1].PadRight(40)
             $cnt = $Matches[2].PadLeft(10)
             Write-Host "  $tbl $cnt" -ForegroundColor Green
@@ -386,29 +390,26 @@ if ($LASTEXITCODE -ne 0) {
     }
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # 6. CLEANUP
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 Write-Header "Cleanup"
-
-# Remove local temp dump
-if (Test-Path $DUMP_TMP) {
-    Remove-Item $DUMP_TMP -Force
-    Write-Ok "Local temp dump removed: $DUMP_TMP"
+if (Test-Path $GZ_TMP) {
+    Remove-Item $GZ_TMP -Force
+    Write-Ok "Local temp snapshot removed: $GZ_TMP"
 }
+ssh -p $RPI_PORT "${RPI_USER}@${RPI_HOST}" "rm -f '$RPI_GZ' && echo 'remote snapshot removed'" 2>&1 | ForEach-Object { Write-Ok $_ }
 
-# Remove remote dump
-ssh -p $RPI_PORT "${RPI_USER}@${RPI_HOST}" "rm -f '$RPI_DUMP' && echo 'remote dump removed'" 2>&1 | ForEach-Object { Write-Ok $_ }
-
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # DONE
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 Write-Host ""
-Write-Host "Migration complete!" -ForegroundColor Green
+Write-Host "Full-DB copy complete!" -ForegroundColor Green
 Write-Host ""
 Write-Host "  RPi backup : $RPI_BACK" -ForegroundColor DarkGray
 Write-Host "  RPi DB     : $RPI_DB" -ForegroundColor DarkGray
 Write-Host ""
 Write-Host "If anything looks wrong, rollback with:" -ForegroundColor DarkYellow
-Write-Host "  ssh -p $RPI_PORT ${RPI_USER}@${RPI_HOST} `"cp '$RPI_BACK' '$RPI_DB'`"" -ForegroundColor DarkYellow
+Write-Host "  ssh -p $RPI_PORT ${RPI_USER}@${RPI_HOST} `"cp '$RPI_BACK' '$RPI_DB' && rm -f '${RPI_DB}-wal' '${RPI_DB}-shm'`"" -ForegroundColor DarkYellow
+Write-Host "  then restart the add-on from the HA UI." -ForegroundColor DarkYellow
 Write-Host ""
