@@ -3,6 +3,9 @@
 ## 2026-05-31
 
 ### Patroclus (Data Import)
+- [Patroclus] **RVF N°701 Bordeaux prices complete: p.124-143 read; import_rvf_n701_bordeaux_prices.py** — 179 new 2025 scores, 96 new 2024 prices, 100 new 2023 prices added for Pomerol, Pauillac, Saint-Julien, Margaux, Saint-Estèphe, Pessac-Léognan, Sauternes. batch_id='rvf_n701_bdx_prices'. Sanity check: Pétrus 99/100 @ 2024:2160€/2023:3150€; Le Pin 2024:2780€; Margaux 99/100; Léoville-Las Cases 98.5/100; Haut-Brion 98.5/100. · files: scraper/scripts/import_rvf_n701_bordeaux_prices.py, PROGRESS.md
+
+### Patroclus (Data Import)
 - [Patroclus] **RVF N°701 complete systematic read: all tasting pages p.70-143 covered**; `scraper/scripts/import_rvf_n701_complete.py` — 85 new ratings + 99 new prices (including 2023/2024 vintage reference prices for Bordeaux primeurs). Sections covered: Blancs méditerranéens (Châteauneuf-du-Pape blanc, Corse, Patrimonio, Vacqueyras, Cairanne, Muscat de Beaumes-de-Venise), Domaine Tempier Bandol vertical (La Migoua 1979-2023 + 2023/2024 current releases), Bordeaux Primeurs 2025 (Saint-Émilion GC/GCC + Castillon with 2025 scores AND 2024/2023 market reference prices). Non-FR sections (Spanish/Italian/Sardinian) correctly excluded per sanity check. Sanity check PASS: no scores >100, no prices <=0, FR-only wines. batch_id='rvf_n701_complete'. · files: scraper/scripts/import_rvf_n701_complete.py, PROGRESS.md
 
 ### Hector (Infra / Docs)
