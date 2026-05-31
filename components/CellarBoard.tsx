@@ -81,6 +81,13 @@ export function CellarBoard({ locations, bottles, labels }: Props) {
   const [addOpenForLocation, setAddOpenForLocation] = useState<number | null>(null);
   const [consumeBottle, setConsumeBottle] = useState<CellarBottleRow | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  // HTML5 drag-and-drop only works with a fine pointer (mouse). On touch devices
+  // a `draggable` element swallows the tap, so the chip would feel "disabled".
+  // Enable drag only on fine-pointer devices; touch users move bottles via the dialog.
+  const [dragEnabled, setDragEnabled] = useState(false);
+  useEffect(() => {
+    setDragEnabled(window.matchMedia("(hover: hover) and (pointer: fine)").matches);
+  }, []);
 
   const bottlesByLoc = new Map<number, CellarBottleRow[]>();
   for (const b of bottles) {
@@ -192,8 +199,9 @@ export function CellarBoard({ locations, bottles, labels }: Props) {
                       <button
                         type="button"
                         key={b.inventoryId}
-                        draggable
+                        draggable={dragEnabled}
                         onDragStart={(e) => {
+                          if (!dragEnabled) return;
                           setDraggingId(b.inventoryId);
                           e.dataTransfer.setData("text/inventory-id", String(b.inventoryId));
                           e.dataTransfer.effectAllowed = "move";
@@ -203,7 +211,9 @@ export function CellarBoard({ locations, bottles, labels }: Props) {
                           setDropTarget(null);
                         }}
                         onClick={() => setConsumeBottle(b)}
-                        className={`group block w-full text-left cursor-grab active:cursor-grabbing rounded px-1.5 py-1 bg-[rgba(255,92,138,0.07)] hover:bg-[rgba(255,92,138,0.18)] transition [touch-action:manipulation] ${
+                        className={`group block w-full text-left rounded px-1.5 py-1 bg-[rgba(255,92,138,0.07)] hover:bg-[rgba(255,92,138,0.18)] transition [touch-action:manipulation] ${
+                          dragEnabled ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
+                        } ${
                           draggingId === b.inventoryId ? "opacity-40" : ""
                         }`}
                         title={`${b.producerName} · ${b.cuveeName}`}
