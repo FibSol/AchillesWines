@@ -306,20 +306,24 @@ Map: CartoDB dark tiles + magenta CircleMarker producers + champagne appellation
 - Dev → RPi production migration script — [#29](https://github.com/FibSol/AchillesWines/issues/29)
 - LLM fallback email parser (Claude Haiku, per-source opt-in) — [#21](https://github.com/FibSol/AchillesWines/issues/21)
 
-### Backlog (P3)
+### Sprint 15 (intelligence + data quality) ✅
 - OCR wine label via Claude Vision (photo → add to cellar) — [#24](https://github.com/FibSol/AchillesWines/issues/24)
-- PWA push notifications for promos — [#25](https://github.com/FibSol/AchillesWines/issues/25)
-- Vector similarity recommendations — [#26](https://github.com/FibSol/AchillesWines/issues/26)
-- Vintage divergence heatmap (sources × year) — [#27](https://github.com/FibSol/AchillesWines/issues/27)
+- Vector similarity recommendations (75-dim feature vectors, 246 940 pairs) — [#26](https://github.com/FibSol/AchillesWines/issues/26)
+- Vintage divergence heatmap (sources × year, Recharts SVG) — [#27](https://github.com/FibSol/AchillesWines/issues/27)
 - X-Wines + soMLier crowd reviews import — [#28](https://github.com/FibSol/AchillesWines/issues/28)
+- Manual review: naming pollution CSV (wave 3, 125 moves, 50 deletes) — [#41](https://github.com/FibSol/AchillesWines/issues/41)
+- Populate `bridge_wine_variety` via appellation-default rules (148 353 rows) — [#42](https://github.com/FibSol/AchillesWines/issues/42)
+- RVF N°701 manual import (111 wines, 111 ratings, 100 prices → staging)
+- HA add-on v1.1.1: ingress sidebar entry (automatic, no panel_iframe needed)
+
+### Backlog (P3)
+- PWA push notifications for promos — [#25](https://github.com/FibSol/AchillesWines/issues/25)
 - Wine-Searcher vintage-chart enrichment (`fact_vintage_rating`) — [#40](https://github.com/FibSol/AchillesWines/issues/40)
-- Manual review: naming pollution CSV (~6 400 rows) — [#41](https://github.com/FibSol/AchillesWines/issues/41)
-- Populate `bridge_wine_variety` via appellation-default rules — [#42](https://github.com/FibSol/AchillesWines/issues/42)
 - LWIN integration (deferred until Liv-ex subscription)
 
 ---
 
-## Metrics (2026-05-27)
+## Metrics (2026-05-31)
 
 | KPI | Value |
 |-----|-------|
