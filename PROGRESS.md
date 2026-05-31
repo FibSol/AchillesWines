@@ -8,6 +8,9 @@
 ### Patroclus (Data Import)
 - [Patroclus] **RVF N°701 (June 2026) ratings + prices import**: Wrote `scraper/scripts/import_rvf_n701.py` — manual-extraction import of 111 wines from RVF magazine (Bordeaux primeurs 2025, Châteauneuf-du-Pape blancs, Languedoc blancs, rosés, crémants). Range scores converted to midpoints (capped at 100). All wines inserted into dim_producer + dim_wine (idempotent INSERT OR IGNORE); 21 new producers created. Ratings → staging_rating_candidates (needs_review=1, critic_code='RVF', scale='/100', batch_id='rvf_n701_import'); prices → staging_price_candidates. Result: 111 ratings + 100 prices in staging (11 wines had no price). Zero appellation fallbacks — all appellations resolved directly. Sanity check `scraper/scripts/sanity_check_rvf_n701.py` runs 8 checks (score range, fallback rate, duplicates, country_code, negative prices, outliers, producer match rate, wine key collisions) — PASS. · files: scraper/scripts/import_rvf_n701.py, scraper/scripts/sanity_check_rvf_n701.py
 
+### Patroclus (Data Steward)
+- [Patroclus] Purged unreliable Bordeaux primeur prices from staging_price_candidates (rvf_n701_import batch): 64 rows deleted. Non-Bordeaux prices (rosés, crémants, blancs méditerranéens) retained. Ratings unaffected.
+
 ### Patroclus + Odysseus
 - [Patroclus+Odysseus] **#24 OCR label scan → cellar add form**: POST /api/cellar/ocr (Claude claude-haiku-4-5 vision, base64 multipart, returns producer/cuvée/vintage/appellation/confidence). Camera button in AddBottleDialog pre-fills search query from extracted fields. 3 new i18n keys (ocrScan/ocrScanning/ocrError) in all 6 languages. @anthropic-ai/sdk installed. tsc --noEmit clean. · files: app/api/cellar/ocr/route.ts, components/CellarBoard.tsx, app/[locale]/cellar/page.tsx, messages/en.json, messages/fr.json, messages/de.json, messages/nl.json, messages/es.json, messages/it.json, .env.example
 
