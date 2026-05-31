@@ -102,7 +102,7 @@
   - (a) Webhook inbound (Postmark, SendGrid Inbound Parse) : push au lieu de poll. Élégant mais ajoute un service externe payant et une URL publique à exposer depuis le RPi — overkill.
   - (b) LLM (Claude/OpenAI) pour extraire les offres sans parser HTML : marche sur n'importe quelle disposition mais coûte ~$0.01 par newsletter et introduit une dépendance réseau. Reporté en fallback ; peut être ajouté plus tard via `_parse_html()` override.
   - (c) Stocker mailbox creds dans `dim_source` plutôt qu'env vars. Rejeté : partage de creds entre N sources `*_email`, et secrets en DB violent le principe d'ADR-010.
-  - (d) Supprimer le message après parse au lieu de `\Seen`. Rejeté par l'utilisateur (réversibilité utile, inspection dans Gmail UI).
+  - (d) Supprimer le message après parse au lieu de `\Seen`. **Choix retenu (2026-05-31, décision utilisateur)** — emails supprimés après scraping réussi, laissés UNSEEN en cas d'échec.
   - (e) Pas de `.eml` sauvé. Rejeté : le replay-without-refetch est essentiel quand on améliore un parser.
 - **Reasoning:** Un mailbox IMAP dédié transforme tous les retailers en un seul protocole (IMAP) et déplace la complexité de "scraper N sites avec N anti-bots" vers "parser N layouts HTML d'emails dans un seul flux". Le scraper Python existant a déjà selectolax + httpx + DLQ + ops_content_hashes — on réutilise 100% de l'infrastructure. La sauvegarde du .eml en premier garantit qu'un crash ne perde jamais l'input. `\Seen` est doublement utile : (1) idempotence du poll, (2) inspectabilité dans Gmail UI.
 
