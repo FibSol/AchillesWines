@@ -323,6 +323,16 @@
       "remove": "Rimuovi",
       "decantMin": "Decanta {minutes} min"
     },
+    "desc": {
+      "origin": "{color, select, red {Un vino rosso} white {Un vino bianco} rose {Un rosato} sparkling {Un vino spumante} sweet {Un vino dolce} fortified {Un vino fortificato} orange {Un vino orange} other {Un vino}} da {appellation}, in {region}.",
+      "grapeBlend": "Prodotto con {grapes}.",
+      "vintageYear": "Dell'annata {year}.",
+      "nonVintage": "Un assemblaggio senza annata.",
+      "classification": "{level, select, village {Vino village} premier_cru {Premier Cru} grand_cru {Grand Cru} iconic {Cuvée iconica} other {}}.",
+      "abv": "{abv}% di alcol.",
+      "critics": "La critica gli assegna {rating}/100.",
+      "vintageQuality": "L'annata {year} in {region} ottiene {score}/100."
+    },
     "notes": {
       "positionFirst": "Inizia qui — il vino più leggero, per aprire il palato.",
       "positionLast": "Concludi qui — il vino più ricco della degustazione.",

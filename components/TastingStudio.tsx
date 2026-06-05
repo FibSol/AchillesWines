@@ -87,6 +87,41 @@ const ALL_MODES: TastingMode[] = [
   "drink_now",
 ];
 
+/** Compose a readable, factual wine description from a flight stop's attributes. */
+function buildDescription(stop: FlightStop, t: ReturnType<typeof useTranslations>): string {
+  const parts: string[] = [];
+  parts.push(
+    t("desc.origin", {
+      // ICU select keys avoid the accented "rosé" token.
+      color: stop.color === "rosé" ? "rose" : stop.color,
+      appellation: stop.appellationName,
+      region: stop.region,
+    }),
+  );
+  if (stop.grapes.length > 0) {
+    parts.push(t("desc.grapeBlend", { grapes: stop.grapes.join(", ") }));
+  }
+  if (stop.vintage !== null) parts.push(t("desc.vintageYear", { year: String(stop.vintage) }));
+  else parts.push(t("desc.nonVintage"));
+  if (stop.level !== "regional") parts.push(t("desc.classification", { level: stop.level }));
+  if (stop.alcoholPct !== null && stop.alcoholPct > 0) {
+    parts.push(t("desc.abv", { abv: stop.alcoholPct }));
+  }
+  if (stop.avgRating !== null) {
+    parts.push(t("desc.critics", { rating: Math.round(stop.avgRating) }));
+  }
+  if (stop.vintageScore !== null && stop.vintage !== null) {
+    parts.push(
+      t("desc.vintageQuality", {
+        region: stop.region,
+        year: String(stop.vintage),
+        score: Math.round(stop.vintageScore),
+      }),
+    );
+  }
+  return parts.join(" ");
+}
+
 export function TastingStudio() {
   const t = useTranslations("tasting");
 
@@ -451,6 +486,9 @@ function StopCard({
   renderNote: (n: DirectiveNote) => string;
   t: ReturnType<typeof useTranslations>;
 }) {
+  // Compose a readable description from the wine's real attributes.
+  const description = buildDescription(stop, t);
+
   return (
     <div className="glass-card p-5">
       <div className="flex items-start gap-4">
@@ -485,6 +523,13 @@ function StopCard({
             {stop.primaryVariety && <span> · {stop.primaryVariety}</span>}
             {stop.qty > 0 && <span> · ×{stop.qty}</span>}
           </p>
+
+          {/* Wine description */}
+          {description && (
+            <p className="mt-3 text-xs leading-relaxed text-[color:var(--color-fg-muted)] italic border-l-2 border-[color:var(--color-border)] pl-3">
+              {description}
+            </p>
+          )}
 
           {/* Body / weight bar */}
           <div className="mt-3 flex items-center gap-2">

@@ -323,6 +323,16 @@
       "remove": "Verwijderen",
       "decantMin": "Decanteren {minutes} min"
     },
+    "desc": {
+      "origin": "{color, select, red {Een rode wijn} white {Een witte wijn} rose {Een rosé} sparkling {Een mousserende wijn} sweet {Een zoete wijn} fortified {Een versterkte wijn} orange {Een oranje wijn} other {Een wijn}} uit {appellation} in {region}.",
+      "grapeBlend": "Gemaakt van {grapes}.",
+      "vintageYear": "Uit het jaar {year}.",
+      "nonVintage": "Een blend zonder jaargang.",
+      "classification": "{level, select, village {Village-wijn} premier_cru {Premier Cru} grand_cru {Grand Cru} iconic {Iconische cuvée} other {}}.",
+      "abv": "{abv}% alcohol.",
+      "critics": "Critici geven {rating}/100.",
+      "vintageQuality": "De jaargang {year} in {region} scoort {score}/100."
+    },
     "notes": {
       "positionFirst": "Begin hier — de lichtste wijn, om je gehemelte te openen.",
       "positionLast": "Eindig hier — de rijkste wijn van de reeks.",

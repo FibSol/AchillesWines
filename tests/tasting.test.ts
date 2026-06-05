@@ -26,6 +26,7 @@ function mk(o: Partial<TastingCandidate> = {}): TastingCandidate {
     subregion: o.subregion ?? null,
     level: o.level ?? "village",
     primaryVariety: o.primaryVariety ?? null,
+    varieties: o.varieties ?? (o.primaryVariety ? [o.primaryVariety] : []),
     avgRating: o.avgRating ?? null,
     vintageScore: o.vintageScore ?? null,
     avgPriceEur: o.avgPriceEur ?? null,

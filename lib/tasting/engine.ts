@@ -60,6 +60,8 @@ export interface TastingCandidate {
   subregion: string | null;
   level: AppellationLevel;
   primaryVariety: string | null;
+  /** Full grape blend, ordered by share (descending). */
+  varieties: string[];
   avgRating: number | null;
   /** Vintage-chart score for this wine's region × vintage × color (/100). */
   vintageScore: number | null;
@@ -88,6 +90,8 @@ export interface FlightStop {
   region: string;
   level: AppellationLevel;
   primaryVariety: string | null;
+  /** Full grape blend, ordered by share (descending). */
+  grapes: string[];
   alcoholPct: number | null;
   avgRating: number | null;
   vintageScore: number | null;
@@ -582,6 +586,7 @@ function buildStop(
     region: c.region,
     level: c.level,
     primaryVariety: c.primaryVariety,
+    grapes: c.varieties,
     alcoholPct: c.alcoholPct,
     avgRating: c.avgRating,
     vintageScore: c.vintageScore,

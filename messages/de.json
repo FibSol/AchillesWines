@@ -323,6 +323,16 @@
       "remove": "Entfernen",
       "decantMin": "{minutes} Min dekantieren"
     },
+    "desc": {
+      "origin": "{color, select, red {Ein Rotwein} white {Ein Weißwein} rose {Ein Roséwein} sparkling {Ein Schaumwein} sweet {Ein Süßwein} fortified {Ein Likörwein} orange {Ein Orangewein} other {Ein Wein}} aus {appellation} in {region}.",
+      "grapeBlend": "Aus {grapes}.",
+      "vintageYear": "Aus dem Jahrgang {year}.",
+      "nonVintage": "Eine Cuvée ohne Jahrgang.",
+      "classification": "{level, select, village {Ortswein} premier_cru {Premier Cru} grand_cru {Grand Cru} iconic {Ikonische Cuvée} other {}}.",
+      "abv": "{abv}% Alkohol.",
+      "critics": "Kritiker bewerten ihn mit {rating}/100.",
+      "vintageQuality": "Der Jahrgang {year} in {region} wird mit {score}/100 bewertet."
+    },
     "notes": {
       "positionFirst": "Beginnen Sie hier — der leichteste Wein, um den Gaumen zu öffnen.",
       "positionLast": "Schließen Sie hier ab — der reichste Wein der Verkostung.",

@@ -93,12 +93,16 @@ export async function loadTastingCandidates(): Promise<TastingCandidate[]> {
     if (r.avgPrice !== null && r.avgPrice > 0) priceByWine.set(r.wineKey, Number(r.avgPrice));
   }
 
-  // Dominant grape = highest share_pct (or first seen when share is null).
-  const grapeByWine = new Map<string, { name: string; share: number }>();
+  // Full grape blend per wine, ordered by share (descending), name as tiebreak.
+  const blendByWine = new Map<string, Array<{ name: string; share: number }>>();
   for (const v of varietyRows) {
-    const share = v.sharePct ?? 0;
-    const cur = grapeByWine.get(v.wineKey);
-    if (!cur || share > cur.share) grapeByWine.set(v.wineKey, { name: v.varietyName, share });
+    if (!blendByWine.has(v.wineKey)) blendByWine.set(v.wineKey, []);
+    blendByWine.get(v.wineKey)!.push({ name: v.varietyName, share: v.sharePct ?? 0 });
+  }
+  const varietiesByWine = new Map<string, string[]>();
+  for (const [wineKey, blend] of blendByWine) {
+    blend.sort((a, b) => b.share - a.share || a.name.localeCompare(b.name));
+    varietiesByWine.set(wineKey, blend.map((b) => b.name));
   }
 
   // 3. Vintage-chart scores: fetch all relevant (region, vintage) pairs once.
@@ -165,7 +169,8 @@ export async function loadTastingCandidates(): Promise<TastingCandidate[]> {
     region: r.region,
     subregion: r.subregion,
     level: r.level as AppellationLevel,
-    primaryVariety: grapeByWine.get(r.wineKey)?.name ?? null,
+    primaryVariety: varietiesByWine.get(r.wineKey)?.[0] ?? null,
+    varieties: varietiesByWine.get(r.wineKey) ?? [],
     avgRating: ratingByWine.get(r.wineKey) ?? null,
     vintageScore: vintageScoreByKey.get(r.wineKey) ?? null,
     avgPriceEur: priceByWine.get(r.wineKey) ?? null,

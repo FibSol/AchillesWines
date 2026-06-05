@@ -341,6 +341,16 @@
       "remove": "Remove",
       "decantMin": "Decant {minutes} min"
     },
+    "desc": {
+      "origin": "{color, select, red {A red wine} white {A white wine} rose {A rosé} sparkling {A sparkling wine} sweet {A sweet wine} fortified {A fortified wine} orange {An orange wine} other {A wine}} from {appellation} in {region}.",
+      "grapeBlend": "Made from {grapes}.",
+      "vintageYear": "From the {year} vintage.",
+      "nonVintage": "A non-vintage blend.",
+      "classification": "{level, select, village {Village wine} premier_cru {Premier Cru} grand_cru {Grand Cru} iconic {Iconic cuvée} other {}}.",
+      "abv": "{abv}% alcohol.",
+      "critics": "Critics score it {rating}/100.",
+      "vintageQuality": "The {region} {year} vintage rates {score}/100."
+    },
     "notes": {
       "positionFirst": "Start here — the lightest wine, to open your palate.",
       "positionLast": "Finish here — the richest wine of the flight.",
