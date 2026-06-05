@@ -387,6 +387,9 @@
 
 ## 2026-06-05
 
+### Patroclus (Cave Import)
+- [Patroclus] **Personal cave import (achille_wines_caveAvecPrix, 86 wines / 41 producers)** — researched ratings + missing fields (abv, organic, drink windows) via 9 parallel web-research agents, then loaded into achilles.db with `scripts/import_cave.py` (idempotent). Added 11 missing producers to dim_producer (Caiaffa, Menicucci, Asahi Shuzo/Dassai, Champagne Joël Falmet, Ch. de Monturon, Dom. Laguille, Dom. de l'Olive→Or de Line, Rodolphe Demougeot, Sylvain Bruneau, Ch. Grave la Cour, Ch. Tour Blanquet) with country/region/website/coords. Created 5 appellations, 13 varieties, 76 new dim_wine (10 deduped onto existing wine_keys), 99 fact_rating rows (63 verified w/ source_url + 36 reasoned estimations; sources cave_research/cave_estimate; critics VI/Decanter/Vinous/WE/WS/BH/JMIB/JS/WA/Hachette/CT), and 86 cellar_inventory rows (469 bottles, Stockage N → location_id N). Integrity: 0 orphan ratings/inventory, inventory bottles 469=469. DB backup at data/achilles.db.bak-caveimport. · files: scripts/import_cave.py, PROGRESS.md
+
 - [Odysseus] Wine Tasting tab: 6 selectable sommelier logics (progressive, vertical, horizontal, regional, grape, drink-now) with auto-curate + refine (lock / swap / remove / add-from-cellar), serving-order engine, per-wine + flight directives. Pure engine in lib/tasting/engine.ts (16 unit tests), server loader lib/tasting/candidates.ts, API routes /api/tasting/{pool,generate}, page app/[locale]/tasting/page.tsx, component components/TastingStudio.tsx, nav + i18n in all 6 locales. files: lib/tasting/engine.ts, lib/tasting/candidates.ts, app/api/tasting/pool/route.ts, app/api/tasting/generate/route.ts, app/[locale]/tasting/page.tsx, components/TastingStudio.tsx, components/site-nav.tsx, messages/{fr,en,nl,de,es,it}.json, tests/tasting.test.ts
 
 ### Validation
