@@ -10,6 +10,7 @@
     "vintages": "Vintages",
     "map": "Map",
     "cellar": "My Cellar",
+    "tasting": "Wine Tasting",
     "menu": "Wine pairing",
     "quality": "Data quality",
     "quarantine": "Quarantine",
@@ -85,6 +86,11 @@
       "maxPrice": "Max (€)",
       "minRating": "Min rating",
       "maxRating": "Max rating",
+      "color": "Color",
+      "colorRed": "Red",
+      "colorWhite": "White",
+      "colorRose": "Rosé",
+      "colorSparkling": "Sparkling",
       "clearFilters": "Clear filters",
       "noResults": "No wines match the filters."
     }
@@ -264,6 +270,102 @@
       "fromage": "Cheese",
       "dessert": "Dessert",
       "other": "Other"
+    }
+  },
+  "tasting": {
+    "title": "Wine Tasting",
+    "subtitle": "Build a 6-wine flight from your cellar — selection, directives and the order to drink it in.",
+    "modes": {
+      "progressive": {
+        "name": "Progressive",
+        "desc": "A balanced flight spanning light to full-bodied — the classic guided tasting."
+      },
+      "vertical": {
+        "name": "Vertical",
+        "desc": "One wine across several vintages — see how it ages and reads year to year."
+      },
+      "horizontal": {
+        "name": "Horizontal",
+        "desc": "One vintage across different producers — compare terroir and house style."
+      },
+      "regional": {
+        "name": "Regional journey",
+        "desc": "One region climbing the quality ladder — village to grand cru."
+      },
+      "grape": {
+        "name": "Grape exploration",
+        "desc": "One grape across regions and styles — how terroir reshapes a variety."
+      },
+      "drink_now": {
+        "name": "Drink now",
+        "desc": "Bottles at their peak, last bottles and older vintages — taste them before they fade."
+      }
+    },
+    "axisLabel": {
+      "progressive": "Focus",
+      "vertical": "Wine",
+      "horizontal": "Vintage",
+      "regional": "Region",
+      "grape": "Grape",
+      "drink_now": "Focus"
+    },
+    "glass": {
+      "flute": "Flute",
+      "white": "White-wine glass",
+      "red": "Red-wine glass",
+      "universal": "Universal glass"
+    },
+    "ui": {
+      "chooseMode": "Choose a tasting logic",
+      "wines": "wines",
+      "needsMore": "Add more bottles to unlock",
+      "count": "Wines",
+      "surprise": "Surprise me",
+      "reset": "Reset",
+      "addFromCellar": "Add from cellar",
+      "loading": "Curating…",
+      "emptyCellar": "Your cellar is empty. Add bottles to compose a tasting.",
+      "emptyMode": "Not enough bottles in your cellar for this logic yet.",
+      "directives": "Flight directives",
+      "chooseReplacement": "Choose a replacement",
+      "searchWine": "Search a wine…",
+      "cancel": "Cancel",
+      "first": "First",
+      "last": "Last",
+      "then": "Then",
+      "light": "Light",
+      "full": "Full",
+      "lock": "Lock this wine",
+      "locked": "Locked — kept on re-roll",
+      "swap": "Swap",
+      "remove": "Remove",
+      "decantMin": "Decant {minutes} min"
+    },
+    "notes": {
+      "positionFirst": "Start here — the lightest wine, to open your palate.",
+      "positionLast": "Finish here — the richest wine of the flight.",
+      "lookForSparkling": "Look at the bubbles and freshness; let it wake up the palate.",
+      "lookForWhite": "Note the aromatics, acidity and length on the finish.",
+      "lookForRose": "Look for freshness and red-fruit lift; serve well chilled.",
+      "lookForOrange": "Expect grip and texture from skin contact — taste like a light red.",
+      "lookForRed": "Assess tannin, fruit and structure; swirl to open it up.",
+      "lookForSweet": "Balance the sweetness against the acidity; small pours.",
+      "lookForFortified": "Powerful and warming — sip slowly, it closes the flight.",
+      "criticAcclaim": "Critic-acclaimed ({score}/100) — give it your full attention.",
+      "greatVintage": "Strong vintage ({score}/100 for the region).",
+      "agedBottle": "{years} years old — handle gently and check for sediment.",
+      "lastBottle": "Last bottle in your cellar.",
+      "count": "A focused flight of {n} wines.",
+      "themeProgressive": "Progression from the lightest to the fullest wine.",
+      "themeVertical": "Vertical tasting: {axis} across vintages.",
+      "themeHorizontal": "Horizontal tasting: the {axis} vintage across producers.",
+      "themeRegional": "A journey through {axis}, climbing the quality ladder.",
+      "themeGrape": "Exploring {axis} across regions and styles.",
+      "themeDrinkNow": "Chosen for readiness — drink these before they decline.",
+      "serveOrder": "Serve in the numbered order — lightest to fullest, so no wine flattens the next.",
+      "water": "Keep water on hand to cleanse the palate between wines.",
+      "palateBreak": "Take a short break and some water after the whites before moving to the reds.",
+      "glasses": "Use clean, neutral glasses; rinse each with a little of the next wine."
     }
   },
   "quality": {

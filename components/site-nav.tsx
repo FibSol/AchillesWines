@@ -12,6 +12,7 @@ import {
   Map,
   Warehouse,
   UtensilsCrossed,
+  GlassWater,
   ShieldCheck,
   AlertTriangle,
   Settings2,
@@ -26,6 +27,7 @@ const NAV_ITEMS = [
   { href: "/vintages", key: "vintages", icon: CalendarRange },
   { href: "/map", key: "map", icon: Map },
   { href: "/cellar", key: "cellar", icon: Warehouse },
+  { href: "/tasting", key: "tasting", icon: GlassWater },
   { href: "/menu", key: "menu", icon: UtensilsCrossed },
 ] as const;
 

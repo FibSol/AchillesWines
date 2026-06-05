@@ -384,3 +384,12 @@
 - `npx vitest run` : 38/38 tests passent (3 fichiers)
 - Import DB : 201 appellations + 8 701 producteurs dans achilles.db
 - Python sidecar : venv créé + `pip install -e .` OK · commande: achilles-scraper run --source millesima --limit 100
+
+## 2026-06-05
+
+- [Odysseus] Wine Tasting tab: 6 selectable sommelier logics (progressive, vertical, horizontal, regional, grape, drink-now) with auto-curate + refine (lock / swap / remove / add-from-cellar), serving-order engine, per-wine + flight directives. Pure engine in lib/tasting/engine.ts (16 unit tests), server loader lib/tasting/candidates.ts, API routes /api/tasting/{pool,generate}, page app/[locale]/tasting/page.tsx, component components/TastingStudio.tsx, nav + i18n in all 6 locales. files: lib/tasting/engine.ts, lib/tasting/candidates.ts, app/api/tasting/pool/route.ts, app/api/tasting/generate/route.ts, app/[locale]/tasting/page.tsx, components/TastingStudio.tsx, components/site-nav.tsx, messages/{fr,en,nl,de,es,it}.json, tests/tasting.test.ts
+
+### Validation
+- `npx tsc --noEmit` : 0 erreurs
+- `npx vitest run tests/tasting.test.ts` : 16/16 tests passent
+- Browser preview /en/tasting : flight auto-composé, ordre de service correct, 0 erreur console
