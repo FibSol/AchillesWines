@@ -1,5 +1,26 @@
 # Changelog
 
+## Unreleased
+
+- Cellar KPIs panel + bottle details dialog + tasting page filters
+- Pairing page: purchase price fallback chip
+
+## 1.2.1 — 2026-06-06
+
+- Resize cellar grid to 20 locations × 200 bottles per location
+
+## 1.2.0 — 2026-06-05
+
+- Wine Tasting tab with 6 sommelier flight logics + factual wine descriptions
+- OCR wine label scan via Claude Vision in cellar add form (#24)
+- Wine similarity vectors + recommendations UI (#26)
+- Vintage divergence heatmap — sources × year grid (#27)
+- X-Wines full import + soMLier crowd reviews (#28)
+- iDealwine historical auction scraper (#35)
+- LLM email fallback parser via Claude Haiku (#21)
+- Dev-to-prod DB copy via VACUUM INTO snapshot (full-database migration runbook)
+- Fix cellar bottle chips on iOS touch devices
+
 ## 1.1.4 — 2026-05-31
 
 - Fix sidebar setup: use HA Settings → Dashboards → Webpage instead of ingress or panel_iframe (both broken with Next.js asset paths)
@@ -19,6 +40,20 @@
 
 - Add HA ingress sidebar entry (`ingress: true`, `panel_icon`, `panel_title`) — "Show in sidebar" toggle now appears in the add-on Info tab
 - Fix install guide (Part 10) to document automatic ingress sidebar; no manual `panel_iframe` config needed
+
+## 1.1.0 — 2026-05-25
+
+- Wine-Searcher Pro API scraper via Firecrawl (#34)
+- CellarTracker browser-session scraper via Claude-in-Chrome MCP
+- Per-vendor email parsers for Millesima, iDealwine, Lavinia (#20)
+- Daily email ingestion via Proton Bridge (delete-after-scrape)
+- Auth sessions table — persist JWT/cookie sessions across batches (#22)
+- Rating promoter gate — ≥2 distinct critic sources required (#33)
+- Producer registry expansion — CIVB/BIVB/Inter-Rhône/InterLoire syndicates (#31)
+- Coverage tier + admin coverage dashboard (#32 #36 #38)
+- INAO French appellation ingestor — Phase 0 official AOC reference (#30 #39)
+- WineEnthusiast 130k ratings via Kaggle API
+- Retired Christie's scraper (API dead May 2026)
 
 ## 1.0.5
 
