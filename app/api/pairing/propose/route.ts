@@ -88,6 +88,7 @@ export async function POST(req: NextRequest) {
       producerName: dimProducer.producerName,
       appellationName: dimAppellation.appellationName,
       qty: sql<number>`coalesce(sum(${cellarInventory.qty}), 0)`,
+      purchasePriceEur: sql<number | null>`avg(${cellarInventory.purchasePriceEur})`,
     })
     .from(cellarInventory)
     .innerJoin(dimWine, eq(cellarInventory.wineKey, dimWine.wineKey))
@@ -111,6 +112,7 @@ export async function POST(req: NextRequest) {
         producerName: dimProducer.producerName,
         appellationName: dimAppellation.appellationName,
         qty: sql<number>`0`,
+        purchasePriceEur: sql<number | null>`null`,
       })
       .from(dimWine)
       .innerJoin(dimProducer, eq(dimWine.producerKey, dimProducer.producerKey))
@@ -188,7 +190,9 @@ export async function POST(req: NextRequest) {
       color: r.color as WineColor,
       appellationName: r.appellationName,
       avgRating: rStats && rStats.count > 0 ? rStats.sum / rStats.count : null,
-      avgPriceEur: pStats && pStats.count > 0 ? pStats.sum / pStats.count : null,
+      avgPriceEur: pStats && pStats.count > 0
+        ? pStats.sum / pStats.count
+        : (r.purchasePriceEur ? Number(r.purchasePriceEur) : null),
       inventoryQty: Number(r.qty ?? 0),
       sourceCount: sources.size,
     };

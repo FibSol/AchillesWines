@@ -9,6 +9,7 @@ import {
   Wallet,
   ChevronRight,
   Wine,
+  Euro,
 } from "lucide-react";
 import { ConfidenceBadge, deriveConfidence, type ConfidenceLabels } from "@/components/ConfidenceBadge";
 
@@ -327,7 +328,7 @@ export function MenuComposer({ labels }: { labels: MenuLabels }) {
                           {p.candidate.appellationName}
                         </p>
 
-                        <div className="mt-3 flex items-center gap-3 text-[10px] font-mono">
+                        <div className="mt-3 flex items-center gap-3 text-[10px] font-mono flex-wrap">
                           {p.candidate.inventoryQty > 0 ? (
                             <span className="badge badge-verified text-[10px] py-0.5">
                               <Wine className="size-2.5" strokeWidth={2.5} />
@@ -340,12 +341,13 @@ export function MenuComposer({ labels }: { labels: MenuLabels }) {
                           )}
                           {p.candidate.avgRating !== null && (
                             <span className="text-[color:var(--color-accent)]">
-                              {p.candidate.avgRating.toFixed(1)}/100
+                              {p.candidate.avgRating.toFixed(0)}/100
                             </span>
                           )}
                           {p.candidate.avgPriceEur !== null && (
-                            <span className="text-[color:var(--color-fg)]">
-                              €{p.candidate.avgPriceEur.toFixed(2)}
+                            <span className="flex items-center gap-0.5 text-[color:var(--color-champagne-400)] font-semibold">
+                              <Euro className="size-2.5" strokeWidth={2.5} />
+                              {p.candidate.avgPriceEur.toFixed(0)}
                             </span>
                           )}
                         </div>
