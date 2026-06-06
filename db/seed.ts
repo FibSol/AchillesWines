@@ -1,5 +1,5 @@
 /**
- * Seed minimal data: sources, 36 cellar locations, a couple of placeholder producers/wines
+ * Seed minimal data: sources, 20 cellar locations, a couple of placeholder producers/wines
  * so the UI has something to render before the producer registry import runs.
  *
  * Real producer registry import lives in scripts/import-from-burgundy-manager.ts.
@@ -55,11 +55,11 @@ async function seed() {
     { sourceCode: "xwines", sourceName: "X-Wines (CC0)", sourceTier: "D_user_aggregate", cadence: "annual", licenseClass: "open" },
   ]).onConflictDoNothing();
 
-  console.log("→ Seeding 36 cellar locations…");
-  const locations = Array.from({ length: 36 }, (_, i) => ({
+  console.log("→ Seeding 20 cellar locations…");
+  const locations = Array.from({ length: 20 }, (_, i) => ({
     locationId: i + 1,
     name: `Emplacement ${String(i + 1).padStart(2, "0")}`,
-    capacity: 120,
+    capacity: 200,
     temperatureZone: "cellar" as const,
   }));
   await db.insert(cellarLocations).values(locations).onConflictDoNothing();

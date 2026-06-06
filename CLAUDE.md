@@ -133,7 +133,7 @@ bridge_wine_variety — wine ↔ variety M:N
 fact_price          — scraped prices (scraper sources only)
 fact_rating         — critic scores normalised to /100
 fact_vintage_rating — vintage-level ratings by region × year
-cellar_locations    — 36 storage locations × 120 capacity
+cellar_locations    — 20 storage locations × 200 capacity
 cellar_inventory    — bottle stock per (wine, vintage, location)
 cellar_consumption  — drink log
 ops_dead_letter     — DLQ for failed/rejected records

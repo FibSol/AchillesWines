@@ -54,7 +54,7 @@ npm run db:migrate
 npm run db:seed
 ```
 
-This creates `data/achilles.db` with the schema (17 tables) and seeds 36 cellar locations, 13 data sources, and a demo wine.
+This creates `data/achilles.db` with the schema (17 tables) and seeds 20 cellar locations, 13 data sources, and a demo wine.
 
 ### 5. (Optional) Import from burgundy-manager
 
@@ -337,7 +337,7 @@ Map: CartoDB dark tiles + magenta CircleMarker producers + champagne appellation
 | Python tests | 209 / 209 ✅ |
 | Vitest tests | 72 / 72 ✅ |
 | Languages | 6 (FR / EN / NL / DE / ES / IT) |
-| Cellar capacity | 36 locations × 120 bottles = 4 320 max |
+| Cellar capacity | 20 locations × 200 bottles = 4 000 max |
 
 ---
 

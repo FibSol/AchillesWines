@@ -201,7 +201,7 @@
   },
   "cellar": {
     "title": "Ma cave",
-    "subtitle": "36 emplacements · 120 bouteilles maximum chacun.",
+    "subtitle": "20 emplacements · 200 bouteilles maximum chacun.",
     "locations": "Emplacements",
     "history": "Historique",
     "consume": "Consommer",
@@ -230,6 +230,21 @@
     "ocrScan": "Scanner l'étiquette",
     "ocrScanning": "Scan en cours…",
     "ocrError": "Étiquette illisible — réessayez",
+    "kpi": {
+      "uniqueWines": "Vins uniques",
+      "cellarValue": "Valeur cave",
+      "avgRating": "Score moyen critique",
+      "locations": "Emplacements utilisés"
+    },
+    "editDetails": "Détails",
+    "purchasePrice": "Prix d'achat (€)",
+    "purchaseDate": "Date d'achat",
+    "purchaseSource": "Source / boutique",
+    "marketPrice": "Prix marché",
+    "criticScore": "Notes critiques",
+    "noRatings": "Aucune note critique disponible",
+    "noPrices": "Aucun prix de marché disponible",
+    "saved": "Enregistré",
     "csv": {
       "importTitle": "Importer l'inventaire",
       "importHint": "Charge un CSV avec les colonnes : wine_key (ou producer_name + cuvee_name + vintage), location_id, qty, et optionnellement purchase_price_eur, purchase_source, notes, purchase_date.",
@@ -322,6 +337,17 @@
       "swap": "Remplacer",
       "remove": "Retirer",
       "decantMin": "Carafer {minutes} min"
+    },
+    "filters": {
+      "title": "Filtrer le pool",
+      "country": "Pays",
+      "region": "Région",
+      "color": "Couleur",
+      "minRating": "Note min.",
+      "maxPrice": "Prix max. (€)",
+      "all": "Tous",
+      "reset": "Réinitialiser",
+      "active": "{count} actif"
     },
     "desc": {
       "origin": "{color, select, red {Un vin rouge} white {Un vin blanc} rose {Un rosé} sparkling {Un vin effervescent} sweet {Un vin doux} fortified {Un vin fortifié} orange {Un vin orange} other {Un vin}} de {appellation}, en {region}.",

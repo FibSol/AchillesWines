@@ -201,7 +201,7 @@
   },
   "cellar": {
     "title": "My Cellar",
-    "subtitle": "36 locations · 120 bottles each.",
+    "subtitle": "20 locations · 200 bottles each.",
     "locations": "Locations",
     "history": "History",
     "consume": "Consume",
@@ -230,6 +230,21 @@
     "ocrScan": "Scan label",
     "ocrScanning": "Scanning…",
     "ocrError": "Could not read label — try again",
+    "kpi": {
+      "uniqueWines": "Unique wines",
+      "cellarValue": "Cellar value",
+      "avgRating": "Avg. critic score",
+      "locations": "Locations in use"
+    },
+    "editDetails": "Details",
+    "purchasePrice": "Purchase price (€)",
+    "purchaseDate": "Purchase date",
+    "purchaseSource": "Source / shop",
+    "marketPrice": "Market price",
+    "criticScore": "Critic scores",
+    "noRatings": "No critic ratings yet",
+    "noPrices": "No market prices yet",
+    "saved": "Saved",
     "csv": {
       "importTitle": "Import inventory",
       "importHint": "Upload a CSV with columns: wine_key (or producer_name + cuvee_name + vintage), location_id, qty, and optionally purchase_price_eur, purchase_source, notes, purchase_date.",
@@ -340,6 +355,17 @@
       "swap": "Swap",
       "remove": "Remove",
       "decantMin": "Decant {minutes} min"
+    },
+    "filters": {
+      "title": "Filter pool",
+      "country": "Country",
+      "region": "Region",
+      "color": "Colour",
+      "minRating": "Min. score",
+      "maxPrice": "Max. price (€)",
+      "all": "All",
+      "reset": "Reset filters",
+      "active": "{count} active"
     },
     "desc": {
       "origin": "{color, select, red {A red wine} white {A white wine} rose {A rosé} sparkling {A sparkling wine} sweet {A sweet wine} fortified {A fortified wine} orange {An orange wine} other {A wine}} from {appellation} in {region}.",

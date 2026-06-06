@@ -440,13 +440,13 @@ export const factHarvestVolume = sqliteTable(
  * CELLAR (personal storage)
  * ========================================================================== */
 
-/** 36 numbered storage locations, capacity 120 each. */
+/** 20 numbered storage locations, capacity 200 each. */
 export const cellarLocations = sqliteTable(
   "cellar_locations",
   {
     locationId: integer("location_id").primaryKey(),
     name: text("name").notNull(),
-    capacity: integer("capacity").notNull().default(120),
+    capacity: integer("capacity").notNull().default(200),
     description: text("description"),
     temperatureZone: text("temperature_zone", {
       enum: ["cellar", "fridge", "kitchen", "other"],
