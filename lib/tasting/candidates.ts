@@ -12,13 +12,14 @@ import {
   dimVariety,
   bridgeWineVariety,
   cellarInventory,
+  cellarLocations,
   factPrice,
   factRating,
   factVintageRating,
 } from "@/db/schema";
 import { eq, sql, inArray, and } from "drizzle-orm";
 import type { WineColor } from "@/lib/pairing";
-import type { AppellationLevel, TastingCandidate } from "@/lib/tasting/engine";
+import type { AppellationLevel, TastingCandidate, WineLocation } from "@/lib/tasting/engine";
 
 /**
  * Returns one row per unique in-stock wine (qty summed across locations),
@@ -55,8 +56,8 @@ export async function loadTastingCandidates(): Promise<TastingCandidate[]> {
 
   const wineKeys = rows.map((r) => r.wineKey);
 
-  // 2. Aggregates: ratings, prices, dominant grape.
-  const [ratingAgg, priceAgg, varietyRows] = await Promise.all([
+  // 2. Aggregates: ratings, prices, dominant grape, cellar locations.
+  const [ratingAgg, priceAgg, varietyRows, locationRows] = await Promise.all([
     db
       .select({
         wineKey: factRating.wineKey,
@@ -82,6 +83,16 @@ export async function loadTastingCandidates(): Promise<TastingCandidate[]> {
       .from(bridgeWineVariety)
       .innerJoin(dimVariety, eq(bridgeWineVariety.varietyKey, dimVariety.varietyKey))
       .where(inArray(bridgeWineVariety.wineKey, wineKeys)),
+    db
+      .select({
+        wineKey: cellarInventory.wineKey,
+        locationId: cellarInventory.locationId,
+        name: cellarLocations.name,
+        qty: cellarInventory.qty,
+      })
+      .from(cellarInventory)
+      .innerJoin(cellarLocations, eq(cellarInventory.locationId, cellarLocations.locationId))
+      .where(and(inArray(cellarInventory.wineKey, wineKeys), sql`${cellarInventory.qty} > 0`)),
   ]);
 
   const ratingByWine = new Map<string, number>();
@@ -103,6 +114,16 @@ export async function loadTastingCandidates(): Promise<TastingCandidate[]> {
   for (const [wineKey, blend] of blendByWine) {
     blend.sort((a, b) => b.share - a.share || a.name.localeCompare(b.name));
     varietiesByWine.set(wineKey, blend.map((b) => b.name));
+  }
+
+  // Cellar locations per wine (a wine may sit in several locations), id-ordered.
+  const locationsByWine = new Map<string, WineLocation[]>();
+  for (const l of locationRows) {
+    if (!locationsByWine.has(l.wineKey)) locationsByWine.set(l.wineKey, []);
+    locationsByWine.get(l.wineKey)!.push({ locationId: l.locationId, name: l.name, qty: l.qty });
+  }
+  for (const list of locationsByWine.values()) {
+    list.sort((a, b) => a.locationId - b.locationId);
   }
 
   // 3. Vintage-chart scores: fetch all relevant (region, vintage) pairs once.
@@ -175,6 +196,7 @@ export async function loadTastingCandidates(): Promise<TastingCandidate[]> {
     vintageScore: vintageScoreByKey.get(r.wineKey) ?? null,
     avgPriceEur: priceByWine.get(r.wineKey) ?? null,
     qty: Number(r.qty ?? 0),
+    locations: locationsByWine.get(r.wineKey) ?? [],
   }));
 }
 

@@ -320,6 +320,7 @@
       "surprise": "Sorprendimi",
       "reset": "Reimposta",
       "addFromCellar": "Aggiungi dalla cantina",
+      "cellarLocation": "Cantina",
       "loading": "Composizione…",
       "emptyCellar": "La tua cantina è vuota. Aggiungi bottiglie per comporre una degustazione.",
       "emptyMode": "Non ci sono ancora abbastanza bottiglie in cantina per questa logica.",

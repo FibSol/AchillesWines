@@ -23,6 +23,7 @@ import {
   GlassWater,
   SlidersHorizontal,
   ChevronDown,
+  Warehouse,
 } from "lucide-react";
 import type {
   TastingFlight,
@@ -700,6 +701,27 @@ function StopCard({
             {stop.primaryVariety && <span> · {stop.primaryVariety}</span>}
             {stop.qty > 0 && <span> · ×{stop.qty}</span>}
           </p>
+
+          {/* Cellar location(s) */}
+          {stop.locations.length > 0 && (
+            <p className="mt-1 flex items-center gap-1.5 flex-wrap text-[11px] text-[color:var(--color-fg-muted)]">
+              <Warehouse className="size-3 text-[color:var(--color-accent)] shrink-0" strokeWidth={2.5} />
+              <span className="uppercase tracking-[0.06em] text-[9px] text-[color:var(--color-fg-subtle)]">
+                {t("ui.cellarLocation")}
+              </span>
+              {stop.locations.map((l, i) => (
+                <span key={l.locationId} className="text-[color:var(--color-fg)]">
+                  {l.name}
+                  {stop.locations.length > 1 && (
+                    <span className="text-[color:var(--color-fg-muted)]"> ×{l.qty}</span>
+                  )}
+                  {i < stop.locations.length - 1 && (
+                    <span className="text-[color:var(--color-fg-subtle)]"> ·</span>
+                  )}
+                </span>
+              ))}
+            </p>
+          )}
 
           {/* Wine description */}
           {description && (

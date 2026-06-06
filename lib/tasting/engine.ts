@@ -44,6 +44,13 @@ export const TASTING_MODES: TastingMode[] = [
   "drink_now",
 ];
 
+/** A cellar storage location holding some bottles of a wine. */
+export interface WineLocation {
+  locationId: number;
+  name: string;
+  qty: number;
+}
+
 /** A single in-stock candidate wine, enriched with everything the engine needs. */
 export interface TastingCandidate {
   wineKey: string;
@@ -67,6 +74,8 @@ export interface TastingCandidate {
   vintageScore: number | null;
   avgPriceEur: number | null;
   qty: number;
+  /** Cellar locations holding this wine (ordered by location id). */
+  locations: WineLocation[];
 }
 
 /** Structured, translatable note: the client renders t(`tasting.notes.${key}`, params). */
@@ -100,6 +109,8 @@ export interface FlightStop {
   serveTempC: [number, number];
   decantMinutes: number;
   glassType: GlassType;
+  /** Cellar locations holding this wine (ordered by location id). */
+  locations: WineLocation[];
   notes: DirectiveNote[];
 }
 
@@ -591,6 +602,7 @@ function buildStop(
     avgRating: c.avgRating,
     vintageScore: c.vintageScore,
     qty: c.qty,
+    locations: c.locations,
     weight,
     serveTempC: temp,
     decantMinutes: decant,

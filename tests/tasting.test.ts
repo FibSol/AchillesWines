@@ -31,6 +31,7 @@ function mk(o: Partial<TastingCandidate> = {}): TastingCandidate {
     vintageScore: o.vintageScore ?? null,
     avgPriceEur: o.avgPriceEur ?? null,
     qty: o.qty ?? 3,
+    locations: o.locations ?? [],
   };
 }
 

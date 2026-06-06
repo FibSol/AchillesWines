@@ -320,6 +320,7 @@
       "surprise": "Surprenez-moi",
       "reset": "Réinitialiser",
       "addFromCellar": "Ajouter depuis la cave",
+      "cellarLocation": "Cave",
       "loading": "Composition…",
       "emptyCellar": "Votre cave est vide. Ajoutez des bouteilles pour composer une dégustation.",
       "emptyMode": "Pas encore assez de bouteilles dans votre cave pour cette logique.",

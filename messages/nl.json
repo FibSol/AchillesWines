@@ -320,6 +320,7 @@
       "surprise": "Verras me",
       "reset": "Opnieuw",
       "addFromCellar": "Toevoegen uit kelder",
+      "cellarLocation": "Kelder",
       "loading": "Samenstellen…",
       "emptyCellar": "Je kelder is leeg. Voeg flessen toe om een proeverij samen te stellen.",
       "emptyMode": "Nog niet genoeg flessen in je kelder voor deze logica.",

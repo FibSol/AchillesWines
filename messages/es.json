@@ -320,6 +320,7 @@
       "surprise": "Sorpréndeme",
       "reset": "Reiniciar",
       "addFromCellar": "Añadir desde la bodega",
+      "cellarLocation": "Bodega",
       "loading": "Componiendo…",
       "emptyCellar": "Su bodega está vacía. Añada botellas para componer una cata.",
       "emptyMode": "Aún no hay suficientes botellas en su bodega para esta lógica.",

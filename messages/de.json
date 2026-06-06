@@ -320,6 +320,7 @@
       "surprise": "Überrasch mich",
       "reset": "Zurücksetzen",
       "addFromCellar": "Aus Keller hinzufügen",
+      "cellarLocation": "Keller",
       "loading": "Stelle zusammen…",
       "emptyCellar": "Ihr Keller ist leer. Fügen Sie Flaschen hinzu, um eine Verkostung zusammenzustellen.",
       "emptyMode": "Noch nicht genug Flaschen im Keller für diese Logik.",
