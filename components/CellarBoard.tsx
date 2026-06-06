@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
-import { Camera, CheckCircle2, Loader2, Plus, X, Wine, Warehouse, Search, GlassWater } from "lucide-react";
+import { Camera, CheckCircle2, Loader2, Plus, X, Wine, Warehouse, Search, GlassWater, Star, Euro, Info, Grape, Percent, MapPin } from "lucide-react";
 
 export interface CellarLocationRow {
   locationId: number;
@@ -20,6 +20,16 @@ export interface CellarBottleRow {
   producerName: string;
   vintage: number | null;
   color: string;
+  purchasePriceEur: number | null;
+  purchaseDate: Date | null;
+  purchaseSource: string | null;
+  // Hover ID-card fields
+  appellationName: string;
+  region: string;
+  primaryVariety: string | null;
+  alcoholPct: number | null;
+  avgRating: number | null;
+  avgPriceEur: number | null;
 }
 
 export interface CellarLabels {
@@ -45,6 +55,15 @@ export interface CellarLabels {
   ocrScan: string;
   ocrScanning: string;
   ocrError: string;
+  editDetails: string;
+  purchasePrice: string;
+  purchaseDate: string;
+  purchaseSource: string;
+  marketPrice: string;
+  criticScore: string;
+  noRatings: string;
+  noPrices: string;
+  saved: string;
 }
 
 interface WineSearchResult {
@@ -55,6 +74,12 @@ interface WineSearchResult {
   color: string;
   producerName: string;
   appellationName: string;
+}
+
+interface WineDetails {
+  ratings: Array<{ criticCode: string; score: number; scale: string }>;
+  prices: Array<{ amountEur: number | null; retailer: string | null; priceKind: string; inStock: boolean | null }>;
+  avgPrice: number | null;
 }
 
 const COLOR_DOT: Record<string, string> = {
@@ -88,6 +113,8 @@ export function CellarBoard({ locations, bottles, labels }: Props) {
   useEffect(() => {
     setDragEnabled(window.matchMedia("(hover: hover) and (pointer: fine)").matches);
   }, []);
+  // Hover "ID card": which bottle, anchored to its chip's screen rect.
+  const [hover, setHover] = useState<{ bottle: CellarBottleRow; rect: DOMRect } | null>(null);
 
   const bottlesByLoc = new Map<number, CellarBottleRow[]>();
   for (const b of bottles) {
@@ -189,7 +216,10 @@ export function CellarBoard({ locations, bottles, labels }: Props) {
                   </span>
                 </div>
 
-                <div className="space-y-1 flex-1 overflow-y-auto max-h-32 pr-1">
+                <div
+                  className="space-y-1 flex-1 overflow-y-auto max-h-32 pr-1"
+                  onScroll={() => setHover(null)}
+                >
                   {cellBottles.length === 0 ? (
                     <p className="text-[10px] text-[color:var(--color-fg-subtle)] italic">
                       {labels.empty}
@@ -202,6 +232,7 @@ export function CellarBoard({ locations, bottles, labels }: Props) {
                         draggable={dragEnabled}
                         onDragStart={(e) => {
                           if (!dragEnabled) return;
+                          setHover(null);
                           setDraggingId(b.inventoryId);
                           e.dataTransfer.setData("text/inventory-id", String(b.inventoryId));
                           e.dataTransfer.effectAllowed = "move";
@@ -210,13 +241,19 @@ export function CellarBoard({ locations, bottles, labels }: Props) {
                           setDraggingId(null);
                           setDropTarget(null);
                         }}
-                        onClick={() => setConsumeBottle(b)}
+                        onMouseEnter={(e) => {
+                          if (dragEnabled) setHover({ bottle: b, rect: e.currentTarget.getBoundingClientRect() });
+                        }}
+                        onMouseLeave={() => setHover(null)}
+                        onClick={() => {
+                          setHover(null);
+                          setConsumeBottle(b);
+                        }}
                         className={`group block w-full text-left rounded px-1.5 py-1 bg-[rgba(255,92,138,0.07)] hover:bg-[rgba(255,92,138,0.18)] transition [touch-action:manipulation] ${
                           dragEnabled ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
                         } ${
                           draggingId === b.inventoryId ? "opacity-40" : ""
                         }`}
-                        title={`${b.producerName} · ${b.cuveeName}`}
                       >
                         <div className="flex items-center gap-1.5 min-w-0">
                           <span
@@ -281,6 +318,111 @@ export function CellarBoard({ locations, bottles, labels }: Props) {
           …
         </div>
       )}
+
+      {hover && dragEnabled && (
+        <WineIdCard bottle={hover.bottle} rect={hover.rect} labels={labels} />
+      )}
+    </div>
+  );
+}
+
+/** Floating, fixed-position wine "ID card" shown on hover over a bottle chip. */
+function WineIdCard({
+  bottle,
+  rect,
+  labels,
+}: {
+  bottle: CellarBottleRow;
+  rect: DOMRect;
+  labels: CellarLabels;
+}) {
+  const WIDTH = 264;
+  const EST_HEIGHT = 230;
+  const MARGIN = 8;
+
+  // Prefer placing to the right of the chip; flip left if it would overflow.
+  let left = rect.right + MARGIN;
+  if (left + WIDTH > window.innerWidth - MARGIN) left = rect.left - WIDTH - MARGIN;
+  if (left < MARGIN) left = MARGIN;
+  let top = rect.top;
+  if (top + EST_HEIGHT > window.innerHeight - MARGIN) {
+    top = Math.max(MARGIN, window.innerHeight - EST_HEIGHT - MARGIN);
+  }
+
+  const eur = (v: number) =>
+    new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: "EUR",
+      maximumFractionDigits: 0,
+    }).format(v);
+
+  return (
+    <div className="fixed z-[60] pointer-events-none" style={{ left, top, width: WIDTH }}>
+      <div className="glass-card p-3.5 shadow-2xl">
+        <div className="flex items-start gap-2">
+          <span
+            className="inline-block size-3 rounded-full mt-1 shrink-0"
+            style={{ background: COLOR_DOT[bottle.color] ?? "#FAF7F5" }}
+            aria-hidden
+          />
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-[color:var(--color-fg)] leading-tight">
+              {bottle.producerName}
+            </p>
+            <p className="text-xs text-[color:var(--color-coral-400)] leading-tight mt-0.5">
+              {bottle.cuveeName}
+              {bottle.vintage !== null && (
+                <span className="ml-1.5 font-mono text-[color:var(--color-fg-muted)]">
+                  {bottle.vintage}
+                </span>
+              )}
+            </p>
+          </div>
+        </div>
+
+        <p className="mt-2 flex items-center gap-1 text-[10px] text-[color:var(--color-fg-subtle)]">
+          <MapPin className="size-3 shrink-0" strokeWidth={2} />
+          {bottle.appellationName}
+          {bottle.region && bottle.region !== bottle.appellationName && <> · {bottle.region}</>}
+        </p>
+
+        <div className="mt-3 pt-3 border-t border-[color:var(--color-border)] grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px] font-mono">
+          {bottle.primaryVariety && (
+            <span className="col-span-2 flex items-center gap-1.5 text-[color:var(--color-fg-muted)]">
+              <Grape className="size-3 text-[color:var(--color-accent)] shrink-0" strokeWidth={2} />
+              <span className="truncate">{bottle.primaryVariety}</span>
+            </span>
+          )}
+          {bottle.alcoholPct !== null && bottle.alcoholPct > 0 && (
+            <span className="flex items-center gap-1.5 text-[color:var(--color-fg-muted)]">
+              <Percent className="size-3 text-[color:var(--color-accent)] shrink-0" strokeWidth={2} />
+              {bottle.alcoholPct}%
+            </span>
+          )}
+          <span className="flex items-center gap-1.5 text-[color:var(--color-fg-muted)]">
+            <Wine className="size-3 text-[color:var(--color-accent)] shrink-0" strokeWidth={2} />
+            ×{bottle.qty}
+          </span>
+          {bottle.avgRating !== null && (
+            <span className="flex items-center gap-1.5 text-[color:var(--color-fg)]">
+              <Star className="size-3 text-[color:var(--color-accent)] shrink-0" strokeWidth={2} />
+              {Math.round(bottle.avgRating)}/100
+            </span>
+          )}
+          {bottle.avgPriceEur !== null && (
+            <span className="flex items-center gap-1.5 text-[color:var(--color-fg)]" title={labels.marketPrice}>
+              <Euro className="size-3 text-[color:var(--color-accent)] shrink-0" strokeWidth={2} />
+              {eur(bottle.avgPriceEur)}
+            </span>
+          )}
+        </div>
+
+        {bottle.purchasePriceEur !== null && (
+          <p className="mt-2 text-[10px] text-[color:var(--color-fg-subtle)]">
+            {labels.purchasePrice}: <span className="font-mono">{eur(bottle.purchasePriceEur)}</span>
+          </p>
+        )}
+      </div>
     </div>
   );
 }
@@ -576,7 +718,7 @@ function ConsumeDialog({
   onClose: () => void;
   onSuccess: () => void;
 }) {
-  const [mode, setMode] = useState<"consume" | "move">("consume");
+  const [mode, setMode] = useState<"consume" | "move" | "details">("consume");
   const [qty, setQty] = useState(1);
   const [score, setScore] = useState<string>("");
   const [occasion, setOccasion] = useState("");
@@ -584,7 +726,15 @@ function ConsumeDialog({
   const [moveTo, setMoveTo] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  // See AddBottleDialog: guard against iOS instant-dismiss right after opening.
+  const [savedMsg, setSavedMsg] = useState(false);
+
+  // Details tab state
+  const [purchasePrice, setPurchasePrice] = useState<string>("");
+  const [purchaseDateStr, setPurchaseDateStr] = useState<string>("");
+  const [purchaseSourceStr, setPurchaseSourceStr] = useState<string>("");
+  const [wineDetails, setWineDetails] = useState<WineDetails | null>(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+
   const openedAtRef = useRef(0);
 
   useEffect(() => {
@@ -597,7 +747,35 @@ function ConsumeDialog({
     setNote("");
     setMoveTo(bottle.locationId);
     setErr(null);
+    setSavedMsg(false);
+    setPurchasePrice(bottle.purchasePriceEur !== null ? String(bottle.purchasePriceEur) : "");
+    setPurchaseDateStr(
+      bottle.purchaseDate
+        ? new Date(bottle.purchaseDate).toISOString().slice(0, 10)
+        : "",
+    );
+    setPurchaseSourceStr(bottle.purchaseSource ?? "");
+    setWineDetails(null);
   }, [bottle]);
+
+  // Fetch wine details (ratings + market price) when details tab opens
+  useEffect(() => {
+    if (mode !== "details" || !bottle || wineDetails !== null) return;
+    let cancelled = false;
+    setDetailsLoading(true);
+    fetch(`/api/cellar/wines/${encodeURIComponent(bottle.wineKey)}/details`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (!cancelled) setWineDetails(data as WineDetails);
+      })
+      .catch(() => {
+        if (!cancelled) setWineDetails({ ratings: [], prices: [], avgPrice: null });
+      })
+      .finally(() => {
+        if (!cancelled) setDetailsLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [mode, bottle, wineDetails]);
 
   async function submit() {
     if (!bottle) return;
@@ -621,7 +799,8 @@ function ConsumeDialog({
           setErr(String(j.error ?? r.statusText));
           return;
         }
-      } else {
+        onSuccess();
+      } else if (mode === "move") {
         if (moveTo === null || moveTo === bottle.locationId) {
           onClose();
           return;
@@ -636,8 +815,27 @@ function ConsumeDialog({
           setErr(j.error === "capacity_exceeded" ? labels.capacityExceeded : String(j.error ?? r.statusText));
           return;
         }
+        onSuccess();
+      } else {
+        // details mode — save purchase info
+        const body: Record<string, unknown> = {};
+        body.purchasePriceEur = purchasePrice !== "" ? parseFloat(purchasePrice) : null;
+        body.purchaseDate = purchaseDateStr || null;
+        body.purchaseSource = purchaseSourceStr || null;
+        const r = await fetch(`/api/cellar/inventory/${bottle.inventoryId}`, {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (!r.ok) {
+          const j = await r.json().catch(() => ({}));
+          setErr(String(j.error ?? r.statusText));
+          return;
+        }
+        setSavedMsg(true);
+        setTimeout(() => setSavedMsg(false), 2000);
+        onSuccess();
       }
-      onSuccess();
     } finally {
       setSubmitting(false);
     }
@@ -648,7 +846,7 @@ function ConsumeDialog({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-[rgba(13,6,26,0.7)] backdrop-blur-sm z-40" />
         <Dialog.Content
-          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[min(480px,90vw)] glass-card p-6"
+          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[min(520px,90vw)] max-h-[90vh] overflow-y-auto glass-card p-6"
           onOpenAutoFocus={(e) => e.preventDefault()}
           onPointerDownOutside={(e) => {
             if (Date.now() - openedAtRef.current < 600) e.preventDefault();
@@ -675,32 +873,29 @@ function ConsumeDialog({
             {labels.qty}: <span className="font-mono">{bottle?.qty}</span>
           </p>
 
-          <div className="flex items-center gap-2 mb-4 p-1 rounded-md border border-[color:var(--color-border)] bg-[rgba(13,6,26,0.4)]">
-            <button
-              onClick={() => setMode("consume")}
-              className={`flex-1 text-xs py-1.5 rounded ${
-                mode === "consume"
-                  ? "bg-[color:var(--color-coral-700)] text-[color:var(--color-ivory-100)]"
-                  : "text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)]"
-              }`}
-            >
-              <GlassWater className="inline size-3.5 mr-1.5" strokeWidth={2.5} />
-              {labels.consume}
-            </button>
-            <button
-              onClick={() => setMode("move")}
-              className={`flex-1 text-xs py-1.5 rounded ${
-                mode === "move"
-                  ? "bg-[color:var(--color-coral-700)] text-[color:var(--color-ivory-100)]"
-                  : "text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)]"
-              }`}
-            >
-              <Warehouse className="inline size-3.5 mr-1.5" strokeWidth={2.5} />
-              {labels.move}
-            </button>
+          {/* 3-tab switcher */}
+          <div className="flex items-center gap-1 mb-4 p-1 rounded-md border border-[color:var(--color-border)] bg-[rgba(13,6,26,0.4)]">
+            {(["consume", "move", "details"] as const).map((m) => {
+              const Icon = m === "consume" ? GlassWater : m === "move" ? Warehouse : Info;
+              const label = m === "consume" ? labels.consume : m === "move" ? labels.move : labels.editDetails;
+              return (
+                <button
+                  key={m}
+                  onClick={() => setMode(m)}
+                  className={`flex-1 text-xs py-1.5 rounded flex items-center justify-center gap-1.5 ${
+                    mode === m
+                      ? "bg-[color:var(--color-coral-700)] text-[color:var(--color-ivory-100)]"
+                      : "text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)]"
+                  }`}
+                >
+                  <Icon className="size-3.5" strokeWidth={2.5} />
+                  {label}
+                </button>
+              );
+            })}
           </div>
 
-          {mode === "consume" ? (
+          {mode === "consume" && (
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -756,7 +951,9 @@ function ConsumeDialog({
                 />
               </div>
             </div>
-          ) : (
+          )}
+
+          {mode === "move" && (
             <div>
               <label className="text-xs uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)] mb-1 block">
                 {labels.location}
@@ -775,8 +972,117 @@ function ConsumeDialog({
             </div>
           )}
 
+          {mode === "details" && (
+            <div className="space-y-4">
+              {/* Editable purchase info */}
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)] mb-1 block">
+                      {labels.purchasePrice}
+                    </label>
+                    <div className="relative">
+                      <Euro className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-[color:var(--color-fg-subtle)]" strokeWidth={2} />
+                      <input
+                        type="number"
+                        min={0}
+                        step={0.01}
+                        value={purchasePrice}
+                        onChange={(e) => setPurchasePrice(e.target.value)}
+                        placeholder="0.00"
+                        className="w-full pl-9 pr-3 py-2 rounded-md bg-[rgba(13,6,26,0.6)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-coral-400)]"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)] mb-1 block">
+                      {labels.purchaseDate}
+                    </label>
+                    <input
+                      type="date"
+                      value={purchaseDateStr}
+                      onChange={(e) => setPurchaseDateStr(e.target.value)}
+                      className="w-full px-3 py-2 rounded-md bg-[rgba(13,6,26,0.6)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-coral-400)]"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)] mb-1 block">
+                    {labels.purchaseSource}
+                  </label>
+                  <input
+                    type="text"
+                    value={purchaseSourceStr}
+                    onChange={(e) => setPurchaseSourceStr(e.target.value)}
+                    className="w-full px-3 py-2 rounded-md bg-[rgba(13,6,26,0.6)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-coral-400)]"
+                  />
+                </div>
+              </div>
+
+              {/* Ratings & market price (read-only) */}
+              <div className="border-t border-[color:var(--color-border)] pt-4 space-y-3">
+                {/* Critic scores */}
+                <div>
+                  <p className="text-xs uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)] mb-2 flex items-center gap-1.5">
+                    <Star className="size-3.5 text-[color:var(--color-coral-400)]" strokeWidth={2.5} />
+                    {labels.criticScore}
+                  </p>
+                  {detailsLoading ? (
+                    <Loader2 className="size-4 animate-spin text-[color:var(--color-fg-subtle)]" />
+                  ) : !wineDetails || wineDetails.ratings.length === 0 ? (
+                    <p className="text-xs text-[color:var(--color-fg-subtle)] italic">{labels.noRatings}</p>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {wineDetails.ratings.map((r, i) => (
+                        <span
+                          key={i}
+                          className="px-2 py-0.5 rounded bg-[rgba(255,92,138,0.08)] border border-[color:var(--color-border)] text-xs font-mono text-[color:var(--color-fg)]"
+                        >
+                          <span className="text-[color:var(--color-coral-400)] font-semibold mr-1">{r.criticCode}</span>
+                          {Math.round(r.score)}/100
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Market price */}
+                <div>
+                  <p className="text-xs uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)] mb-2 flex items-center gap-1.5">
+                    <Euro className="size-3.5 text-[color:var(--color-coral-400)]" strokeWidth={2.5} />
+                    {labels.marketPrice}
+                  </p>
+                  {detailsLoading ? (
+                    <Loader2 className="size-4 animate-spin text-[color:var(--color-fg-subtle)]" />
+                  ) : !wineDetails || wineDetails.avgPrice === null ? (
+                    <p className="text-xs text-[color:var(--color-fg-subtle)] italic">{labels.noPrices}</p>
+                  ) : (
+                    <p className="text-sm font-mono text-[color:var(--color-fg)]">
+                      avg.{" "}
+                      <span className="text-[color:var(--color-coral-400)] font-semibold">
+                        {new Intl.NumberFormat(undefined, {
+                          style: "currency",
+                          currency: "EUR",
+                          maximumFractionDigits: 0,
+                        }).format(wineDetails.avgPrice)}
+                      </span>
+                      {wineDetails.prices.length > 0 && (
+                        <span className="ml-2 text-[10px] text-[color:var(--color-fg-subtle)]">
+                          ({wineDetails.prices.length} source{wineDetails.prices.length > 1 ? "s" : ""})
+                        </span>
+                      )}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {err && (
             <p className="text-xs text-[color:var(--color-coral-400)] font-mono mt-3">{err}</p>
+          )}
+          {savedMsg && (
+            <p className="text-xs text-[color:var(--color-accent)] font-mono mt-3">{labels.saved}</p>
           )}
 
           <div className="flex items-center justify-end gap-2 mt-5">

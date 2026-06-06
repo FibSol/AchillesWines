@@ -230,6 +230,21 @@
     "ocrScan": "Scansiona etichetta",
     "ocrScanning": "Scansione…",
     "ocrError": "Etichetta illeggibile — riprova",
+    "kpi": {
+      "uniqueWines": "Vini unici",
+      "cellarValue": "Valore cantina",
+      "avgRating": "Punteggio medio critica",
+      "locations": "Postazioni in uso"
+    },
+    "editDetails": "Dettagli",
+    "purchasePrice": "Prezzo d'acquisto (€)",
+    "purchaseDate": "Data d'acquisto",
+    "purchaseSource": "Fonte / negozio",
+    "marketPrice": "Prezzo di mercato",
+    "criticScore": "Punteggi critica",
+    "noRatings": "Nessun punteggio critico",
+    "noPrices": "Nessun prezzo di mercato",
+    "saved": "Salvato",
     "csv": {
       "importTitle": "Importa inventario",
       "importHint": "Carica un CSV con colonne: wine_key (o producer_name + cuvee_name + vintage), location_id, qty, e opzionalmente purchase_price_eur, purchase_source, notes, purchase_date.",
@@ -322,6 +337,17 @@
       "swap": "Sostituisci",
       "remove": "Rimuovi",
       "decantMin": "Decanta {minutes} min"
+    },
+    "filters": {
+      "title": "Filtra selezione",
+      "country": "Paese",
+      "region": "Regione",
+      "color": "Colore",
+      "minRating": "Punteggio min.",
+      "maxPrice": "Prezzo max (€)",
+      "all": "Tutti",
+      "reset": "Azzera filtri",
+      "active": "{count} attivo"
     },
     "desc": {
       "origin": "{color, select, red {Un vino rosso} white {Un vino bianco} rose {Un rosato} sparkling {Un vino spumante} sweet {Un vino dolce} fortified {Un vino fortificato} orange {Un vino orange} other {Un vino}} da {appellation}, in {region}.",

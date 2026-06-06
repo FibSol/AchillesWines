@@ -21,6 +21,8 @@ import {
   Star,
   ChevronRight,
   GlassWater,
+  SlidersHorizontal,
+  ChevronDown,
 } from "lucide-react";
 import type {
   TastingFlight,
@@ -69,7 +71,26 @@ interface ModeFeasibility {
 interface PoolResponse {
   poolSize: number;
   modes: Record<TastingMode, ModeFeasibility>;
+  countries: string[];
+  regions: string[];
+  colors: string[];
 }
+
+interface TastingFilters {
+  countries: string[];
+  regions: string[];
+  colors: string[];
+  minRating: number | null;
+  maxPriceEur: number | null;
+}
+
+const EMPTY_FILTERS: TastingFilters = {
+  countries: [],
+  regions: [],
+  colors: [],
+  minRating: null,
+  maxPriceEur: null,
+};
 
 interface GenerateResponse {
   flight: TastingFlight | null;
@@ -130,6 +151,8 @@ export function TastingStudio() {
   const [axisId, setAxisId] = useState<string | undefined>(undefined);
   const [locked, setLocked] = useState<string[]>([]);
   const [excluded, setExcluded] = useState<string[]>([]);
+  const [filters, setFilters] = useState<TastingFilters>(EMPTY_FILTERS);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const [pool, setPool] = useState<PoolResponse | null>(null);
   const [flight, setFlight] = useState<TastingFlight | null>(null);
@@ -153,13 +176,16 @@ export function TastingStudio() {
       axisId?: string | undefined;
       locked?: string[];
       excluded?: string[];
+      filters?: TastingFilters;
     }) => {
+      const activeFilters = override?.filters !== undefined ? override.filters : filters;
       const req = {
         mode: override?.mode ?? mode,
         count: override?.count ?? count,
         axisId: override?.axisId !== undefined ? override.axisId : axisId,
         lockedWineKeys: override?.locked ?? locked,
         excludeWineKeys: override?.excluded ?? excluded,
+        filters: activeFilters,
       };
       setLoading(true);
       setError(null);
@@ -184,7 +210,7 @@ export function TastingStudio() {
         setLoading(false);
       }
     },
-    [mode, count, axisId, locked, excluded],
+    [mode, count, axisId, locked, excluded, filters],
   );
 
   // On mount: load feasibility + auto-curate the default progressive flight.
@@ -267,6 +293,24 @@ export function TastingStudio() {
     void generate({ locked: [], excluded: [], axisId: undefined });
   }
 
+  function applyFilters(next: TastingFilters) {
+    setFilters(next);
+    setLocked([]);
+    setExcluded([]);
+    void generate({ filters: next, locked: [], excluded: [] });
+  }
+
+  function resetFilters() {
+    applyFilters(EMPTY_FILTERS);
+  }
+
+  const activeFilterCount =
+    filters.countries.length +
+    filters.regions.length +
+    filters.colors.length +
+    (filters.minRating !== null ? 1 : 0) +
+    (filters.maxPriceEur !== null ? 1 : 0);
+
   function pickReplacement(targetWineKey: string | "add", newWineKey: string) {
     setPickerFor(null);
     let nextLocked = [...locked];
@@ -297,6 +341,139 @@ export function TastingStudio() {
 
   return (
     <div className="space-y-8">
+      {/* Filter panel */}
+      <section>
+        <button
+          onClick={() => setFiltersOpen((v) => !v)}
+          className="flex items-center gap-2 text-xs text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-primary)] transition mb-3"
+        >
+          <SlidersHorizontal className="size-3.5" strokeWidth={2.5} />
+          <span className="uppercase tracking-[0.06em]">{t("filters.title")}</span>
+          {activeFilterCount > 0 && (
+            <span className="px-1.5 py-0.5 rounded bg-[rgba(165,56,96,0.2)] text-[color:var(--color-primary)] font-mono text-[10px]">
+              {t("filters.active", { count: activeFilterCount })}
+            </span>
+          )}
+          <ChevronDown className={`size-3.5 transition-transform ${filtersOpen ? "rotate-180" : ""}`} strokeWidth={2.5} />
+        </button>
+
+        {filtersOpen && pool && (
+          <div className="glass-card p-4 space-y-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {/* Country */}
+              <div>
+                <label className="text-xs uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)] mb-1 block">
+                  {t("filters.country")}
+                </label>
+                <select
+                  value={filters.countries[0] ?? ""}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    applyFilters({ ...filters, countries: val ? [val] : [], regions: [] });
+                  }}
+                  className="w-full px-2 py-1.5 rounded bg-[rgba(13,6,26,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)]"
+                >
+                  <option value="">{t("filters.all")}</option>
+                  {pool.countries.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Region */}
+              <div>
+                <label className="text-xs uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)] mb-1 block">
+                  {t("filters.region")}
+                </label>
+                <select
+                  value={filters.regions[0] ?? ""}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    applyFilters({ ...filters, regions: val ? [val] : [] });
+                  }}
+                  className="w-full px-2 py-1.5 rounded bg-[rgba(13,6,26,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)]"
+                >
+                  <option value="">{t("filters.all")}</option>
+                  {pool.regions.map((r) => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Color */}
+              <div>
+                <label className="text-xs uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)] mb-1 block">
+                  {t("filters.color")}
+                </label>
+                <select
+                  value={filters.colors[0] ?? ""}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    applyFilters({ ...filters, colors: val ? [val] : [] });
+                  }}
+                  className="w-full px-2 py-1.5 rounded bg-[rgba(13,6,26,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)]"
+                >
+                  <option value="">{t("filters.all")}</option>
+                  {pool.colors.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Min rating */}
+              <div>
+                <label className="text-xs uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)] mb-1 block">
+                  {t("filters.minRating")}
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={filters.minRating ?? ""}
+                  onChange={(e) => {
+                    const val = e.target.value !== "" ? Number(e.target.value) : null;
+                    applyFilters({ ...filters, minRating: val });
+                  }}
+                  placeholder="0–100"
+                  className="w-full px-2 py-1.5 rounded bg-[rgba(13,6,26,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-primary)]"
+                />
+              </div>
+
+              {/* Max price */}
+              <div>
+                <label className="text-xs uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)] mb-1 block">
+                  {t("filters.maxPrice")}
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  value={filters.maxPriceEur ?? ""}
+                  onChange={(e) => {
+                    const val = e.target.value !== "" ? Number(e.target.value) : null;
+                    applyFilters({ ...filters, maxPriceEur: val });
+                  }}
+                  placeholder="€"
+                  className="w-full px-2 py-1.5 rounded bg-[rgba(13,6,26,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-primary)]"
+                />
+              </div>
+
+              {/* Reset */}
+              {activeFilterCount > 0 && (
+                <div className="flex items-end">
+                  <button
+                    onClick={resetFilters}
+                    className="w-full btn btn-ghost text-xs"
+                  >
+                    <RotateCcw className="size-3" strokeWidth={2.5} />
+                    {t("filters.reset")}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </section>
+
       {/* Mode selector */}
       <section>
         <p className="text-xs uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)] mb-3">

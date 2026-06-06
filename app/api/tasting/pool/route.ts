@@ -6,7 +6,8 @@ export const dynamic = "force-dynamic";
 
 /**
  * Reports how many wines are in stock and which tasting modes are feasible.
- * Powers the mode picker (greys out modes the cellar can't support yet).
+ * Also returns the pool summary (country, region, color, price, rating) for
+ * building the filter UI client-side.
  */
 export async function GET() {
   const pool = await loadTastingCandidates();
@@ -15,5 +16,10 @@ export async function GET() {
   for (const m of TASTING_MODES) {
     modes[m] = modeFeasibility(m, pool);
   }
-  return NextResponse.json({ poolSize: pool.length, modes });
+
+  const countries = [...new Set(pool.map((c) => c.countryCode).filter(Boolean))].sort();
+  const regions = [...new Set(pool.map((c) => c.region).filter(Boolean))].sort();
+  const colors = [...new Set(pool.map((c) => c.color).filter(Boolean))].sort();
+
+  return NextResponse.json({ poolSize: pool.length, modes, countries, regions, colors });
 }

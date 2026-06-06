@@ -230,6 +230,21 @@
     "ocrScan": "Etiket scannen",
     "ocrScanning": "Scannen…",
     "ocrError": "Etiket onleesbaar — probeer opnieuw",
+    "kpi": {
+      "uniqueWines": "Unieke wijnen",
+      "cellarValue": "Kelderwaarde",
+      "avgRating": "Gem. critici-score",
+      "locations": "Locaties in gebruik"
+    },
+    "editDetails": "Details",
+    "purchasePrice": "Aankoopprijs (€)",
+    "purchaseDate": "Aankoopdatum",
+    "purchaseSource": "Bron / winkel",
+    "marketPrice": "Marktprijs",
+    "criticScore": "Critici-scores",
+    "noRatings": "Nog geen critici-scores",
+    "noPrices": "Nog geen marktprijzen",
+    "saved": "Opgeslagen",
     "csv": {
       "importTitle": "Voorraad importeren",
       "importHint": "Upload een CSV met kolommen: wine_key (of producer_name + cuvee_name + vintage), location_id, qty, en optioneel purchase_price_eur, purchase_source, notes, purchase_date.",
@@ -322,6 +337,17 @@
       "swap": "Vervangen",
       "remove": "Verwijderen",
       "decantMin": "Decanteren {minutes} min"
+    },
+    "filters": {
+      "title": "Pool filteren",
+      "country": "Land",
+      "region": "Regio",
+      "color": "Kleur",
+      "minRating": "Min. score",
+      "maxPrice": "Max. prijs (€)",
+      "all": "Alle",
+      "reset": "Filters wissen",
+      "active": "{count} actief"
     },
     "desc": {
       "origin": "{color, select, red {Een rode wijn} white {Een witte wijn} rose {Een rosé} sparkling {Een mousserende wijn} sweet {Een zoete wijn} fortified {Een versterkte wijn} orange {Een oranje wijn} other {Een wijn}} uit {appellation} in {region}.",

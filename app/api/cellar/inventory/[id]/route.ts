@@ -9,10 +9,20 @@ const PatchBody = z
     locationId: z.number().int().positive().optional(),
     qty: z.number().int().min(0).optional(),
     notes: z.string().nullable().optional(),
+    purchasePriceEur: z.number().nonnegative().nullable().optional(),
+    purchaseDate: z.string().nullable().optional(),
+    purchaseSource: z.string().max(200).nullable().optional(),
   })
-  .refine((v) => v.locationId !== undefined || v.qty !== undefined || v.notes !== undefined, {
-    message: "no fields to update",
-  });
+  .refine(
+    (v) =>
+      v.locationId !== undefined ||
+      v.qty !== undefined ||
+      v.notes !== undefined ||
+      v.purchasePriceEur !== undefined ||
+      v.purchaseDate !== undefined ||
+      v.purchaseSource !== undefined,
+    { message: "no fields to update" },
+  );
 
 export async function PATCH(
   req: NextRequest,
@@ -104,10 +114,19 @@ export async function PATCH(
       .set({ qty: parsed.data.qty })
       .where(eq(cellarInventory.inventoryId, inventoryId));
   }
-  if (parsed.data.notes !== undefined) {
+  const detailUpdates: Record<string, unknown> = {};
+  if (parsed.data.notes !== undefined) detailUpdates.notes = parsed.data.notes;
+  if (parsed.data.purchasePriceEur !== undefined) detailUpdates.purchasePriceEur = parsed.data.purchasePriceEur;
+  if (parsed.data.purchaseSource !== undefined) detailUpdates.purchaseSource = parsed.data.purchaseSource;
+  if (parsed.data.purchaseDate !== undefined) {
+    detailUpdates.purchaseDate = parsed.data.purchaseDate
+      ? new Date(parsed.data.purchaseDate)
+      : null;
+  }
+  if (Object.keys(detailUpdates).length > 0) {
     await db
       .update(cellarInventory)
-      .set({ notes: parsed.data.notes })
+      .set(detailUpdates)
       .where(eq(cellarInventory.inventoryId, inventoryId));
   }
 
