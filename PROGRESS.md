@@ -1,5 +1,10 @@
 # Achilles's Wines — Progress Log
 
+## 2026-06-07
+
+### Patroclus (Backend)
+- [Patroclus] Fix schema enums (error_class + resolution), add DLQ resolve API + stats API · files: db/schema.ts, app/api/dlq/[id]/resolve/route.ts, app/api/dlq/stats/route.ts
+
 ## 2026-05-31
 
 ### Patroclus (Data Steward)

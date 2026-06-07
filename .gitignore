@@ -10,6 +10,7 @@ next-env.d.ts
 data/
 raw/
 dlq/
+!app/api/dlq/
 logs/
 *.db
 *.db-wal
