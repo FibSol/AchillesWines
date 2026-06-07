@@ -92,6 +92,10 @@
       "colorRose": "Rosé",
       "colorSparkling": "Sparkling",
       "clearFilters": "Clear filters",
+      "intent": "Intention",
+      "intentDrinkNow": "Drink now",
+      "intentCellar10": "Cellar 10 years",
+      "intentInvest": "Investment",
       "noResults": "No wines match the filters."
     }
   },
@@ -245,6 +249,20 @@
     "noRatings": "No critic ratings yet",
     "noPrices": "No market prices yet",
     "saved": "Saved",
+    "filterSearch": "Search cellar…",
+    "filterAllColors": "All colours",
+    "filterAllRegions": "All regions",
+    "filterVintageFrom": "Vintage from",
+    "filterVintageTo": "to",
+    "filterReset": "Clear",
+    "filterResultsSuffix": "bottle(s)",
+    "colorRed": "Red",
+    "colorWhite": "White",
+    "colorRose": "Rosé",
+    "colorSparkling": "Sparkling",
+    "colorSweet": "Sweet",
+    "colorFortified": "Fortified",
+    "colorOrange": "Orange",
     "csv": {
       "importTitle": "Import inventory",
       "importHint": "Upload a CSV with columns: wine_key (or producer_name + cuvee_name + vintage), location_id, qty, and optionally purchase_price_eur, purchase_source, notes, purchase_date.",
@@ -278,6 +296,11 @@
     "budgetPerGuest": "Budget / guest / course",
     "fromCellar": "from cellar",
     "fromRegistry": "registry",
+    "consumeBtn": "Remove from cellar",
+    "consumeQty": "Quantity",
+    "consumeConfirm": "Confirm",
+    "consumeCancel": "Cancel",
+    "consumeSuccess": "Removed!",
     "courseTypes": {
       "aperitif": "Aperitif",
       "entree": "Starter",
@@ -410,14 +433,23 @@
     "subtitle": "Source coverage, multi-source ratio, DLQ.",
     "verifiedCount": "Verified ≥ 3 sources",
     "reviewedCount": "Single-source wines",
-    "needsReviewCount": "In quarantine"
+    "needsReviewCount": "In quarantine",
+    "stagingPending": "Staging pending",
+    "promotable": "Promotable (≥2 sources)",
+    "promoteBtn": "Promote now",
+    "promotePipeline": "Enrichment pipeline",
+    "dlqBreakdown": "DLQ by error class",
+    "viewQuarantine": "View quarantine",
+    "promoteSuccess": "{count} wines promoted"
   },
   "quarantine": {
     "title": "Quarantine",
     "subtitle": "Records rejected by Cassandra's gates. Manual review.",
     "approve": "Approve",
     "blacklist": "Blacklist",
-    "ignore": "Ignore"
+    "ignore": "Ignore",
+    "filterByClass": "Filter by class",
+    "allClasses": "All classes"
   },
   "confidence": {
     "verified": "Verified ({count} sources)",

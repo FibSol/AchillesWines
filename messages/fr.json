@@ -92,7 +92,11 @@
       "colorRose": "Rosé",
       "colorSparkling": "Effervescent",
       "clearFilters": "Effacer les filtres",
-      "noResults": "Aucun vin ne correspond aux filtres."
+      "noResults": "Aucun vin ne correspond aux filtres.",
+      "intent": "Intention",
+      "intentDrinkNow": "À boire de suite",
+      "intentCellar10": "À garder 10 ans",
+      "intentInvest": "Pour investir"
     }
   },
   "vintages": {
@@ -245,6 +249,20 @@
     "noRatings": "Aucune note critique disponible",
     "noPrices": "Aucun prix de marché disponible",
     "saved": "Enregistré",
+    "filterSearch": "Rechercher dans la cave…",
+    "filterAllColors": "Toutes couleurs",
+    "filterAllRegions": "Toutes les régions",
+    "filterVintageFrom": "Millésime de",
+    "filterVintageTo": "à",
+    "filterReset": "Effacer",
+    "filterResultsSuffix": "bouteille(s)",
+    "colorRed": "Rouge",
+    "colorWhite": "Blanc",
+    "colorRose": "Rosé",
+    "colorSparkling": "Effervescent",
+    "colorSweet": "Moelleux",
+    "colorFortified": "Fortifié",
+    "colorOrange": "Orange",
     "csv": {
       "importTitle": "Importer l'inventaire",
       "importHint": "Charge un CSV avec les colonnes : wine_key (ou producer_name + cuvee_name + vintage), location_id, qty, et optionnellement purchase_price_eur, purchase_source, notes, purchase_date.",
@@ -278,6 +296,11 @@
     "budgetPerGuest": "Budget / convive / service",
     "fromCellar": "depuis ta cave",
     "fromRegistry": "registre",
+    "consumeBtn": "Retirer de la cave",
+    "consumeQty": "Quantité",
+    "consumeConfirm": "Confirmer",
+    "consumeCancel": "Annuler",
+    "consumeSuccess": "Retiré !",
     "courseTypes": {
       "aperitif": "Apéritif",
       "entree": "Entrée",
@@ -392,14 +415,23 @@
     "subtitle": "Coverage par source, multi-source ratio, DLQ.",
     "verifiedCount": "Vins vérifiés ≥ 3 sources",
     "reviewedCount": "Vins 1-2 sources",
-    "needsReviewCount": "Vins en quarantaine"
+    "needsReviewCount": "Vins en quarantaine",
+    "stagingPending": "En attente d'enrichissement",
+    "promotable": "Promotables (≥2 sources)",
+    "promoteBtn": "Promouvoir maintenant",
+    "promotePipeline": "Pipeline d'enrichissement",
+    "dlqBreakdown": "DLQ par classe d'erreur",
+    "viewQuarantine": "Voir la quarantaine",
+    "promoteSuccess": "{count} vins promus"
   },
   "quarantine": {
     "title": "Quarantaine",
     "subtitle": "Records rejetés par les gates Cassandra. Review manuelle.",
     "approve": "Approuver",
     "blacklist": "Blacklister",
-    "ignore": "Ignorer"
+    "ignore": "Ignorer",
+    "filterByClass": "Filtrer par classe",
+    "allClasses": "Toutes les classes"
   },
   "confidence": {
     "verified": "Vérifié ({count} sources)",

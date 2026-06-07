@@ -1,16 +1,58 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { db } from "@/db";
 import { opsDeadLetter, dimSource } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { PageShell } from "@/components/page-shell";
-import { AlertTriangle, Check, Ban, EyeOff } from "lucide-react";
+import { Check } from "lucide-react";
+import { DlqCard } from "@/components/dlq-card";
+import { Link } from "@/i18n/navigation";
 
 export const dynamic = "force-dynamic";
 
-export default async function QuarantinePage({ params }: { params: Promise<{ locale: string }> }) {
+// All valid error classes for the filter pills
+const ERROR_CLASSES = [
+  "network_error",
+  "parse_error",
+  "schema_drift",
+  "auth_error",
+  "validation_error",
+  "region_gate",
+  "critic_enum",
+  "multi_source_rule",
+  "reconcile_error",
+  "fx_missing",
+  "unresolved_dim",
+  "unmatched_wine",
+  "scraper_not_applicable",
+  "source_dead",
+] as const;
+
+type ErrorClass = (typeof ERROR_CLASSES)[number];
+
+function isErrorClass(v: string): v is ErrorClass {
+  return (ERROR_CLASSES as readonly string[]).includes(v);
+}
+
+export default async function QuarantinePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ class?: string }>;
+}) {
   const { locale } = await params;
+  const sp = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations("quarantine");
+
+  const filterClass = sp.class && isErrorClass(sp.class) ? sp.class : null;
+
+  const whereClause = filterClass
+    ? and(
+        eq(opsDeadLetter.resolution, "pending"),
+        eq(opsDeadLetter.errorClass, filterClass)
+      )
+    : eq(opsDeadLetter.resolution, "pending");
 
   const rows = await db
     .select({
@@ -19,12 +61,49 @@ export default async function QuarantinePage({ params }: { params: Promise<{ loc
     })
     .from(opsDeadLetter)
     .leftJoin(dimSource, eq(opsDeadLetter.sourceKey, dimSource.sourceKey))
-    .where(eq(opsDeadLetter.resolution, "pending"))
+    .where(whereClause)
     .orderBy(desc(opsDeadLetter.createdAt))
     .limit(200);
 
+  const labels = {
+    approve: t("approve"),
+    blacklist: t("blacklist"),
+    ignore: t("ignore"),
+  };
+
   return (
-    <PageShell title={t("title")} subtitle={t("subtitle")} badge={`${rows.length} en attente`}>
+    <PageShell
+      title={t("title")}
+      subtitle={t("subtitle")}
+      badge={`${rows.length}${filterClass ? ` · ${filterClass}` : ""} en attente`}
+    >
+      {/* Filter bar */}
+      <div className="mb-6 flex flex-wrap gap-2 items-center">
+        <Link
+          href="/quarantaine"
+          className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
+            !filterClass
+              ? "bg-[color:var(--color-primary)] border-[color:var(--color-primary)] text-white"
+              : "border-[color:var(--color-border)] text-[color:var(--color-fg-muted)] hover:border-[color:var(--color-primary)] hover:text-[color:var(--color-fg)]"
+          }`}
+        >
+          {t("allClasses")}
+        </Link>
+        {ERROR_CLASSES.map((cls) => (
+          <Link
+            key={cls}
+            href={`/quarantaine?class=${cls}`}
+            className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
+              filterClass === cls
+                ? "bg-[color:var(--color-primary)] border-[color:var(--color-primary)] text-white"
+                : "border-[color:var(--color-border)] text-[color:var(--color-fg-muted)] hover:border-[color:var(--color-primary)] hover:text-[color:var(--color-fg)]"
+            }`}
+          >
+            {cls}
+          </Link>
+        ))}
+      </div>
+
       {rows.length === 0 ? (
         <div className="glass-card p-12 text-center">
           <ShieldCheckBadge />
@@ -34,44 +113,20 @@ export default async function QuarantinePage({ params }: { params: Promise<{ loc
       ) : (
         <div className="space-y-3">
           {rows.map(({ dlq, source }) => (
-            <div key={dlq.dlqId} className="glass-card p-4">
-              <div className="flex items-start gap-4">
-                <AlertTriangle className="size-5 text-[color:var(--color-coral-400)] mt-0.5 shrink-0" strokeWidth={2} />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <span className="badge badge-needs-review text-[10px]">{dlq.errorClass}</span>
-                    <span className="text-xs text-[color:var(--color-fg-subtle)]">
-                      {source?.sourceName ?? "—"} · {dlq.createdAt ? new Date(dlq.createdAt).toLocaleString(locale) : "—"}
-                    </span>
-                  </div>
-                  <p className="text-sm text-[color:var(--color-fg)] mb-2">{dlq.errorMessage}</p>
-                  {dlq.rawRecord != null && (
-                    <details className="mt-2">
-                      <summary className="text-xs text-[color:var(--color-fg-muted)] cursor-pointer hover:text-[color:var(--color-primary)]">
-                        Raw record
-                      </summary>
-                      <pre className="mt-2 text-[10px] bg-[color:var(--color-aubergine-950)] p-3 rounded-md overflow-x-auto font-mono">
-                        {JSON.stringify(dlq.rawRecord, null, 2)}
-                      </pre>
-                    </details>
-                  )}
-                </div>
-                <div className="flex flex-col gap-1.5 shrink-0">
-                  <button className="btn btn-primary text-xs">
-                    <Check className="size-3.5" strokeWidth={3} />
-                    {t("approve")}
-                  </button>
-                  <button className="btn btn-ghost text-xs">
-                    <Ban className="size-3.5" strokeWidth={2.5} />
-                    {t("blacklist")}
-                  </button>
-                  <button className="btn btn-ghost text-xs">
-                    <EyeOff className="size-3.5" strokeWidth={2.5} />
-                    {t("ignore")}
-                  </button>
-                </div>
-              </div>
-            </div>
+            <DlqCard
+              key={dlq.dlqId}
+              dlq={{
+                dlqId: dlq.dlqId,
+                errorClass: dlq.errorClass,
+                errorMessage: dlq.errorMessage,
+                rawRecord: dlq.rawRecord,
+                createdAt: dlq.createdAt,
+                sourceKey: dlq.sourceKey,
+              }}
+              sourceName={source?.sourceName ?? null}
+              locale={locale}
+              labels={labels}
+            />
           ))}
         </div>
       )}

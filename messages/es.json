@@ -92,6 +92,10 @@
       "colorRose": "Rosado",
       "colorSparkling": "Espumoso",
       "clearFilters": "Borrar filtros",
+      "intent": "Intención",
+      "intentDrinkNow": "Beber ahora",
+      "intentCellar10": "Guardar 10 años",
+      "intentInvest": "Inversión",
       "noResults": "Ningún vino coincide con los filtros."
     }
   },
@@ -245,6 +249,20 @@
     "noRatings": "Sin puntuaciones críticas aún",
     "noPrices": "Sin precios de mercado aún",
     "saved": "Guardado",
+    "filterSearch": "Buscar en bodega…",
+    "filterAllColors": "Todos los colores",
+    "filterAllRegions": "Todas las regiones",
+    "filterVintageFrom": "Añada desde",
+    "filterVintageTo": "hasta",
+    "filterReset": "Limpiar",
+    "filterResultsSuffix": "botella(s)",
+    "colorRed": "Tinto",
+    "colorWhite": "Blanco",
+    "colorRose": "Rosado",
+    "colorSparkling": "Espumoso",
+    "colorSweet": "Dulce",
+    "colorFortified": "Generoso",
+    "colorOrange": "Naranja",
     "csv": {
       "importTitle": "Importar inventario",
       "importHint": "Sube un CSV con columnas: wine_key (o producer_name + cuvee_name + vintage), location_id, qty, y opcionalmente purchase_price_eur, purchase_source, notes, purchase_date.",
@@ -278,6 +296,11 @@
     "budgetPerGuest": "Presupuesto / comensal / plato",
     "fromCellar": "de tu bodega",
     "fromRegistry": "registro",
+    "consumeBtn": "Sacar de la bodega",
+    "consumeQty": "Cantidad",
+    "consumeConfirm": "Confirmar",
+    "consumeCancel": "Cancelar",
+    "consumeSuccess": "¡Retirado!",
     "courseTypes": {
       "aperitif": "Aperitivo",
       "entree": "Entrante",
@@ -392,14 +415,23 @@
     "subtitle": "Cobertura por fuente, ratio multi-fuente, DLQ.",
     "verifiedCount": "Verificados ≥ 3 fuentes",
     "reviewedCount": "Vinos fuente única",
-    "needsReviewCount": "En cuarentena"
+    "needsReviewCount": "En cuarentena",
+    "stagingPending": "Staging pendiente",
+    "promotable": "Promovibles (≥2 fuentes)",
+    "promoteBtn": "Promover ahora",
+    "promotePipeline": "Pipeline de enriquecimiento",
+    "dlqBreakdown": "DLQ por clase de error",
+    "viewQuarantine": "Ver cuarentena",
+    "promoteSuccess": "{count} vinos promovidos"
   },
   "quarantine": {
     "title": "Cuarentena",
     "subtitle": "Registros rechazados por las gates de Cassandra. Revisión manual.",
     "approve": "Aprobar",
     "blacklist": "Lista negra",
-    "ignore": "Ignorar"
+    "ignore": "Ignorar",
+    "filterByClass": "Filtrar por clase",
+    "allClasses": "Todas las clases"
   },
   "confidence": {
     "verified": "Verificado ({count} fuentes)",

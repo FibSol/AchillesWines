@@ -92,6 +92,10 @@
       "colorRose": "Rosé",
       "colorSparkling": "Schaumwein",
       "clearFilters": "Filter löschen",
+      "intent": "Intention",
+      "intentDrinkNow": "Jetzt trinken",
+      "intentCellar10": "10 Jahre lagern",
+      "intentInvest": "Investment",
       "noResults": "Keine Weine entsprechen den Filtern."
     }
   },
@@ -245,6 +249,20 @@
     "noRatings": "Noch keine Kritiker-Bewertungen",
     "noPrices": "Noch keine Marktpreise",
     "saved": "Gespeichert",
+    "filterSearch": "Keller durchsuchen…",
+    "filterAllColors": "Alle Farben",
+    "filterAllRegions": "Alle Regionen",
+    "filterVintageFrom": "Jahrgang von",
+    "filterVintageTo": "bis",
+    "filterReset": "Zurücksetzen",
+    "filterResultsSuffix": "Flasche(n)",
+    "colorRed": "Rot",
+    "colorWhite": "Weiß",
+    "colorRose": "Rosé",
+    "colorSparkling": "Schaumwein",
+    "colorSweet": "Süß",
+    "colorFortified": "Likörwein",
+    "colorOrange": "Orange",
     "csv": {
       "importTitle": "Inventar importieren",
       "importHint": "Lade eine CSV mit Spalten hoch: wine_key (oder producer_name + cuvee_name + vintage), location_id, qty, optional purchase_price_eur, purchase_source, notes, purchase_date.",
@@ -278,6 +296,11 @@
     "budgetPerGuest": "Budget / Gast / Gang",
     "fromCellar": "aus deinem Keller",
     "fromRegistry": "Register",
+    "consumeBtn": "Aus dem Keller entnehmen",
+    "consumeQty": "Menge",
+    "consumeConfirm": "Bestätigen",
+    "consumeCancel": "Abbrechen",
+    "consumeSuccess": "Entnommen!",
     "courseTypes": {
       "aperitif": "Aperitif",
       "entree": "Vorspeise",
@@ -392,14 +415,23 @@
     "subtitle": "Quellenabdeckung, Multi-Source-Ratio, DLQ.",
     "verifiedCount": "Verifiziert ≥ 3 Quellen",
     "reviewedCount": "Einzelquelle Weine",
-    "needsReviewCount": "In Quarantäne"
+    "needsReviewCount": "In Quarantäne",
+    "stagingPending": "Staging ausstehend",
+    "promotable": "Beförderbar (≥2 Quellen)",
+    "promoteBtn": "Jetzt befördern",
+    "promotePipeline": "Anreicherungspipeline",
+    "dlqBreakdown": "DLQ nach Fehlerklasse",
+    "viewQuarantine": "Quarantäne anzeigen",
+    "promoteSuccess": "{count} Weine befördert"
   },
   "quarantine": {
     "title": "Quarantäne",
     "subtitle": "Records von Cassandras Gates abgelehnt. Manuelle Überprüfung.",
     "approve": "Annehmen",
     "blacklist": "Blacklisten",
-    "ignore": "Ignorieren"
+    "ignore": "Ignorieren",
+    "filterByClass": "Nach Klasse filtern",
+    "allClasses": "Alle Klassen"
   },
   "confidence": {
     "verified": "Verifiziert ({count} Quellen)",

@@ -92,6 +92,10 @@
       "colorRose": "Rosé",
       "colorSparkling": "Mousseux",
       "clearFilters": "Filters wissen",
+      "intent": "Intentie",
+      "intentDrinkNow": "Nu drinken",
+      "intentCellar10": "10 jaar bewaren",
+      "intentInvest": "Investering",
       "noResults": "Geen wijnen voldoen aan de filters."
     }
   },
@@ -245,6 +249,20 @@
     "noRatings": "Nog geen critici-scores",
     "noPrices": "Nog geen marktprijzen",
     "saved": "Opgeslagen",
+    "filterSearch": "Kelder doorzoeken…",
+    "filterAllColors": "Alle kleuren",
+    "filterAllRegions": "Alle regio's",
+    "filterVintageFrom": "Oogstjaar van",
+    "filterVintageTo": "tot",
+    "filterReset": "Wissen",
+    "filterResultsSuffix": "fles(sen)",
+    "colorRed": "Rood",
+    "colorWhite": "Wit",
+    "colorRose": "Rosé",
+    "colorSparkling": "Schuimwijn",
+    "colorSweet": "Zoet",
+    "colorFortified": "Versterkt",
+    "colorOrange": "Oranje",
     "csv": {
       "importTitle": "Voorraad importeren",
       "importHint": "Upload een CSV met kolommen: wine_key (of producer_name + cuvee_name + vintage), location_id, qty, en optioneel purchase_price_eur, purchase_source, notes, purchase_date.",
@@ -278,6 +296,11 @@
     "budgetPerGuest": "Budget / gast / gang",
     "fromCellar": "uit je kelder",
     "fromRegistry": "register",
+    "consumeBtn": "Uit kelder halen",
+    "consumeQty": "Aantal",
+    "consumeConfirm": "Bevestigen",
+    "consumeCancel": "Annuleren",
+    "consumeSuccess": "Verwijderd!",
     "courseTypes": {
       "aperitif": "Aperitief",
       "entree": "Voorgerecht",
@@ -392,14 +415,23 @@
     "subtitle": "Bronnen, multi-source ratio, DLQ.",
     "verifiedCount": "Geverifieerd ≥ 3 bronnen",
     "reviewedCount": "Eén-bron wijnen",
-    "needsReviewCount": "In quarantaine"
+    "needsReviewCount": "In quarantaine",
+    "stagingPending": "In behandeling",
+    "promotable": "Promoveerbaar (≥2 bronnen)",
+    "promoteBtn": "Nu promoveren",
+    "promotePipeline": "Verrijkingspijplijn",
+    "dlqBreakdown": "DLQ per foutklasse",
+    "viewQuarantine": "Quarantaine bekijken",
+    "promoteSuccess": "{count} wijnen gepromoveerd"
   },
   "quarantine": {
     "title": "Quarantaine",
     "subtitle": "Records geweigerd door Cassandra's gates. Manueel nakijken.",
     "approve": "Goedkeuren",
     "blacklist": "Blacklisten",
-    "ignore": "Negeren"
+    "ignore": "Negeren",
+    "filterByClass": "Filteren op klasse",
+    "allClasses": "Alle klassen"
   },
   "confidence": {
     "verified": "Geverifieerd ({count} bronnen)",

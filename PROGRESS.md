@@ -5,6 +5,9 @@
 ### Patroclus (Backend)
 - [Patroclus] Fix schema enums (error_class + resolution), add DLQ resolve API + stats API · files: db/schema.ts, app/api/dlq/[id]/resolve/route.ts, app/api/dlq/stats/route.ts
 
+### Odysseus (Frontend)
+- [Odysseus] Overhaul qualite page (pipeline funnel, DLQ breakdown, promote button), wire quarantaine DLQ resolution buttons · files: app/[locale]/qualite/page.tsx, app/[locale]/quarantaine/page.tsx, components/promote-button.tsx, components/dlq-card.tsx, messages/en.json, messages/fr.json, messages/nl.json, messages/de.json, messages/es.json, messages/it.json
+
 ## 2026-05-31
 
 ### Patroclus (Data Steward)
