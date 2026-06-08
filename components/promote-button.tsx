@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { RefreshCw } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface PromoteResult {
   promoted: number;
@@ -10,6 +11,7 @@ interface PromoteResult {
 }
 
 export function PromoteButton() {
+  const t = useTranslations("quality");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<PromoteResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -38,13 +40,21 @@ export function PromoteButton() {
         className="inline-flex items-center gap-2 rounded-lg bg-[color:var(--color-accent)] px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} strokeWidth={2} />
-        {loading ? "Promotion en cours…" : "Promouvoir maintenant"}
+        {loading ? t("promoteRunning") : t("promoteBtn")}
       </button>
       {result && (
         <p className="text-sm text-[color:var(--color-fg-muted)]">
-          <span className="font-semibold text-emerald-400">+{result.promoted}</span> vins promus ·{" "}
-          <span className="font-semibold text-[color:var(--color-fg)]">{result.pending.toLocaleString()}</span> en attente ·{" "}
-          <span className="text-[color:var(--color-fg-subtle)]">{result.totalFactPrice.toLocaleString()} total fact_price</span>
+          <span className="font-semibold text-emerald-400">
+            {t("promoteSuccess", { count: result.promoted })}
+          </span>{" "}
+          ·{" "}
+          <span className="font-semibold text-[color:var(--color-fg)]">
+            {result.pending.toLocaleString()}
+          </span>{" "}
+          {t("promotePending")} ·{" "}
+          <span className="text-[color:var(--color-fg-subtle)]">
+            {result.totalFactPrice.toLocaleString()} {t("promoteTotal")}
+          </span>
         </p>
       )}
       {error && (

@@ -36,25 +36,19 @@ export default async function QualityPage({ params }: { params: Promise<{ locale
     .from(stagingPriceCandidates)
     .where(eq(stagingPriceCandidates.needsReview, true));
 
-  // Promotable: wine_keys with ≥2 distinct sources in staging pending
+  // Truly promotable: ≥2 distinct sources AND price spread within ±15% tolerance
+  // MAX/MIN ≤ 1.35 approximates "both prices within ±15% of the median"
   const promotableRows = await db
     .select({ wineKey: stagingPriceCandidates.wineKey })
     .from(stagingPriceCandidates)
     .where(eq(stagingPriceCandidates.needsReview, true))
     .groupBy(stagingPriceCandidates.wineKey)
-    .having(sql`count(distinct ${stagingPriceCandidates.sourceKey}) >= 2`);
+    .having(
+      sql`count(distinct ${stagingPriceCandidates.sourceKey}) >= 2
+        AND min(${stagingPriceCandidates.amountEur}) > 0
+        AND max(${stagingPriceCandidates.amountEur}) / min(${stagingPriceCandidates.amountEur}) <= 1.35`
+    );
   const promotableCount = promotableRows.length;
-
-  // DLQ breakdown by error_class
-  const dlqBreakdown = await db
-    .select({
-      errorClass: opsDeadLetter.errorClass,
-      total: sql<number>`count(*)`,
-      pending: sql<number>`sum(case when ${opsDeadLetter.resolution} = 'pending' then 1 else 0 end)`,
-    })
-    .from(opsDeadLetter)
-    .groupBy(opsDeadLetter.errorClass)
-    .orderBy(sql`sum(case when ${opsDeadLetter.resolution} = 'pending' then 1 else 0 end) desc`);
 
   // Recent batches (20 rows)
   const recentBatches = await db
@@ -75,7 +69,7 @@ export default async function QualityPage({ params }: { params: Promise<{ locale
           className="inline-flex items-center gap-2 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
         >
           <Settings2 className="size-4" />
-          Lancer un scraper
+          {t("launchScraper")}
         </Link>
         <Link
           href="/quarantaine"
@@ -96,12 +90,12 @@ export default async function QualityPage({ params }: { params: Promise<{ locale
         <div className="stat-card">
           <Activity className="size-4 text-[color:var(--color-coral-400)]" strokeWidth={2} />
           <div className="mt-3 stat-card-value">{pricesNum.toLocaleString()}</div>
-          <div className="stat-card-label">fact_price</div>
+          <div className="stat-card-label">{t("pricesCount")}</div>
         </div>
         <div className="stat-card">
           <Activity className="size-4 text-[color:var(--color-coral-400)]" strokeWidth={2} />
           <div className="mt-3 stat-card-value">{Number(ratingsTotal?.n ?? 0).toLocaleString()}</div>
-          <div className="stat-card-label">fact_rating</div>
+          <div className="stat-card-label">{t("ratingsCount")}</div>
         </div>
         <div className="stat-card">
           <AlertTriangle className="size-4 text-[color:var(--color-warning)]" strokeWidth={2} />
@@ -124,13 +118,12 @@ export default async function QualityPage({ params }: { params: Promise<{ locale
       <section className="mt-10 space-y-3">
         <h2 className="text-xl font-semibold">{t("promotePipeline")}</h2>
         <div className="glass-card p-6">
-          {/* Funnel steps */}
           <div className="flex flex-wrap items-center gap-2 mb-6">
             <div className="flex flex-col items-center gap-1 px-4 py-3 rounded-lg bg-[rgba(255,255,255,0.05)]">
               <span className="text-2xl font-bold text-[color:var(--color-fg)]">
                 {stagingPendingNum.toLocaleString()}
               </span>
-              <span className="text-xs text-[color:var(--color-fg-muted)]">Staging (pending)</span>
+              <span className="text-xs text-[color:var(--color-fg-muted)]">{t("stagingPending")}</span>
             </div>
             <ArrowRight className="size-5 text-[color:var(--color-fg-subtle)] shrink-0" strokeWidth={1.5} />
             <div className="flex flex-col items-center gap-1 px-4 py-3 rounded-lg bg-[rgba(255,255,255,0.05)]">
@@ -144,64 +137,16 @@ export default async function QualityPage({ params }: { params: Promise<{ locale
               <span className="text-2xl font-bold text-[color:var(--color-accent)]">
                 {pricesNum.toLocaleString()}
               </span>
-              <span className="text-xs text-[color:var(--color-fg-muted)]">fact_price</span>
+              <span className="text-xs text-[color:var(--color-fg-muted)]">{t("pricesCount")}</span>
             </div>
           </div>
           <PromoteButton />
         </div>
       </section>
 
-      {/* DLQ breakdown */}
-      <section className="mt-10 space-y-3">
-        <h2 className="text-xl font-semibold">{t("dlqBreakdown")}</h2>
-        <div className="glass-card overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="text-xs uppercase text-[color:var(--color-fg-subtle)]">
-              <tr>
-                <th className="text-left p-3">error_class</th>
-                <th className="text-right p-3">pending</th>
-                <th className="text-right p-3">total</th>
-                <th className="text-left p-3">action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {dlqBreakdown.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="p-8 text-center text-[color:var(--color-fg-muted)]">
-                    DLQ vide.
-                  </td>
-                </tr>
-              ) : (
-                dlqBreakdown.map((row) => (
-                  <tr key={row.errorClass} className="border-t border-[color:var(--color-border)]">
-                    <td className="p-3 font-mono text-xs">
-                      <span className="badge badge-needs-review">{row.errorClass}</span>
-                    </td>
-                    <td className="p-3 text-right font-semibold text-[color:var(--color-warning)]">
-                      {Number(row.pending).toLocaleString()}
-                    </td>
-                    <td className="p-3 text-right text-[color:var(--color-fg-muted)]">
-                      {Number(row.total).toLocaleString()}
-                    </td>
-                    <td className="p-3">
-                      <Link
-                        href={`/quarantaine?class=${row.errorClass}`}
-                        className="text-xs text-[color:var(--color-primary)] underline hover:opacity-80"
-                      >
-                        Voir
-                      </Link>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
       {/* Recent batches */}
       <section className="mt-10 space-y-3">
-        <h2 className="text-xl font-semibold">Dernières ingestions</h2>
+        <h2 className="text-xl font-semibold">{t("recentBatches")}</h2>
         <div className="glass-card overflow-hidden">
           <table className="w-full text-sm">
             <thead className="text-xs uppercase text-[color:var(--color-fg-subtle)]">
@@ -218,7 +163,7 @@ export default async function QualityPage({ params }: { params: Promise<{ locale
               {recentBatches.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-[color:var(--color-fg-muted)]">
-                    Aucune ingestion. Lance le scraper depuis le sidecar Python.
+                    {t("noBatches")}
                   </td>
                 </tr>
               ) : (
