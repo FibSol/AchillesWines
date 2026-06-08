@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db/index";
 import { opsDeadLetter } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
+import { audit } from "@/lib/audit";
 
 const VALID_RESOLUTIONS = ["approved_manual", "blacklisted", "ignored"] as const;
 type ManualResolution = (typeof VALID_RESOLUTIONS)[number];
@@ -58,5 +59,6 @@ export async function POST(
     })
     .where(eq(opsDeadLetter.dlqId, dlqId));
 
+  await audit("dlq.resolve", { dlqId, resolution }, req);
   return NextResponse.json({ ok: true, dlqId, resolution });
 }

@@ -269,6 +269,14 @@ class WineSearcherScraper(BaseScraper):
         _logger.info("Scraping %d cuvées (limit=%s)", len(cuvees), limit)
 
         frankfurter_base = os.environ.get("FRANKFURTER_API_BASE", _FRANKFURTER_BASE).rstrip("/")
+        # SSRF guard: only trust the ECB-sourced Frankfurter host over HTTPS. An
+        # attacker who can set this env var could otherwise redirect FX lookups at
+        # an internal service. Anything else falls back to the safe default.
+        from urllib.parse import urlparse as _urlparse
+        _fb = _urlparse(frankfurter_base)
+        if _fb.scheme != "https" or not (_fb.hostname or "").endswith("frankfurter.app"):
+            _logger.warning("Ignoring untrusted FRANKFURTER_API_BASE=%r; using default", frankfurter_base)
+            frankfurter_base = _FRANKFURTER_BASE
         fx_cache: dict[str, Optional[float]] = {}
         fx_client = httpx.Client(timeout=15, follow_redirects=True) if HAS_HTTPX else None
 

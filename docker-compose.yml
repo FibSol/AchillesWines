@@ -75,7 +75,11 @@ services:
     restart: *restart
     logging: *default-logging
     ports:
-      - "${ACHILLES_HTTP_PORT:-8080}:80"
+      # Bind to loopback by default so a standalone compose deployment is NOT
+      # exposed on the LAN without auth. Override ACHILLES_BIND_ADDR=0.0.0.0 only
+      # if you front it with a VPN or an authenticating reverse proxy. (The HA
+      # add-on path is unaffected — it serves via HA ingress, not this port.)
+      - "${ACHILLES_BIND_ADDR:-127.0.0.1}:${ACHILLES_HTTP_PORT:-8080}:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - achilles-logs:/var/log/nginx

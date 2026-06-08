@@ -1,10 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 
+// ─── In-memory rate limiter ───────────────────────────────────────────────────
+// Caps Anthropic spend on this unauthenticated-friendly endpoint. Single-instance
+// (resets on restart), which is fine for the RPi/HA add-on. Behind HA ingress all
+// callers share the proxy IP, so the global cap is the real guard.
+const RL_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const RL_MAX_GLOBAL = 40;
+const RL_MAX_PER_IP = 20;
+const rlHits: { t: number; ip: string }[] = [];
+
+function isRateLimited(ip: string): boolean {
+  const cutoff = Date.now() - RL_WINDOW_MS;
+  while (rlHits.length && rlHits[0].t < cutoff) rlHits.shift();
+  if (rlHits.length >= RL_MAX_GLOBAL) return true;
+  if (rlHits.filter((h) => h.ip === ip).length >= RL_MAX_PER_IP) return true;
+  rlHits.push({ t: Date.now(), ip });
+  return false;
+}
+
+const ALLOWED_MEDIA = ["image/jpeg", "image/png", "image/gif", "image/webp"] as const;
+type AllowedMedia = (typeof ALLOWED_MEDIA)[number];
+
 export async function POST(req: NextRequest) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "ocr_unavailable" }, { status: 503 });
+  }
+
+  const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0]?.trim() || "local";
+  if (isRateLimited(ip)) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
   }
 
   let formData: FormData;
@@ -24,14 +50,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "image_too_large" }, { status: 413 });
   }
 
+  // Validate media type against an allowlist (reject anything non-image).
+  const declared = (imageFile.type || "image/jpeg").toLowerCase();
+  if (!ALLOWED_MEDIA.includes(declared as AllowedMedia)) {
+    return NextResponse.json({ error: "unsupported_media_type" }, { status: 415 });
+  }
+  const mediaType = declared as AllowedMedia;
+
   // Convert to base64
   const arrayBuffer = await imageFile.arrayBuffer();
   const base64 = Buffer.from(arrayBuffer).toString("base64");
-  const mediaType = (imageFile.type || "image/jpeg") as
-    | "image/jpeg"
-    | "image/png"
-    | "image/gif"
-    | "image/webp";
 
   const client = new Anthropic();
 

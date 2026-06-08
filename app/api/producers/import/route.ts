@@ -48,6 +48,9 @@ export async function POST(req: NextRequest) {
   if (!csvText.trim()) {
     return NextResponse.json({ error: "empty_csv" }, { status: 400 });
   }
+  if (csvText.length > 5 * 1024 * 1024) {
+    return NextResponse.json({ error: "csv_too_large" }, { status: 413 });
+  }
 
   const matrix = csvParse(csvText);
   if (matrix.length < 2) {
