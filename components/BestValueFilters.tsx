@@ -8,6 +8,11 @@ export interface BestValueFilterLabels {
   country: string;
   region: string;
   vintage: string;
+  color: string;
+  colorRed: string;
+  colorWhite: string;
+  colorRose: string;
+  colorSparkling: string;
   minPrice: string;
   maxPrice: string;
   minRating: string;
@@ -16,7 +21,24 @@ export interface BestValueFilterLabels {
   allRegions: string;
   allVintages: string;
   clearFilters: string;
+  intent: string;
+  intentDrinkNow: string;
+  intentCellar10: string;
+  intentInvest: string;
 }
+
+const COLOR_OPTIONS = [
+  { value: "red",      dot: "#A53860", label: (l: BestValueFilterLabels) => l.colorRed },
+  { value: "white",    dot: "#E5B25D", label: (l: BestValueFilterLabels) => l.colorWhite },
+  { value: "rosé",     dot: "#F4A7B9", label: (l: BestValueFilterLabels) => l.colorRose },
+  { value: "sparkling",dot: "#B8D4E8", label: (l: BestValueFilterLabels) => l.colorSparkling },
+] as const;
+
+const INTENT_OPTIONS = [
+  { value: "drink_now", icon: "🍷", label: (l: BestValueFilterLabels) => l.intentDrinkNow },
+  { value: "cellar_10", icon: "⏳", label: (l: BestValueFilterLabels) => l.intentCellar10 },
+  { value: "invest",    icon: "📈", label: (l: BestValueFilterLabels) => l.intentInvest },
+] as const;
 
 interface Props {
   countries: { code: string; name: string }[];
@@ -26,10 +48,10 @@ interface Props {
 }
 
 const selectCls =
-  "h-8 px-2 text-sm bg-[rgba(13,6,26,0.6)] border border-[color:var(--color-border)] rounded-md text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-coral-400)] cursor-pointer";
+  "h-8 px-2 text-sm bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] rounded-md text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)] cursor-pointer";
 
 const inputCls =
-  "h-8 px-2 text-sm bg-[rgba(13,6,26,0.6)] border border-[color:var(--color-border)] rounded-md text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-coral-400)] w-20 font-mono";
+  "h-8 px-2 text-sm bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] rounded-md text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-magenta-400)] w-20 font-mono";
 
 const labelCls =
   "block text-[10px] uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)] mb-1";
@@ -66,7 +88,7 @@ export function BestValueFilters({ countries, regions, vintages, labels }: Props
 
   const commitInput = (key: string, value: string) => updateParam(key, value);
 
-  const hasFilters = ["country", "region", "vintage", "minPrice", "maxPrice", "minRating", "maxRating"]
+  const hasFilters = ["country", "region", "vintage", "color", "minPrice", "maxPrice", "minRating", "maxRating", "drinkingIntent"]
     .some((k) => searchParams.has(k));
 
   return (
@@ -126,6 +148,61 @@ export function BestValueFilters({ countries, regions, vintages, labels }: Props
               <option key={v} value={String(v)}>{v}</option>
             ))}
           </select>
+        </div>
+
+        {/* ── Color ── */}
+        <div>
+          <label className={labelCls}>{labels.color}</label>
+          <div className="flex gap-1">
+            {COLOR_OPTIONS.map((c) => {
+              const active = searchParams.get("color") === c.value;
+              return (
+                <button
+                  key={c.value}
+                  type="button"
+                  title={c.label(labels)}
+                  onClick={() => updateParam("color", active ? "" : c.value)}
+                  className={`h-8 px-2 flex items-center gap-1.5 rounded-md border text-xs transition-colors ${
+                    active
+                      ? "border-[color:var(--color-magenta-400)] bg-[rgba(165,56,96,0.18)] text-[color:var(--color-fg)]"
+                      : "border-[color:var(--color-border)] bg-[rgba(9,8,15,0.6)] text-[color:var(--color-fg-muted)] hover:border-[color:var(--color-magenta-400)]"
+                  }`}
+                >
+                  <span className="size-2 rounded-full shrink-0" style={{ background: c.dot }} />
+                  <span className="hidden sm:inline">{c.label(labels)}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* divider */}
+        <div className="self-stretch w-px bg-[color:var(--color-border)] mx-1" />
+
+        {/* ── Drinking intent ── */}
+        <div>
+          <label className={labelCls}>{labels.intent}</label>
+          <div className="flex gap-1">
+            {INTENT_OPTIONS.map((opt) => {
+              const active = searchParams.get("drinkingIntent") === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  title={opt.label(labels)}
+                  onClick={() => updateParam("drinkingIntent", active ? "" : opt.value)}
+                  className={`h-8 px-2 flex items-center gap-1.5 rounded-md border text-xs transition-colors ${
+                    active
+                      ? "border-[color:var(--color-magenta-400)] bg-[rgba(165,56,96,0.18)] text-[color:var(--color-fg)]"
+                      : "border-[color:var(--color-border)] bg-[rgba(9,8,15,0.6)] text-[color:var(--color-fg-muted)] hover:border-[color:var(--color-magenta-400)]"
+                  }`}
+                >
+                  <span className="text-sm leading-none">{opt.icon}</span>
+                  <span className="hidden sm:inline">{opt.label(labels)}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* divider */}

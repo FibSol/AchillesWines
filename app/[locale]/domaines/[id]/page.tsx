@@ -306,13 +306,13 @@ async function loadSimilarWines(
 
 function ColorDot({ color }: { color: string }) {
   const map: Record<string, string> = {
-    red: "#b71f55",
-    white: "#FFD166",
-    "rosé": "#FF89A6",
-    sparkling: "#8EFEED",
-    sweet: "#FFB3C8",
-    fortified: "#553987",
-    orange: "#FF5C8A",
+    red: "#A53860",
+    white: "#E5B25D",
+    "rosé": "#E07898",
+    sparkling: "#F5D08C",
+    sweet: "#EDC072",
+    fortified: "#6E1F3D",
+    orange: "#C99440",
   };
   return (
     <span
@@ -412,8 +412,8 @@ export default async function DomainePage({
   };
 
   const coverageTierColor: Record<string, string> = {
-    notable: "#6fffe9",
-    mid: "#FFD166",
+    notable: "#E5B25D",
+    mid: "#E5B25D",
     long_tail: "rgba(250,247,245,0.4)",
   };
 

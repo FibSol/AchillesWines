@@ -207,7 +207,7 @@ export default async function DomainesPage({
                     {p.website && (
                       <div className="flex items-center gap-1.5">
                         <Globe className="size-3" strokeWidth={2.5} />
-                        <span className="text-[color:var(--color-coral-400)] truncate">
+                        <span className="text-[color:var(--color-champagne-400)] truncate">
                           {p.website.replace(/^https?:\/\//, "")}
                         </span>
                       </div>

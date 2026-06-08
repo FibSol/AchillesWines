@@ -15,12 +15,12 @@ import {
 } from "recharts";
 
 const SERIES_COLORS = [
-  "#FF5C8A",
-  "#6FFFE9",
-  "#FFB3C8",
-  "#FFD166",
-  "#8EFEED",
-  "#FF89A6",
+  "#A53860",
+  "#E5B25D",
+  "#E07898",
+  "#F5D08C",
+  "#5EA87A",
+  "#6E1F3D",
 ];
 
 export interface PricePoint {
@@ -53,7 +53,7 @@ function PriceTooltip({ active, payload, label }: { active?: boolean; payload?: 
   return (
     <div
       className="glass-card p-3 text-xs space-y-1"
-      style={{ background: "rgba(26, 11, 46, 0.94)", border: "1px solid rgba(255,92,138,0.4)" }}
+      style={{ background: "rgba(15, 14, 23, 0.94)", border: "1px solid rgba(165,56,96,0.4)" }}
     >
       <p className="font-mono text-[color:var(--color-fg-muted)]">{formatDate(label)}</p>
       {payload.map((p, i) => (
@@ -75,10 +75,10 @@ export function PriceHistoryChart({ data, sources, labels }: PriceHistoryChartPr
   }
 
   return (
-    <div className="glass-card p-4" style={{ background: "rgba(13, 6, 26, 0.7)" }}>
+    <div className="glass-card p-4" style={{ background: "rgba(9, 8, 15, 0.7)" }}>
       <ResponsiveContainer width="100%" height={320}>
         <LineChart data={data} margin={{ top: 16, right: 24, bottom: 16, left: 8 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,92,138,0.12)" />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(165,56,96,0.12)" />
           <XAxis
             dataKey="recordedAt"
             type="number"
@@ -87,12 +87,12 @@ export function PriceHistoryChart({ data, sources, labels }: PriceHistoryChartPr
             tickFormatter={formatDate}
             tick={{ fill: "rgba(250,247,245,0.55)", fontSize: 11 }}
             tickLine={false}
-            axisLine={{ stroke: "rgba(255,92,138,0.2)" }}
+            axisLine={{ stroke: "rgba(165,56,96,0.2)" }}
           />
           <YAxis
             tick={{ fill: "rgba(250,247,245,0.55)", fontSize: 11 }}
             tickLine={false}
-            axisLine={{ stroke: "rgba(255,92,138,0.2)" }}
+            axisLine={{ stroke: "rgba(165,56,96,0.2)" }}
             label={{
               value: labels.priceAxis,
               angle: -90,
@@ -147,10 +147,10 @@ function RatingTooltip({ active, payload }: { active?: boolean; payload?: Rating
   return (
     <div
       className="glass-card p-3 text-xs space-y-1"
-      style={{ background: "rgba(26, 11, 46, 0.94)", border: "1px solid rgba(255,92,138,0.4)" }}
+      style={{ background: "rgba(15, 14, 23, 0.94)", border: "1px solid rgba(165,56,96,0.4)" }}
     >
       <p className="font-semibold text-[#FAF7F5]">{d.criticCode}</p>
-      <p className="font-mono text-[#6fffe9]">{d.score.toFixed(1)} / 100</p>
+      <p className="font-mono text-[#E5B25D]">{d.score.toFixed(1)} / 100</p>
     </div>
   );
 }
@@ -165,21 +165,21 @@ export function RatingsByCriticChart({ data, labels }: RatingsByCriticChartProps
   }
 
   return (
-    <div className="glass-card p-4" style={{ background: "rgba(13, 6, 26, 0.7)" }}>
+    <div className="glass-card p-4" style={{ background: "rgba(9, 8, 15, 0.7)" }}>
       <ResponsiveContainer width="100%" height={320}>
         <BarChart data={data} margin={{ top: 16, right: 24, bottom: 16, left: 8 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,92,138,0.12)" />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(165,56,96,0.12)" />
           <XAxis
             dataKey="criticCode"
             tick={{ fill: "rgba(250,247,245,0.65)", fontSize: 11 }}
             tickLine={false}
-            axisLine={{ stroke: "rgba(255,92,138,0.2)" }}
+            axisLine={{ stroke: "rgba(165,56,96,0.2)" }}
           />
           <YAxis
             domain={[60, 100]}
             tick={{ fill: "rgba(250,247,245,0.55)", fontSize: 11 }}
             tickLine={false}
-            axisLine={{ stroke: "rgba(255,92,138,0.2)" }}
+            axisLine={{ stroke: "rgba(165,56,96,0.2)" }}
             label={{
               value: labels.scoreAxis,
               angle: -90,
@@ -187,7 +187,7 @@ export function RatingsByCriticChart({ data, labels }: RatingsByCriticChartProps
               style: { fill: "rgba(250,247,245,0.45)", fontSize: 11 },
             }}
           />
-          <Tooltip content={<RatingTooltip />} cursor={{ fill: "rgba(255,92,138,0.06)" }} />
+          <Tooltip content={<RatingTooltip />} cursor={{ fill: "rgba(165,56,96,0.06)" }} />
           <Bar dataKey="score" radius={[4, 4, 0, 0]}>
             {data.map((_, i) => (
               <RechartsCell key={i} fill={SERIES_COLORS[i % SERIES_COLORS.length]} fillOpacity={0.85} />
@@ -211,7 +211,7 @@ export function DrinkingWindowBand({ drinkFrom, drinkTo, label }: DrinkingWindow
   for (let y = drinkFrom; y <= drinkTo; y++) ticks.push(y);
 
   return (
-    <div className="glass-card p-5" style={{ background: "rgba(13, 6, 26, 0.7)" }}>
+    <div className="glass-card p-5" style={{ background: "rgba(9, 8, 15, 0.7)" }}>
       <p className="text-xs uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)] mb-3">
         {label}
       </p>
@@ -220,7 +220,7 @@ export function DrinkingWindowBand({ drinkFrom, drinkTo, label }: DrinkingWindow
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(90deg, rgba(255,92,138,0.55) 0%, rgba(255,92,138,0.85) 50%, rgba(255,92,138,0.55) 100%)",
+              "linear-gradient(90deg, rgba(165,56,96,0.55) 0%, rgba(165,56,96,0.85) 50%, rgba(165,56,96,0.55) 100%)",
           }}
         />
         <div className="absolute inset-0 flex items-center justify-center">

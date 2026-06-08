@@ -136,7 +136,7 @@ export default async function QuarantinePage({
 
 function ShieldCheckBadge() {
   return (
-    <div className="size-16 rounded-full bg-[rgba(111,255,233,0.1)] mx-auto flex items-center justify-center">
+    <div className="size-16 rounded-full bg-[rgba(229,178,93,0.1)] mx-auto flex items-center justify-center">
       <Check className="size-7 text-[color:var(--color-accent)]" strokeWidth={2.5} />
     </div>
   );

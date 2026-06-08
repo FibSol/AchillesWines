@@ -104,8 +104,10 @@ export default async function CellarPage({ params }: { params: Promise<{ locale:
   const totalBottles = bottles.reduce((a, b) => a + b.qty, 0);
   const totalCapacity = locations.reduce((a, l) => a + l.capacity, 0);
   const uniqueWines = new Set(bottles.map((b) => b.wineKey)).size;
+  // Use COALESCE(market price, purchase price) so wines without a purchase
+  // price still contribute their market value to the cellar total.
   const cellarValue = inventoryRows.reduce(
-    (a, r) => a + (r.qty * (r.purchasePriceEur ?? 0)),
+    (a, r) => a + (r.qty * (priceByWine.get(r.wineKey) ?? r.purchasePriceEur ?? 0)),
     0,
   );
   const locationsInUse = new Set(bottles.map((b) => b.locationId)).size;
@@ -148,6 +150,22 @@ export default async function CellarPage({ params }: { params: Promise<{ locale:
     noRatings: t("noRatings"),
     noPrices: t("noPrices"),
     saved: t("saved"),
+    filterSearch: t("filterSearch"),
+    filterAllColors: t("filterAllColors"),
+    filterAllRegions: t("filterAllRegions"),
+    filterVintageFrom: t("filterVintageFrom"),
+    filterVintageTo: t("filterVintageTo"),
+    filterReset: t("filterReset"),
+    filterResultsSuffix: t("filterResultsSuffix"),
+    colorLabels: {
+      red: t("colorRed"),
+      white: t("colorWhite"),
+      "rosé": t("colorRose"),
+      sparkling: t("colorSparkling"),
+      sweet: t("colorSweet"),
+      fortified: t("colorFortified"),
+      orange: t("colorOrange"),
+    },
   };
 
   const csvLabels: CsvLabels = {
@@ -181,24 +199,24 @@ export default async function CellarPage({ params }: { params: Promise<{ locale:
       {/* KPI row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <div className="stat-card">
-          <Wine className="size-4 text-[color:var(--color-coral-400)]" strokeWidth={2} />
+          <Wine className="size-4 text-[color:var(--color-champagne-400)]" strokeWidth={2} />
           <div className="mt-3 stat-card-value">{uniqueWines}</div>
           <div className="stat-card-label">{t("kpi.uniqueWines")}</div>
         </div>
         <div className="stat-card">
-          <TrendingDown className="size-4 text-[color:var(--color-coral-400)]" strokeWidth={2} />
+          <TrendingDown className="size-4 text-[color:var(--color-champagne-400)]" strokeWidth={2} />
           <div className="mt-3 stat-card-value">{cellarValue > 0 ? fmtEur.format(cellarValue) : "—"}</div>
           <div className="stat-card-label">{t("kpi.cellarValue")}</div>
         </div>
         <div className="stat-card">
-          <Star className="size-4 text-[color:var(--color-coral-400)]" strokeWidth={2} />
+          <Star className="size-4 text-[color:var(--color-champagne-400)]" strokeWidth={2} />
           <div className="mt-3 stat-card-value">
             {avgCriticRating !== null ? `${Math.round(avgCriticRating)}/100` : "—"}
           </div>
           <div className="stat-card-label">{t("kpi.avgRating")}</div>
         </div>
         <div className="stat-card">
-          <Warehouse className="size-4 text-[color:var(--color-coral-400)]" strokeWidth={2} />
+          <Warehouse className="size-4 text-[color:var(--color-champagne-400)]" strokeWidth={2} />
           <div className="mt-3 stat-card-value">{locationsInUse}</div>
           <div className="stat-card-label">{t("kpi.locations")}</div>
         </div>

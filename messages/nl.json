@@ -61,7 +61,18 @@
       "bestValueShort": "Beste P/K",
       "drinkNow": "Nu drinken",
       "promosNow": "Promoties",
-      "addToCellar": "Fles toevoegen"
+      "addToCellar": "Fles toevoegen",
+      "bestValueDesc": "Kwaliteit-prijsscore",
+      "drinkNowDesc": "Drinkvenster",
+      "vintagesDesc": "Regio × jaar",
+      "menuDesc": "Combinaties uit je kelder"
+    },
+    "status": {
+      "title": "Pipelinestatus",
+      "lastIngest": "Laatste import: {date}",
+      "noIngest": "Nog geen import. Start de scraper vanuit de Python-sidecar.",
+      "dlqOpen": "{count} openstaande DLQ",
+      "allClear": "Geen openstaande DLQ"
     }
   },
   "bestValue": {

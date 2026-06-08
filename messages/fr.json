@@ -61,7 +61,18 @@
       "bestValueShort": "Meilleurs Q/P",
       "drinkNow": "À boire maintenant",
       "promosNow": "Promos en cours",
-      "addToCellar": "Ajouter en cave"
+      "addToCellar": "Ajouter en cave",
+      "bestValueDesc": "Scoring qualité-prix",
+      "drinkNowDesc": "Fenêtre de dégustation",
+      "vintagesDesc": "Région × année",
+      "menuDesc": "Accords depuis ta cave"
+    },
+    "status": {
+      "title": "État du pipeline",
+      "lastIngest": "Dernière ingestion : {date}",
+      "noIngest": "Aucune ingestion encore. Lance le scraper depuis le sidecar Python.",
+      "dlqOpen": "{count} DLQ ouverts",
+      "allClear": "Aucun DLQ ouvert"
     }
   },
   "bestValue": {

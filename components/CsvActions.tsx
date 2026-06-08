@@ -138,30 +138,30 @@ export function CsvActions({
 
       <Dialog.Root open={dialogOpen} onOpenChange={(v) => !v && closeDialog()}>
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 bg-[rgba(13,6,26,0.7)] backdrop-blur-sm z-40" />
+          <Dialog.Overlay className="fixed inset-0 bg-[rgba(9,8,15,0.7)] backdrop-blur-sm z-40" />
           <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[min(560px,90vw)] max-h-[85vh] overflow-y-auto glass-card p-6">
             <div className="flex items-center justify-between mb-4">
               <Dialog.Title className="text-lg font-display text-[color:var(--color-fg)]">
                 {labels.importTitle}
               </Dialog.Title>
-              <Dialog.Close className="text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-coral-400)]">
+              <Dialog.Close className="text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-magenta-400)]">
                 <X className="size-4" />
               </Dialog.Close>
             </div>
 
             {busy && (
               <div className="flex items-center gap-3 p-4 text-sm text-[color:var(--color-fg-muted)]">
-                <Loader2 className="size-4 animate-spin text-[color:var(--color-coral-400)]" strokeWidth={2.5} />
+                <Loader2 className="size-4 animate-spin text-[color:var(--color-champagne-400)]" strokeWidth={2.5} />
                 {labels.importing}
               </div>
             )}
 
             {!busy && error && (
               <div className="space-y-3">
-                <div className="flex items-start gap-2 p-3 rounded-md border border-[color:var(--color-coral-700)] bg-[rgba(255,92,138,0.1)]">
-                  <AlertTriangle className="size-4 text-[color:var(--color-coral-400)] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-2 p-3 rounded-md border border-[color:var(--color-champagne-700)] bg-[rgba(165,56,96,0.1)]">
+                  <AlertTriangle className="size-4 text-[color:var(--color-champagne-400)] shrink-0 mt-0.5" />
                   <div className="text-sm">
-                    <p className="font-semibold text-[color:var(--color-coral-400)]">{labels.uploadError}</p>
+                    <p className="font-semibold text-[color:var(--color-champagne-400)]">{labels.uploadError}</p>
                     <p className="font-mono text-xs text-[color:var(--color-fg-muted)] mt-1">{error}</p>
                   </div>
                 </div>
@@ -173,10 +173,10 @@ export function CsvActions({
 
             {!busy && result && (
               <div className="space-y-4">
-                <div className="flex items-start gap-2 p-3 rounded-md border border-[color:var(--color-mint-600)] bg-[rgba(111,255,233,0.08)]">
-                  <CheckCircle2 className="size-5 text-[color:var(--color-mint-400)] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-2 p-3 rounded-md border border-[color:var(--color-success)] bg-[rgba(94,168,122,0.1)]">
+                  <CheckCircle2 className="size-5 text-[color:var(--color-success)] shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-semibold text-[color:var(--color-mint-400)]">{labels.resultDone}</p>
+                    <p className="font-semibold text-[color:var(--color-success)]">{labels.resultDone}</p>
                     <p className="text-xs text-[color:var(--color-fg-muted)] mt-1 font-mono">
                       {result.accepted}/{result.totalRows} {labels.resultAccepted}
                     </p>
@@ -185,7 +185,7 @@ export function CsvActions({
 
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div className="glass-card p-3">
-                    <p className="text-2xl font-display text-[color:var(--color-mint-400)]">
+                    <p className="text-2xl font-display text-[color:var(--color-success)]">
                       {result.inserted}
                     </p>
                     <p className="text-[10px] uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)]">
@@ -193,7 +193,7 @@ export function CsvActions({
                     </p>
                   </div>
                   <div className="glass-card p-3">
-                    <p className="text-2xl font-display text-[color:var(--color-coral-400)]">
+                    <p className="text-2xl font-display text-[color:var(--color-champagne-400)]">
                       {result.merged}
                     </p>
                     <p className="text-[10px] uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)]">
@@ -212,10 +212,10 @@ export function CsvActions({
 
                 {result.rejections.length > 0 && (
                   <details className="text-xs">
-                    <summary className="cursor-pointer text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-coral-400)] mb-2">
+                    <summary className="cursor-pointer text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-magenta-400)] mb-2">
                       {labels.resultDetails} ({result.rejections.length})
                     </summary>
-                    <div className="max-h-48 overflow-y-auto space-y-1 font-mono text-[10px] bg-[rgba(13,6,26,0.5)] rounded p-2">
+                    <div className="max-h-48 overflow-y-auto space-y-1 font-mono text-[10px] bg-[rgba(9,8,15,0.5)] rounded p-2">
                       {result.rejections.map((r) => (
                         <p key={r.row} className="text-[color:var(--color-fg-muted)]">
                           <span className="text-[color:var(--color-warning)]">row {r.row}:</span>{" "}

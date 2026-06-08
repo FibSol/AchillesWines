@@ -31,13 +31,13 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Toolti
   return (
     <div
       className="glass-card p-3 text-sm space-y-1"
-      style={{ background: "rgba(26, 11, 46, 0.92)", border: "1px solid rgba(255,92,138,0.4)" }}
+      style={{ background: "rgba(15, 14, 23, 0.92)", border: "1px solid rgba(165,56,96,0.4)" }}
     >
       <p className="font-semibold text-[#FAF7F5] leading-tight max-w-[200px]">{d.canonicalName}</p>
       <p className="text-[rgba(250,247,245,0.7)]">
-        <span className="font-mono text-[#FF5C8A]">€{d.priceEur.toFixed(2)}</span>
+        <span className="font-mono text-[#E5B25D]">€{d.priceEur.toFixed(2)}</span>
         {" · "}
-        <span className="font-mono text-[#6fffe9]">{d.ratingNorm100.toFixed(1)}/100</span>
+        <span className="font-mono text-[#E5B25D]">{d.ratingNorm100.toFixed(1)}/100</span>
       </p>
       <p className="text-xs text-[rgba(250,247,245,0.5)]">
         score {d.score.toFixed(2)}
@@ -79,18 +79,18 @@ export function BestValueScatter({ data }: BestValueScatterProps) {
   return (
     <div
       className="glass-card p-4"
-      style={{ background: "rgba(13, 6, 26, 0.7)" }}
+      style={{ background: "rgba(9, 8, 15, 0.7)" }}
     >
       <ResponsiveContainer width="100%" height={340}>
         <ScatterChart margin={{ top: 16, right: 24, bottom: 32, left: 16 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,92,138,0.12)" />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(165,56,96,0.12)" />
           <XAxis
             dataKey="priceEur"
             type="number"
             name="Price (€)"
             tick={{ fill: "rgba(250,247,245,0.55)", fontSize: 11 }}
             tickLine={false}
-            axisLine={{ stroke: "rgba(255,92,138,0.2)" }}
+            axisLine={{ stroke: "rgba(165,56,96,0.2)" }}
           >
             <Label
               value="Price (€)"
@@ -106,7 +106,7 @@ export function BestValueScatter({ data }: BestValueScatterProps) {
             domain={[60, 100]}
             tick={{ fill: "rgba(250,247,245,0.55)", fontSize: 11 }}
             tickLine={false}
-            axisLine={{ stroke: "rgba(255,92,138,0.2)" }}
+            axisLine={{ stroke: "rgba(165,56,96,0.2)" }}
           >
             <Label
               value="Rating /100"
@@ -115,10 +115,10 @@ export function BestValueScatter({ data }: BestValueScatterProps) {
               style={{ fill: "rgba(250,247,245,0.45)", fontSize: 11 }}
             />
           </YAxis>
-          <Tooltip content={<CustomTooltip />} cursor={{ stroke: "rgba(255,92,138,0.3)" }} />
+          <Tooltip content={<CustomTooltip />} cursor={{ stroke: "rgba(165,56,96,0.3)" }} />
           <Scatter
             data={chartData}
-            fill="#FF5C8A"
+            fill="#A53860"
             fillOpacity={0.75}
             shape={(props: ScatterShapeProps) => {
               const cx = typeof props.cx === "number" ? props.cx : 0;
@@ -130,9 +130,9 @@ export function BestValueScatter({ data }: BestValueScatterProps) {
                   cx={cx}
                   cy={cy}
                   r={r}
-                  fill="#FF5C8A"
+                  fill="#A53860"
                   fillOpacity={0.75}
-                  stroke="#FF5C8A"
+                  stroke="#A53860"
                   strokeWidth={1}
                   strokeOpacity={0.4}
                 />

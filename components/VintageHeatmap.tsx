@@ -47,8 +47,8 @@ type TierStyle = { bg: string; text: string; border: string };
 
 function tierStyle(tier: 1 | 2 | 3 | 4 | 5): TierStyle {
   switch (tier) {
-    case 5: return { bg: "rgba(229,178,93,0.97)",  text: "#1A0B2E", border: "rgba(229,178,93,0.6)"  };
-    case 4: return { bg: "rgba(255,92,138,0.95)",  text: "#1A0B2E", border: "rgba(255,92,138,0.6)"  };
+    case 5: return { bg: "rgba(229,178,93,0.97)",  text: "#0F0E17", border: "rgba(229,178,93,0.6)"  };
+    case 4: return { bg: "rgba(165,56,96,0.95)",  text: "#0F0E17", border: "rgba(165,56,96,0.6)"  };
     case 3: return { bg: "rgba(155,100,210,0.82)", text: "#FAF7F5", border: "rgba(155,100,210,0.5)" };
     case 2: return { bg: "rgba(165,56,96,0.60)",   text: "rgba(250,247,245,0.85)", border: "rgba(165,56,96,0.4)"  };
     case 1: return { bg: "rgba(50,20,38,0.85)",    text: "rgba(250,247,245,0.38)", border: "rgba(165,56,96,0.15)" };
@@ -164,8 +164,8 @@ export function VintageHeatmap({ cells, regions, years, labels }: Props) {
           onClick={() => setCountryFilter("ALL")}
           className={`text-xs px-3 py-1 rounded-full border transition ${
             countryFilter === "ALL"
-              ? "border-[color:var(--color-coral-400)] bg-[rgba(255,92,138,0.18)] text-[color:var(--color-coral-400)]"
-              : "border-[color:var(--color-border)] text-[color:var(--color-fg-muted)] hover:border-[color:var(--color-coral-400)]"
+              ? "border-[color:var(--color-magenta-400)] bg-[rgba(165,56,96,0.18)] text-[color:var(--color-magenta-400)]"
+              : "border-[color:var(--color-border)] text-[color:var(--color-fg-muted)] hover:border-[color:var(--color-magenta-400)]"
           }`}
         >
           All
@@ -177,8 +177,8 @@ export function VintageHeatmap({ cells, regions, years, labels }: Props) {
             onClick={() => setCountryFilter(cc)}
             className={`text-xs px-3 py-1 rounded-full border transition font-mono ${
               countryFilter === cc
-                ? "border-[color:var(--color-coral-400)] bg-[rgba(255,92,138,0.18)] text-[color:var(--color-coral-400)]"
-                : "border-[color:var(--color-border)] text-[color:var(--color-fg-muted)] hover:border-[color:var(--color-coral-400)]"
+                ? "border-[color:var(--color-magenta-400)] bg-[rgba(165,56,96,0.18)] text-[color:var(--color-magenta-400)]"
+                : "border-[color:var(--color-border)] text-[color:var(--color-fg-muted)] hover:border-[color:var(--color-magenta-400)]"
             }`}
           >
             {cc}
@@ -199,18 +199,18 @@ export function VintageHeatmap({ cells, regions, years, labels }: Props) {
           );
         })}
         <div className="flex items-center gap-1.5">
-          <div className="rounded-[3px] flex-shrink-0" style={{ width: 14, height: 14, background: "rgba(255,92,138,0.22)", border: "1px solid rgba(255,92,138,0.18)" }} />
+          <div className="rounded-[3px] flex-shrink-0" style={{ width: 14, height: 14, background: "rgba(165,56,96,0.22)", border: "1px solid rgba(165,56,96,0.18)" }} />
           <span>{labels.densityLabel}</span>
         </div>
       </div>
 
       {/* Heatmap grid */}
-      <div ref={scrollRef} className="glass-card p-4 overflow-x-auto" style={{ background: "rgba(13,6,26,0.7)" }}>
+      <div ref={scrollRef} className="glass-card p-4 overflow-x-auto" style={{ background: "rgba(9,8,15,0.7)" }}>
         <div style={{ minWidth: `${LABEL_W + visibleYears.length * (CELL_W + 2)}px` }}>
           {/* Year header */}
           <div className="flex">
             {/* Sticky corner spacer */}
-            <div style={{ width: `${LABEL_W}px`, flexShrink: 0, position: "sticky", left: 0, zIndex: 2, background: "rgba(13,6,26,0.95)" }} />
+            <div style={{ width: `${LABEL_W}px`, flexShrink: 0, position: "sticky", left: 0, zIndex: 2, background: "rgba(9,8,15,0.95)" }} />
             {visibleYears.map(y => (
               <div key={y} style={{ width: `${CELL_W}px`, flexShrink: 0, fontSize: "9px", marginRight: "2px" }} className="text-center text-[rgba(250,247,245,0.38)] select-none">
                 {String(y).slice(2)}
@@ -231,13 +231,13 @@ export function VintageHeatmap({ cells, regions, years, labels }: Props) {
                   >
                     <div
                       className="flex items-center gap-1.5 flex-shrink-0 pr-2"
-                      style={{ width: `${LABEL_W}px`, position: "sticky", left: 0, zIndex: 1, background: "rgba(13,6,26,0.95)" }}
+                      style={{ width: `${LABEL_W}px`, position: "sticky", left: 0, zIndex: 1, background: "rgba(9,8,15,0.95)" }}
                     >
                       <ChevronRight
-                        className={`size-3 text-[rgba(250,247,245,0.4)] group-hover:text-[color:var(--color-coral-400)] transition-transform ${isCollapsed ? "" : "rotate-90"}`}
+                        className={`size-3 text-[rgba(250,247,245,0.4)] group-hover:text-[color:var(--color-magenta-400)] transition-transform ${isCollapsed ? "" : "rotate-90"}`}
                         strokeWidth={2.5}
                       />
-                      <span className="text-[11px] font-mono font-semibold text-[rgba(250,247,245,0.55)] group-hover:text-[color:var(--color-coral-400)] transition-colors uppercase tracking-wider">
+                      <span className="text-[11px] font-mono font-semibold text-[rgba(250,247,245,0.55)] group-hover:text-[color:var(--color-magenta-400)] transition-colors uppercase tracking-wider">
                         {country}
                       </span>
                       <span className="text-[9px] text-[rgba(250,247,245,0.25)] ml-1">
@@ -256,7 +256,7 @@ export function VintageHeatmap({ cells, regions, years, labels }: Props) {
                           {/* Region label */}
                           <div
                             className="flex items-center flex-shrink-0 pr-2 overflow-hidden pl-5"
-                            style={{ width: `${LABEL_W}px`, position: "sticky", left: 0, zIndex: 1, background: "rgba(13,6,26,0.95)" }}
+                            style={{ width: `${LABEL_W}px`, position: "sticky", left: 0, zIndex: 1, background: "rgba(9,8,15,0.95)" }}
                             title={region}
                           >
                             <span className="text-[rgba(250,247,245,0.58)] text-[11px] font-medium truncate">
@@ -278,17 +278,17 @@ export function VintageHeatmap({ cells, regions, years, labels }: Props) {
                               const tier = scoreToTier(avgScore);
                               const s = tierStyle(tier);
                               bg = s.bg; textColor = s.text;
-                              borderColor = isSelected ? "rgba(255,92,138,0.9)" : s.border;
+                              borderColor = isSelected ? "rgba(165,56,96,0.9)" : s.border;
                               label = tierLabel(tier, labels.tiers);
                             } else if (wineCount > 0) {
                               const t = Math.min(1, wineCount / Math.max(1, globalMaxCount));
-                              bg = `rgba(255,92,138,${(0.08 + t * 0.28).toFixed(2)})`;
+                              bg = `rgba(165,56,96,${(0.08 + t * 0.28).toFixed(2)})`;
                               textColor = "rgba(250,247,245,0.5)";
-                              borderColor = isSelected ? "rgba(255,92,138,0.9)" : "rgba(255,92,138,0.18)";
+                              borderColor = isSelected ? "rgba(165,56,96,0.9)" : "rgba(165,56,96,0.18)";
                             } else {
                               bg = "rgba(255,255,255,0.03)";
                               textColor = "transparent";
-                              borderColor = isSelected ? "rgba(255,92,138,0.9)" : "rgba(255,255,255,0.04)";
+                              borderColor = isSelected ? "rgba(165,56,96,0.9)" : "rgba(255,255,255,0.04)";
                             }
 
                             return (

@@ -35,8 +35,8 @@ export function PageShell({
 export function ComingSoon({ feature, ownerRole }: { feature: string; ownerRole: string }) {
   return (
     <div className="glass-card p-12 flex flex-col items-center justify-center text-center">
-      <div className="size-16 rounded-full bg-[rgba(255,92,138,0.1)] flex items-center justify-center mb-6">
-        <Sparkles className="size-7 text-[color:var(--color-coral-400)]" strokeWidth={2} />
+      <div className="size-16 rounded-full bg-[rgba(165,56,96,0.1)] flex items-center justify-center mb-6">
+        <Sparkles className="size-7 text-[color:var(--color-champagne-400)]" strokeWidth={2} />
       </div>
       <h3 className="text-2xl font-display">Bientôt</h3>
       <p className="mt-3 text-[color:var(--color-fg-muted)] max-w-md">{feature}</p>

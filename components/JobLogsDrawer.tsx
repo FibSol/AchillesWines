@@ -81,14 +81,14 @@ export function JobLogsDrawer({ jobId, jobStatus, sourceCode, onClose }: Props) 
   return (
     <Dialog.Root open={open} onOpenChange={(v) => !v && onClose()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-[rgba(13,6,26,0.6)] backdrop-blur-sm z-40" />
+        <Dialog.Overlay className="fixed inset-0 bg-[rgba(9,8,15,0.6)] backdrop-blur-sm z-40" />
         <Dialog.Content
           className="fixed top-0 right-0 bottom-0 z-50 w-[min(720px,92vw)] glass-card border-l border-[color:var(--color-border)] flex flex-col"
           style={{ borderRadius: 0 }}
         >
           <div className="flex items-center justify-between p-4 border-b border-[color:var(--color-border)]">
             <div className="flex items-center gap-3 min-w-0">
-              <ScrollText className="size-4 text-[color:var(--color-coral-400)] shrink-0" strokeWidth={2.5} />
+              <ScrollText className="size-4 text-[color:var(--color-champagne-400)] shrink-0" strokeWidth={2.5} />
               <div className="min-w-0">
                 <Dialog.Title className="font-display text-base text-[color:var(--color-fg)] truncate">
                   {sourceCode ?? "scraper"} · <span className="font-mono text-sm text-[color:var(--color-fg-muted)]">{jobId?.slice(-8)}</span>
@@ -99,9 +99,9 @@ export function JobLogsDrawer({ jobId, jobStatus, sourceCode, onClose }: Props) 
                   <span
                     className={
                       jobStatus === "running"
-                        ? "text-[color:var(--color-mint-400)]"
+                        ? "text-[color:var(--color-success)]"
                         : jobStatus === "failed"
-                          ? "text-[color:var(--color-coral-400)]"
+                          ? "text-[color:var(--color-champagne-400)]"
                           : "text-[color:var(--color-fg-muted)]"
                     }
                   >
@@ -116,14 +116,14 @@ export function JobLogsDrawer({ jobId, jobStatus, sourceCode, onClose }: Props) 
                   type="checkbox"
                   checked={autoRefresh}
                   onChange={(e) => setAutoRefresh(e.target.checked)}
-                  className="size-3 accent-[color:var(--color-coral-500)]"
+                  className="size-3 accent-[color:var(--color-magenta-500)]"
                 />
                 auto-refresh
               </label>
               {loading && (
                 <RefreshCw className="size-3 text-[color:var(--color-fg-subtle)] animate-spin" strokeWidth={2.5} />
               )}
-              <Dialog.Close className="text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-coral-400)]">
+              <Dialog.Close className="text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-magenta-400)]">
                 <X className="size-4" />
               </Dialog.Close>
             </div>
@@ -131,10 +131,10 @@ export function JobLogsDrawer({ jobId, jobStatus, sourceCode, onClose }: Props) 
 
           <div
             ref={scrollRef}
-            className="flex-1 overflow-y-auto font-mono text-[11px] leading-relaxed p-4 bg-[rgba(13,6,26,0.7)]"
+            className="flex-1 overflow-y-auto font-mono text-[11px] leading-relaxed p-4 bg-[rgba(9,8,15,0.7)]"
           >
             {error && (
-              <p className="text-[color:var(--color-coral-400)]">error: {error}</p>
+              <p className="text-[color:var(--color-champagne-400)]">error: {error}</p>
             )}
             {!error && data && data.lines.length === 0 && (
               <p className="text-[color:var(--color-fg-subtle)] italic">
@@ -148,11 +148,11 @@ export function JobLogsDrawer({ jobId, jobStatus, sourceCode, onClose }: Props) 
                 key={i}
                 className={
                   /\b(error|fail|exception|traceback)\b/i.test(line)
-                    ? "text-[color:var(--color-coral-400)]"
+                    ? "text-[color:var(--color-champagne-400)]"
                     : /\b(warn|warning|retry)\b/i.test(line)
                       ? "text-[color:var(--color-warning)]"
                       : /\b(ok|success|done|inserted|promoted)\b/i.test(line)
-                        ? "text-[color:var(--color-mint-400)]"
+                        ? "text-[color:var(--color-success)]"
                         : "text-[color:var(--color-fg-muted)]"
                 }
               >

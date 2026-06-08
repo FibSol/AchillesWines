@@ -13,9 +13,9 @@ import {
 } from "recharts";
 
 const SERIES_COLORS = [
-  "#FF5C8A", "#6FFFE9", "#FFD166", "#FFB3C8",
-  "#8EFEED", "#FF89A6", "#A53860", "#E5B25D",
-  "#c97aee", "#7ECCD4",
+  "#A53860", "#E5B25D", "#E07898", "#F5D08C",
+  "#5EA87A", "#6E1F3D", "#C99440", "#c44472",
+  "#EDC072", "#8a2a4e",
 ];
 
 export interface CuveeYearPoint {
@@ -77,7 +77,7 @@ export function CuveeEvolutionChart({ data, cuveeNames, labels }: CuveeEvolution
   }
 
   return (
-    <div className="glass-card p-5 space-y-4" style={{ background: "rgba(13,6,26,0.7)" }}>
+    <div className="glass-card p-5 space-y-4" style={{ background: "rgba(9,8,15,0.7)" }}>
       {/* Controls row */}
       <div className="flex flex-wrap gap-3 items-start">
         {/* Metric toggle */}
@@ -132,21 +132,21 @@ export function CuveeEvolutionChart({ data, cuveeNames, labels }: CuveeEvolution
       ) : (
         <ResponsiveContainer width="100%" height={320}>
           <LineChart data={chartData} margin={{ top: 8, right: 24, bottom: 8, left: 8 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,92,138,0.1)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(165,56,96,0.1)" />
             <XAxis
               dataKey="vintage"
               type="number"
               domain={["dataMin", "dataMax"]}
               tick={{ fill: "rgba(250,247,245,0.55)", fontSize: 11 }}
               tickLine={false}
-              axisLine={{ stroke: "rgba(255,92,138,0.2)" }}
+              axisLine={{ stroke: "rgba(165,56,96,0.2)" }}
               allowDecimals={false}
             />
             <YAxis
               domain={metric === "rating" ? [60, 100] : ["auto", "auto"]}
               tick={{ fill: "rgba(250,247,245,0.55)", fontSize: 11 }}
               tickLine={false}
-              axisLine={{ stroke: "rgba(255,92,138,0.2)" }}
+              axisLine={{ stroke: "rgba(165,56,96,0.2)" }}
               label={{
                 value: metric === "price" ? labels.priceAxis : labels.ratingAxis,
                 angle: -90,
@@ -156,8 +156,8 @@ export function CuveeEvolutionChart({ data, cuveeNames, labels }: CuveeEvolution
             />
             <Tooltip
               contentStyle={{
-                background: "rgba(26,11,46,0.96)",
-                border: "1px solid rgba(255,92,138,0.35)",
+                background: "rgba(15,14,23,0.96)",
+                border: "1px solid rgba(165,56,96,0.35)",
                 borderRadius: 8,
                 fontSize: 12,
               }}

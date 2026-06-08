@@ -77,7 +77,7 @@ export function DlqCard({ dlq, sourceName, locale, labels }: DlqCardProps) {
     <div className="glass-card p-4">
       <div className="flex items-start gap-4">
         <AlertTriangle
-          className="size-5 text-[color:var(--color-coral-400)] mt-0.5 shrink-0"
+          className="size-5 text-[color:var(--color-champagne-400)] mt-0.5 shrink-0"
           strokeWidth={2}
         />
         <div className="flex-1 min-w-0">
@@ -94,7 +94,7 @@ export function DlqCard({ dlq, sourceName, locale, labels }: DlqCardProps) {
               <summary className="text-xs text-[color:var(--color-fg-muted)] cursor-pointer hover:text-[color:var(--color-primary)]">
                 Raw record
               </summary>
-              <pre className="mt-2 text-[10px] bg-[color:var(--color-aubergine-950)] p-3 rounded-md overflow-x-auto font-mono">
+              <pre className="mt-2 text-[10px] bg-[color:var(--color-noir-950)] p-3 rounded-md overflow-x-auto font-mono">
                 {JSON.stringify(dlq.rawRecord, null, 2)}
               </pre>
             </details>

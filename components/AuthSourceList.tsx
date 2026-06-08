@@ -90,7 +90,7 @@ export function AuthSourceList({
           href="https://github.com/FibSol/AchillesWines/blob/main/docs/AUTH.md"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[color:var(--color-coral-400)] hover:text-[color:var(--color-accent)] inline-flex items-center gap-1"
+          className="text-[color:var(--color-magenta-400)] hover:text-[color:var(--color-accent)] inline-flex items-center gap-1"
         >
           {labels.docsLink}
           <ExternalLink className="size-3" strokeWidth={2.5} />
@@ -120,7 +120,7 @@ export function AuthSourceList({
                       href={r.baseUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-coral-400)] inline-flex items-center gap-1 mt-0.5"
+                      className="text-xs text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-magenta-400)] inline-flex items-center gap-1 mt-0.5"
                     >
                       {r.baseUrl.replace(/^https?:\/\//, "")}
                       <ExternalLink className="size-3" strokeWidth={2.5} />
@@ -156,7 +156,7 @@ export function AuthSourceList({
                 <summary className="cursor-pointer text-[10px] uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)]">
                   {labels.envVars}
                 </summary>
-                <div className="mt-2 space-y-1 font-mono text-[11px] text-[color:var(--color-fg-muted)] bg-[rgba(13,6,26,0.5)] rounded p-2">
+                <div className="mt-2 space-y-1 font-mono text-[11px] text-[color:var(--color-fg-muted)] bg-[rgba(9,8,15,0.5)] rounded p-2">
                   <p>{r.envUserVar}=…</p>
                   <p>{r.envPassVar}=…</p>
                 </div>
@@ -166,13 +166,13 @@ export function AuthSourceList({
                 <div
                   className={`mt-3 p-3 rounded-md text-xs ${
                     result.ok
-                      ? "border border-[color:var(--color-mint-600)] bg-[rgba(111,255,233,0.08)]"
-                      : "border border-[color:var(--color-coral-700)] bg-[rgba(255,92,138,0.08)]"
+                      ? "border border-[color:var(--color-success)] bg-[rgba(94,168,122,0.1)]"
+                      : "border border-[color:var(--color-champagne-700)] bg-[rgba(165,56,96,0.08)]"
                   }`}
                 >
                   {result.ok ? (
                     <div className="flex items-center justify-between">
-                      <span className="text-[color:var(--color-mint-400)]">
+                      <span className="text-[color:var(--color-success)]">
                         {labels.jobQueued}{" "}
                         <span className="font-mono text-[10px] text-[color:var(--color-fg-muted)]">
                           {result.jobId?.slice(-8)}
@@ -180,14 +180,14 @@ export function AuthSourceList({
                       </span>
                       <Link
                         href={`/${locale}/admin/jobs`}
-                        className="text-[color:var(--color-coral-400)] hover:text-[color:var(--color-accent)] inline-flex items-center gap-1"
+                        className="text-[color:var(--color-magenta-400)] hover:text-[color:var(--color-accent)] inline-flex items-center gap-1"
                       >
                         {labels.viewJob}
                         <ChevronRight className="size-3" strokeWidth={2.5} />
                       </Link>
                     </div>
                   ) : (
-                    <p className="text-[color:var(--color-coral-400)] font-mono">{result.msg}</p>
+                    <p className="text-[color:var(--color-champagne-400)] font-mono">{result.msg}</p>
                   )}
                 </div>
               )}

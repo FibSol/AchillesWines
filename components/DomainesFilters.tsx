@@ -69,13 +69,13 @@ export function DomainesFilters({ tiers, labels, totalShown, totalMatching }: Pr
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={labels.searchPlaceholder}
-            className="w-full pl-9 pr-9 py-2 rounded-md bg-[rgba(13,6,26,0.6)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-coral-400)]"
+            className="w-full pl-9 pr-9 py-2 rounded-md bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
           />
           {search && (
             <button
               type="button"
               onClick={() => setSearch("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-[color:var(--color-fg-subtle)] hover:text-[color:var(--color-coral-400)]"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-[color:var(--color-fg-subtle)] hover:text-[color:var(--color-magenta-400)]"
               aria-label="clear"
             >
               <X className="size-3.5" strokeWidth={2.5} />
@@ -106,8 +106,8 @@ export function DomainesFilters({ tiers, labels, totalShown, totalMatching }: Pr
           onClick={() => pushParam("tier", "")}
           className={`text-xs px-3 py-1 rounded-full border transition ${
             activeTier === ""
-              ? "border-[color:var(--color-coral-400)] bg-[rgba(255,92,138,0.18)] text-[color:var(--color-coral-400)]"
-              : "border-[color:var(--color-border)] text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)] hover:border-[color:var(--color-coral-400)]"
+              ? "border-[color:var(--color-magenta-400)] bg-[rgba(165,56,96,0.18)] text-[color:var(--color-magenta-400)]"
+              : "border-[color:var(--color-border)] text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)] hover:border-[color:var(--color-magenta-400)]"
           }`}
         >
           {labels.allTiers}
@@ -119,8 +119,8 @@ export function DomainesFilters({ tiers, labels, totalShown, totalMatching }: Pr
             onClick={() => pushParam("tier", String(t))}
             className={`text-xs px-3 py-1 rounded-full border transition font-mono ${
               activeTier === String(t)
-                ? "border-[color:var(--color-coral-400)] bg-[rgba(255,92,138,0.18)] text-[color:var(--color-coral-400)]"
-                : "border-[color:var(--color-border)] text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)] hover:border-[color:var(--color-coral-400)]"
+                ? "border-[color:var(--color-magenta-400)] bg-[rgba(165,56,96,0.18)] text-[color:var(--color-magenta-400)]"
+                : "border-[color:var(--color-border)] text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)] hover:border-[color:var(--color-magenta-400)]"
           }`}
           >
             T{t}

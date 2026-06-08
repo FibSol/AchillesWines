@@ -125,7 +125,7 @@ function describeState(s: SchedState): string {
 // ─── Shared select style ──────────────────────────────────────────────────────
 
 const SEL = [
-  "bg-[rgba(13,6,26,0.7)] border border-[color:var(--color-border)]",
+  "bg-[rgba(9,8,15,0.7)] border border-[color:var(--color-border)]",
   "text-[color:var(--color-fg)] text-xs rounded px-2 py-1.5 outline-none",
   "focus:border-[color:var(--color-primary)] cursor-pointer transition-colors",
   "hover:border-[color:var(--color-primary)]",
@@ -143,11 +143,11 @@ function getGroup(row: SourceRow): Group {
 }
 
 const TIER_COLORS: Record<string, string> = {
-  B_retailer_major: "text-[color:var(--color-coral-400)]",
+  B_retailer_major: "text-[color:var(--color-champagne-400)]",
   C_retailer_minor: "text-[color:var(--color-fg-muted)]",
   D_user_aggregate: "text-[color:var(--color-fg-muted)]",
-  E_press_critic: "text-[color:var(--color-mint-400)]",
-  F_vintage_authority: "text-[color:var(--color-coral-200)]",
+  E_press_critic: "text-[color:var(--color-champagne-400)]",
+  F_vintage_authority: "text-[color:var(--color-champagne-300)]",
 };
 
 // ─── Row component ────────────────────────────────────────────────────────────
@@ -272,12 +272,12 @@ function ScheduleRow({
 
         {/* Save / clear */}
         {saveState === "saved" && (
-          <span className="flex items-center gap-1 text-xs text-[color:var(--color-mint-400)]">
+          <span className="flex items-center gap-1 text-xs text-[color:var(--color-success)]">
             <Check className="size-3" strokeWidth={2.5} /> saved
           </span>
         )}
         {saveState === "error" && (
-          <span className="text-xs text-[color:var(--color-coral-400)]">error</span>
+          <span className="text-xs text-[color:var(--color-champagne-400)]">error</span>
         )}
         {isDirty && (
           <button

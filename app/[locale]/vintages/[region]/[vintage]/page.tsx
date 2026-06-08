@@ -25,8 +25,8 @@ type TierStyle = { bg: string; text: string };
 
 function tierStyle(tier: 1 | 2 | 3 | 4 | 5): TierStyle {
   switch (tier) {
-    case 5: return { bg: "rgba(229,178,93,0.97)",  text: "#1A0B2E" };
-    case 4: return { bg: "rgba(255,92,138,0.95)",  text: "#1A0B2E" };
+    case 5: return { bg: "rgba(229,178,93,0.97)",  text: "#0F0E17" };
+    case 4: return { bg: "rgba(165,56,96,0.95)",  text: "#0F0E17" };
     case 3: return { bg: "rgba(155,100,210,0.82)", text: "#FAF7F5" };
     case 2: return { bg: "rgba(165,56,96,0.60)",   text: "rgba(250,247,245,0.9)" };
     case 1: return { bg: "rgba(50,20,38,0.85)",    text: "rgba(250,247,245,0.6)" };
@@ -103,8 +103,8 @@ async function loadWines(region: string, vintage: number): Promise<{
 
 function ColorDot({ color }: { color: string }) {
   const map: Record<string, string> = {
-    red: "#b71f55", white: "#FFD166", "rosé": "#FF89A6",
-    sparkling: "#8EFEED", sweet: "#FFB3C8", fortified: "#553987", orange: "#FF5C8A",
+    red: "#A53860", white: "#E5B25D", "rosé": "#E07898",
+    sparkling: "#F5D08C", sweet: "#EDC072", fortified: "#6E1F3D", orange: "#C99440",
   };
   return (
     <span
@@ -155,7 +155,7 @@ export default async function VintageWinesPage({
       <div className="mb-6">
         <Link
           href={`/${locale}/vintages`}
-          className="inline-flex items-center gap-1.5 text-xs text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-coral-400)] transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-magenta-400)] transition-colors"
         >
           <ArrowLeft className="size-3.5" strokeWidth={2.5} />
           {t("backToVintages")}
@@ -198,12 +198,12 @@ export default async function VintageWinesPage({
                 {wines.map(w => (
                   <tr
                     key={w.wineKey}
-                    className="border-b border-[color:var(--color-border)] last:border-b-0 hover:bg-[rgba(255,92,138,0.04)] transition-colors"
+                    className="border-b border-[color:var(--color-border)] last:border-b-0 hover:bg-[rgba(165,56,96,0.04)] transition-colors"
                   >
                     <td className="px-4 py-3">
                       <Link
                         href={`/${locale}/domaines/${w.producerKey}`}
-                        className="font-semibold text-[color:var(--color-fg)] hover:text-[color:var(--color-coral-400)] transition-colors"
+                        className="font-semibold text-[color:var(--color-fg)] hover:text-[color:var(--color-magenta-400)] transition-colors"
                       >
                         {w.producerName}
                       </Link>

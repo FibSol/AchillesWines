@@ -1,5 +1,10 @@
 # Achilles's Wines — Progress Log
 
+## 2026-06-08
+
+### Apollo (Design Reviewer) + Odysseus (Frontend)
+- [Apollo+Odysseus] **Completed the Dionysus→Athena migration (ADR-012 cleanup).** Apollo's design pass found the ADR-012 theme migration was never swept through the components: ~111 dead `--color-coral-*` token refs across 27 files, plus dead `--color-mint-400/600` and `--color-aubergine-950` tokens — all invalid in the Athena theme, so they silently fell back to inherited cream text (the UI had lost its accent colour app-wide). Fixes: (1) coral tokens reclassified per ADR-012 — magenta = interactive, champagne = data; (2) 117 hardcoded Dionysus chrome literals (coral `rgba(255,92,138)`, aubergine `#1A0B2E`/`rgba(26,11,46)`/`rgba(13,6,26)`) → magenta / noir; (3) mint family → success-green (status/feedback) or champagne (data); (4) recoloured the categorical data palette (wine-type colour maps ×7, chart `SERIES_COLORS`, WineMap tier markers) to an Athena-derived palette across 13 files. Dashboard refresh: removed two stale "Dionysus" labels, added live status pill + editorial hairline, set ADR-012-correct icon semantics, moved hardcoded FR strings to i18n (+9 keys × 6 locales), and relocated the DLQ ops metric from the consumer stat grid into the pipeline-status strip. Verification: 0 Dionysus tokens/literals remain, `tsc --noEmit` clean, 6/6 locale JSON valid, Dashboard screenshot captured. Backup at `backups/design-pass_2026-06-08_201303/` (restore point pre-pass). New team member **Apollo (Design Reviewer)** added to `docs/TEAM.md` + `CLAUDE.md` with the Clone-Wars benchmark catalogue cloned to `reference/clone-wars/`. · files: app/globals.css, app/[locale]/page.tsx, app/[locale]/{cellar,best-value,domaines,domaines/[id],qualite,quarantaine,vintages/[region]/[vintage]}/page.tsx, components/*.tsx (22), messages/{en,fr,nl,de,es,it}.json
+
 ## 2026-06-07
 
 ### Patroclus (Backend)

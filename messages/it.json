@@ -61,7 +61,18 @@
       "bestValueShort": "Miglior Q/P",
       "drinkNow": "Da bere ora",
       "promosNow": "Promo",
-      "addToCellar": "Aggiungi bottiglia"
+      "addToCellar": "Aggiungi bottiglia",
+      "bestValueDesc": "Punteggio qualità-prezzo",
+      "drinkNowDesc": "Finestra di consumo",
+      "vintagesDesc": "Regione × anno",
+      "menuDesc": "Abbinamenti dalla tua cantina"
+    },
+    "status": {
+      "title": "Stato della pipeline",
+      "lastIngest": "Ultima acquisizione: {date}",
+      "noIngest": "Nessuna acquisizione ancora. Avvia lo scraper dal sidecar Python.",
+      "dlqOpen": "{count} DLQ aperti",
+      "allClear": "Nessun DLQ aperto"
     }
   },
   "bestValue": {

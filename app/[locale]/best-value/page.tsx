@@ -13,14 +13,18 @@ import { TrendingDown } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
+type DrinkingIntent = "drink_now" | "cellar_10" | "invest";
+
 interface FilterParams {
   country?: string;
   region?: string;
   vintage?: number;
+  color?: string;
   minPrice?: number;
   maxPrice?: number;
   minRating?: number;
   maxRating?: number;
+  drinkingIntent?: DrinkingIntent;
 }
 
 async function getFilterOptions(locale: string, country?: string) {
@@ -68,6 +72,8 @@ interface BestValueRow {
   producerName: string;
   cuveeName: string;
   vintage: number | null;
+  color: string | null;
+  classification: string | null;
   appellationName: string;
   score: number;
   priceEur: number;
@@ -76,6 +82,35 @@ interface BestValueRow {
   ratingNorm100: number;
   confidence: Confidence;
   sourceCount: number;
+}
+
+const CURRENT_YEAR = 2026;
+
+function matchesDrinkingIntent(wine: BestValueRow, intent: DrinkingIntent): boolean {
+  const { vintage, color, classification, ratingNorm100, priceEur } = wine;
+  const isWhiteOrRose = color === "white" || color === "rosé" || color === "orange";
+  const age = vintage ? CURRENT_YEAR - vintage : null;
+
+  if (intent === "drink_now") {
+    if (vintage === null) return true; // NV wines: drink now
+    if (isWhiteOrRose) return age !== null && age >= 3;
+    return age !== null && age >= 6; // reds/sparkling: 6+ years
+  }
+
+  if (intent === "cellar_10") {
+    if (vintage === null) return false;
+    const isClassified = !!classification;
+    const isHighRated = ratingNorm100 >= 85;
+    if (isWhiteOrRose) return age !== null && age <= 3 && (isClassified || isHighRated);
+    return age !== null && age <= 5 && (isClassified || isHighRated);
+  }
+
+  if (intent === "invest") {
+    if (ratingNorm100 >= 93) return true;
+    return ratingNorm100 >= 90 && priceEur >= 50;
+  }
+
+  return true;
 }
 
 function generateShopPrompt(wine: BestValueRow): string {
@@ -190,7 +225,8 @@ async function getBestValueWines(filters: FilterParams = {}): Promise<{ wines: B
     const BATCH = 200;
     const wineRows: Array<{
       wineKey: string; canonicalName: string; cuveeName: string;
-      vintage: number | null; producerKey: number; producerName: string; appellationName: string;
+      vintage: number | null; color: string | null; classification: string | null;
+      producerKey: number; producerName: string; appellationName: string;
     }> = [];
     for (let i = 0; i < eligibleKeys.length; i += BATCH) {
       const batch = eligibleKeys.slice(i, i + BATCH);
@@ -200,6 +236,8 @@ async function getBestValueWines(filters: FilterParams = {}): Promise<{ wines: B
           canonicalName: dimWine.canonicalName,
           cuveeName: dimWine.cuveeName,
           vintage: dimWine.vintage,
+          color: dimWine.color,
+          classification: dimWine.classification,
           producerKey: dimProducer.producerKey,
           producerName: dimProducer.producerName,
           appellationName: dimAppellation.appellationName,
@@ -213,6 +251,7 @@ async function getBestValueWines(filters: FilterParams = {}): Promise<{ wines: B
             filters.country ? eq(dimAppellation.countryCode, filters.country) : undefined,
             filters.vintage !== undefined ? eq(dimWine.vintage, filters.vintage) : undefined,
             filters.region ? eq(dimAppellation.region, filters.region) : undefined,
+            filters.color ? eq(dimWine.color, filters.color as "red" | "white" | "rosé" | "sparkling" | "sweet" | "fortified" | "orange") : undefined,
           )
         )
         .execute();
@@ -257,6 +296,8 @@ async function getBestValueWines(filters: FilterParams = {}): Promise<{ wines: B
           producerName: w.producerName,
           cuveeName: w.cuveeName,
           vintage: w.vintage,
+          color: w.color,
+          classification: w.classification,
           appellationName: w.appellationName,
           score,
           priceEur: price,
@@ -268,6 +309,7 @@ async function getBestValueWines(filters: FilterParams = {}): Promise<{ wines: B
         } satisfies BestValueRow;
       })
       .filter((r): r is BestValueRow => r !== null)
+      .filter((r) => !filters.drinkingIntent || matchesDrinkingIntent(r, filters.drinkingIntent))
       .sort((a, b) => b.score - a.score)
       .slice(0, 50);
 
@@ -283,8 +325,8 @@ function RankBadge({ rank }: { rank: number }) {
     <div
       className={`flex-shrink-0 size-9 rounded-full flex items-center justify-center text-sm font-bold font-mono ${
         isTop3
-          ? "bg-[rgba(255,92,138,0.2)] text-[color:var(--color-coral-400)] border border-[rgba(255,92,138,0.4)]"
-          : "bg-[rgba(255,92,138,0.07)] text-[color:var(--color-fg-muted)] border border-[color:var(--color-border)]"
+          ? "bg-[rgba(165,56,96,0.2)] text-[color:var(--color-champagne-400)] border border-[rgba(165,56,96,0.4)]"
+          : "bg-[rgba(165,56,96,0.07)] text-[color:var(--color-fg-muted)] border border-[color:var(--color-border)]"
       }`}
     >
       {rank}
@@ -297,7 +339,7 @@ export default async function BestValuePage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ country?: string; region?: string; vintage?: string; minPrice?: string; maxPrice?: string; minRating?: string; maxRating?: string }>;
+  searchParams: Promise<{ country?: string; region?: string; vintage?: string; color?: string; minPrice?: string; maxPrice?: string; minRating?: string; maxRating?: string; drinkingIntent?: string }>;
 }) {
   const { locale } = await params;
   const sp = await searchParams;
@@ -305,16 +347,20 @@ export default async function BestValuePage({
   const t = await getTranslations("bestValue");
   const tc = await getTranslations("common");
 
+  const drinkingIntent = (["drink_now", "cellar_10", "invest"].includes(sp.drinkingIntent ?? "") ? sp.drinkingIntent : undefined) as DrinkingIntent | undefined;
+
   const filters: FilterParams = {
     country: sp.country || undefined,
     region: sp.region || undefined,
     vintage: sp.vintage ? parseInt(sp.vintage, 10) : undefined,
+    color: sp.color || undefined,
     minPrice: sp.minPrice ? parseFloat(sp.minPrice) : undefined,
     maxPrice: sp.maxPrice ? parseFloat(sp.maxPrice) : undefined,
     minRating: sp.minRating ? parseFloat(sp.minRating) : undefined,
     maxRating: sp.maxRating ? parseFloat(sp.maxRating) : undefined,
+    drinkingIntent,
   };
-  const hasActiveFilters = !!(sp.country || sp.region || sp.vintage || sp.minPrice || sp.maxPrice || sp.minRating || sp.maxRating);
+  const hasActiveFilters = !!(sp.country || sp.region || sp.vintage || sp.color || sp.minPrice || sp.maxPrice || sp.minRating || sp.maxRating || drinkingIntent);
 
   const [{ wines, ratingMode }, { countries, regions, vintages }] = await Promise.all([
     getBestValueWines(filters),
@@ -325,6 +371,11 @@ export default async function BestValuePage({
     country: t("filters.country"),
     region: tc("region"),
     vintage: tc("vintage"),
+    color: t("filters.color"),
+    colorRed: t("filters.colorRed"),
+    colorWhite: t("filters.colorWhite"),
+    colorRose: t("filters.colorRose"),
+    colorSparkling: t("filters.colorSparkling"),
     minPrice: t("filters.minPrice"),
     maxPrice: t("filters.maxPrice"),
     minRating: t("filters.minRating"),
@@ -333,6 +384,10 @@ export default async function BestValuePage({
     allRegions: t("filters.allRegions"),
     allVintages: t("filters.allVintages"),
     clearFilters: t("filters.clearFilters"),
+    intent: t("filters.intent"),
+    intentDrinkNow: t("filters.intentDrinkNow"),
+    intentCellar10: t("filters.intentCellar10"),
+    intentInvest: t("filters.intentInvest"),
   };
 
   const scatterData: BestValuePoint[] = wines.map((w) => ({
@@ -379,12 +434,12 @@ export default async function BestValuePage({
                     <p className="font-semibold text-[color:var(--color-fg)] leading-snug">
                       <Link
                         href={`/${locale}/domaines/${wine.producerKey}`}
-                        className="hover:text-[color:var(--color-coral-400)] transition-colors"
+                        className="hover:text-[color:var(--color-magenta-400)] transition-colors"
                       >
                         {wine.producerName}
                       </Link>
                       {" · "}
-                      <span className="text-[color:var(--color-coral-400)]">{wine.cuveeName}</span>
+                      <span className="text-[color:var(--color-champagne-400)]">{wine.cuveeName}</span>
                       {wine.vintage && (
                         <span className="ml-1 text-[color:var(--color-fg-muted)]">{wine.vintage}</span>
                       )}
@@ -420,7 +475,7 @@ export default async function BestValuePage({
                   </div>
                   <div>
                     <p className="text-xs text-[color:var(--color-fg-subtle)]">{t("score")}</p>
-                    <p className="font-mono text-sm font-bold text-[color:var(--color-coral-400)]">
+                    <p className="font-mono text-sm font-bold text-[color:var(--color-champagne-400)]">
                       {wine.score.toFixed(2)}
                     </p>
                   </div>

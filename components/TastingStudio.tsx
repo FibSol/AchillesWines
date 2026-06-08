@@ -33,13 +33,13 @@ import type {
 } from "@/lib/tasting/engine";
 
 const COLOR_DOT: Record<string, string> = {
-  red: "#b71f55",
-  white: "#FFD166",
-  "rosé": "#FF89A6",
-  sparkling: "#8EFEED",
-  sweet: "#FFB3C8",
-  fortified: "#553987",
-  orange: "#FF5C8A",
+  red: "#A53860",
+  white: "#E5B25D",
+  "rosé": "#E07898",
+  sparkling: "#F5D08C",
+  sweet: "#EDC072",
+  fortified: "#6E1F3D",
+  orange: "#C99440",
 };
 
 const MODE_ICONS: Record<TastingMode, typeof Sparkles> = {
@@ -372,7 +372,7 @@ export function TastingStudio() {
                     const val = e.target.value;
                     applyFilters({ ...filters, countries: val ? [val] : [], regions: [] });
                   }}
-                  className="w-full px-2 py-1.5 rounded bg-[rgba(13,6,26,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)]"
+                  className="w-full px-2 py-1.5 rounded bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)]"
                 >
                   <option value="">{t("filters.all")}</option>
                   {pool.countries.map((c) => (
@@ -392,7 +392,7 @@ export function TastingStudio() {
                     const val = e.target.value;
                     applyFilters({ ...filters, regions: val ? [val] : [] });
                   }}
-                  className="w-full px-2 py-1.5 rounded bg-[rgba(13,6,26,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)]"
+                  className="w-full px-2 py-1.5 rounded bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)]"
                 >
                   <option value="">{t("filters.all")}</option>
                   {pool.regions.map((r) => (
@@ -412,7 +412,7 @@ export function TastingStudio() {
                     const val = e.target.value;
                     applyFilters({ ...filters, colors: val ? [val] : [] });
                   }}
-                  className="w-full px-2 py-1.5 rounded bg-[rgba(13,6,26,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)]"
+                  className="w-full px-2 py-1.5 rounded bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)]"
                 >
                   <option value="">{t("filters.all")}</option>
                   {pool.colors.map((c) => (
@@ -436,7 +436,7 @@ export function TastingStudio() {
                     applyFilters({ ...filters, minRating: val });
                   }}
                   placeholder="0–100"
-                  className="w-full px-2 py-1.5 rounded bg-[rgba(13,6,26,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-primary)]"
+                  className="w-full px-2 py-1.5 rounded bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-primary)]"
                 />
               </div>
 
@@ -454,7 +454,7 @@ export function TastingStudio() {
                     applyFilters({ ...filters, maxPriceEur: val });
                   }}
                   placeholder="€"
-                  className="w-full px-2 py-1.5 rounded bg-[rgba(13,6,26,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-primary)]"
+                  className="w-full px-2 py-1.5 rounded bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-primary)]"
                 />
               </div>
 
@@ -528,7 +528,7 @@ export function TastingStudio() {
             <select
               value={flight.selectedAxis?.id ?? ""}
               onChange={(e) => changeAxis(e.target.value)}
-              className="px-2 py-1.5 rounded bg-[rgba(13,6,26,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)] max-w-[16rem]"
+              className="px-2 py-1.5 rounded bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)] max-w-[16rem]"
             >
               {flight.availableAxes.map((a) => (
                 <option key={a.id} value={a.id}>
@@ -547,7 +547,7 @@ export function TastingStudio() {
           <select
             value={count}
             onChange={(e) => changeCount(Number.parseInt(e.target.value, 10))}
-            className="px-2 py-1.5 rounded bg-[rgba(13,6,26,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)]"
+            className="px-2 py-1.5 rounded bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)]"
           >
             {COUNT_OPTIONS.map((n) => (
               <option key={n} value={n}>
@@ -579,7 +579,7 @@ export function TastingStudio() {
       </section>
 
       {error && (
-        <div className="p-3 rounded-md border border-[color:var(--color-coral-700)] bg-[rgba(255,92,138,0.1)] text-sm text-[color:var(--color-coral-400)] font-mono">
+        <div className="p-3 rounded-md border border-[color:var(--color-champagne-700)] bg-[rgba(165,56,96,0.1)] text-sm text-[color:var(--color-champagne-400)] font-mono">
           {error}
         </div>
       )}
@@ -867,7 +867,7 @@ function PoolPicker({
           onChange={(e) => setQ(e.target.value)}
           placeholder={searchLabel}
           autoFocus
-          className="w-full px-3 py-2 rounded-md bg-[rgba(13,6,26,0.6)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-primary)] mb-3"
+          className="w-full px-3 py-2 rounded-md bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-primary)] mb-3"
         />
         <div className="overflow-y-auto scrollbar-thin space-y-1">
           {filtered.map((w) => (

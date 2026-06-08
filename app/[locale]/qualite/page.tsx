@@ -83,17 +83,17 @@ export default async function QualityPage({ params }: { params: Promise<{ locale
       {/* Stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
         <div className="stat-card">
-          <ShieldCheck className="size-4 text-[color:var(--color-mint-400)]" strokeWidth={2} />
+          <ShieldCheck className="size-4 text-[color:var(--color-champagne-400)]" strokeWidth={2} />
           <div className="mt-3 stat-card-value">{Number(totalWines?.n ?? 0).toLocaleString()}</div>
           <div className="stat-card-label">{t("verifiedCount")}</div>
         </div>
         <div className="stat-card">
-          <Activity className="size-4 text-[color:var(--color-coral-400)]" strokeWidth={2} />
+          <Activity className="size-4 text-[color:var(--color-champagne-400)]" strokeWidth={2} />
           <div className="mt-3 stat-card-value">{pricesNum.toLocaleString()}</div>
           <div className="stat-card-label">{t("pricesCount")}</div>
         </div>
         <div className="stat-card">
-          <Activity className="size-4 text-[color:var(--color-coral-400)]" strokeWidth={2} />
+          <Activity className="size-4 text-[color:var(--color-champagne-400)]" strokeWidth={2} />
           <div className="mt-3 stat-card-value">{Number(ratingsTotal?.n ?? 0).toLocaleString()}</div>
           <div className="stat-card-label">{t("ratingsCount")}</div>
         </div>

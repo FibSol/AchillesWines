@@ -61,7 +61,18 @@
       "bestValueShort": "Best Value",
       "drinkNow": "Drink now",
       "promosNow": "Promos",
-      "addToCellar": "Add bottle"
+      "addToCellar": "Add bottle",
+      "bestValueDesc": "Quality-to-price scoring",
+      "drinkNowDesc": "Drinking window",
+      "vintagesDesc": "Region × year",
+      "menuDesc": "Pairings from your cellar"
+    },
+    "status": {
+      "title": "Pipeline status",
+      "lastIngest": "Last ingestion: {date}",
+      "noIngest": "No ingestion yet. Launch the scraper from the Python sidecar.",
+      "dlqOpen": "{count} open DLQ",
+      "allClear": "No open DLQ"
     }
   },
   "bestValue": {

@@ -36,17 +36,17 @@ type WineMapProps = {
   };
 };
 
-const CORAL = "#FF5C8A";
-const CORAL_FILL = "rgba(255,92,138,0.18)";
-const MINT = "#6FFFE9";
-const MINT_FILL = "rgba(111,255,233,0.7)";
+const CORAL = "#A53860";
+const CORAL_FILL = "rgba(165,56,96,0.18)";
+const MINT = "#5EA87A";
+const MINT_FILL = "rgba(94,168,122,0.7)";
 
 const TIER_COLORS: Record<number, string> = {
-  1: "#FFD166", // gold   — iconic / top domaines
-  2: "#FF5C8A", // coral  — premier tier
-  3: "#6FFFE9", // mint   — solid producers
-  4: "#B5965D", // amber  — standard
-  5: "#7C6F9F", // muted violet — entry level
+  1: "#E5B25D", // gold   — iconic / top domaines
+  2: "#A53860", // coral  — premier tier
+  3: "#5EA87A", // mint   — solid producers
+  4: "#C99440", // amber  — standard
+  5: "#3a3750", // muted violet — entry level
 };
 const TIER_COLOR_NULL = "#5A5270"; // no tier assigned
 
@@ -108,7 +108,7 @@ export function WineMap({ producers, appellations, locale, labels }: WineMapProp
                 <div style={{ fontFamily: "sans-serif", fontSize: "13px" }}>
                   <a
                     href={`/${locale}/appellations/${a.appellationKey}`}
-                    style={{ color: "#6FFFE9", fontWeight: "bold", textDecoration: "underline", cursor: "pointer" }}
+                    style={{ color: "#A53860", fontWeight: "bold", textDecoration: "underline", cursor: "pointer" }}
                   >
                     {a.appellationName}
                   </a>
@@ -139,7 +139,7 @@ export function WineMap({ producers, appellations, locale, labels }: WineMapProp
               <div style={{ fontFamily: "sans-serif", fontSize: "13px" }}>
                 <a
                   href={`/${locale}/appellations/${a.appellationKey}`}
-                  style={{ color: "#6FFFE9", fontWeight: "bold", textDecoration: "underline", cursor: "pointer" }}
+                  style={{ color: "#A53860", fontWeight: "bold", textDecoration: "underline", cursor: "pointer" }}
                 >
                   {a.appellationName}
                 </a>
@@ -171,7 +171,7 @@ export function WineMap({ producers, appellations, locale, labels }: WineMapProp
                 <div style={{ fontFamily: "sans-serif", fontSize: "13px" }}>
                   <a
                     href={`/${locale}/domaines/${p.producerKey}`}
-                    style={{ color: "#FF5C8A", fontWeight: "bold", textDecoration: "underline", cursor: "pointer" }}
+                    style={{ color: "#A53860", fontWeight: "bold", textDecoration: "underline", cursor: "pointer" }}
                   >
                     {p.producerName}
                   </a>

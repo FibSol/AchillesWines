@@ -54,13 +54,13 @@ interface DomaineDetailTableProps {
 }
 
 const COLOR_DOT: Record<string, string> = {
-  red: "#b71f55",
-  white: "#FFD166",
-  "rosé": "#FF89A6",
-  sparkling: "#8EFEED",
-  sweet: "#FFB3C8",
-  fortified: "#553987",
-  orange: "#FF5C8A",
+  red: "#A53860",
+  white: "#E5B25D",
+  "rosé": "#E07898",
+  sparkling: "#F5D08C",
+  sweet: "#EDC072",
+  fortified: "#6E1F3D",
+  orange: "#C99440",
 };
 
 function CuveeName({ name, grandVinLabel }: { name: string; grandVinLabel: string }) {
@@ -104,7 +104,7 @@ export function DomaineDetailTable({
       {/* Filter bar */}
       <div
         className="glass-card p-4 flex flex-wrap gap-3 items-center"
-        style={{ background: "rgba(13,6,26,0.5)" }}
+        style={{ background: "rgba(9,8,15,0.5)" }}
       >
         <select
           value={cuveeFilter}
@@ -286,7 +286,7 @@ export function DomaineDetailTable({
                     {/* In cellar */}
                     <td className="px-4 py-3 text-right font-mono text-xs">
                       {row.inCellar > 0 ? (
-                        <span style={{ color: "#6fffe9", fontWeight: 600 }}>{row.inCellar}</span>
+                        <span style={{ color: "#E5B25D", fontWeight: 600 }}>{row.inCellar}</span>
                       ) : (
                         <span style={{ color: "rgba(250,247,245,0.2)" }}>—</span>
                       )}
