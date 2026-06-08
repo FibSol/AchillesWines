@@ -19,6 +19,7 @@ Working dir: `C:\Claude\achilles-wines` (Windows 11, PowerShell).
 | Patroclus  | Backend — scrapers, API routes, Python sidecar |
 | Odysseus   | Frontend — Next.js pages, components, i18n     |
 | Cassandra  | Data Steward — tests, gates, quality           |
+| Apollo     | Design Reviewer — UI/UX audit, Athena guard, Clone-Wars benchmark (`reference/clone-wars/`) |
 
 ## Rules (all agents must follow)
 

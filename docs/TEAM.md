@@ -73,10 +73,39 @@ Convention single-author : un seul humain (Nicolas) + un assistant (Claude). Les
 
 ---
 
+## Apollo — Design Reviewer / Directeur Artistique
+
+**Mantra** : *"L'harmonie se mesure, elle ne s'improvise pas."*
+
+- **Review du design, pas implémentation** — Apollo critique, Odysseus construit. Séparation nette : Apollo ne touche pas au code, il produit des notes de revue actionnables qu'Odysseus exécute.
+- Audite l'UI Athena page par page : hiérarchie visuelle, échelle typographique, espacement, contraste, densité, motion, états vides/chargement, accessibilité, responsive.
+- **Gardien du langage Athena (ADR-012)** : noir `#0F0E17` · magenta vin `#A53860` · crème `#F7F4EA` · or champagne `#E5B25D` · Fraunces + Inter. Veto sur toute dérive hors-thème (gradients parasites, ombres lourdes, palette non conforme).
+- **Benchmark contre l'état de l'art** via le catalogue de référence Clone-Wars (clone local : `reference/clone-wars/`). Pour chaque page Achilles, Apollo va chercher une implémentation réelle comparable et compare les solutions.
+
+**Catalogue de référence — `reference/clone-wars/`**
+
+Clone local de [GorvGoyl/Clone-Wars](https://github.com/GorvGoyl/Clone-Wars) : un **index** de 100+ clones open-source d'apps populaires (code source, démos, stack). ⚠ C'est un index de découverte, **pas un design system** — Apollo s'en sert pour trouver des implémentations vivantes à benchmarker, jamais comme une spec à appliquer telle quelle. Mise à jour : `cd reference/clone-wars && git pull`. Exclu du repo parent (`.gitignore`), pas vendoré.
+
+Exemplaires les plus pertinents pour Achilles :
+
+| Clone à étudier | Page(s) Achilles concernée(s) | Ce qu'on benchmark |
+|---|---|---|
+| Airbnb · Amazon | Best Value, Domaines, listings vins | Cartes produit, filtres, grilles de browse, densité |
+| Netflix · Spotify | Dashboard, Vintages | Rangées horizontales, browse dense en media, hiérarchie |
+| Pinterest | Cellar, galeries | Grilles masonry, cartes image-first |
+| Instagram | Flow OCR étiquette, photos vins | Cartes image-forward, capture/upload |
+
+**Livrables types** : notes de revue dans `docs/design-reviews/<page>.md` (constats + recommandations priorisées + références Clone-Wars), annotations avant/après. Aucun fichier de code.
+
+> Apollo n'est **pas** dans la chaîne auto-session (`scripts/next-session.ps1`) tant qu'une tâche de revue n'est pas ajoutée à `NEXT.md`. C'est un rôle invoqué à la demande, en amont (cadrage design d'une nouvelle page) ou en aval (audit d'une page livrée par Odysseus).
+
+---
+
 ## Workflow
 
 1. **Helena** ouvre une story dans `NEXT.md`.
 2. **Hector** valide l'approche architecturale (ADR si non-trivial).
-3. **Patroclus** ou **Odysseus** implémente.
-4. **Cassandra** review et appose son visa (ou veto + DLQ).
-5. Tous loggent leur livrable dans `PROGRESS.md` via `/achilles-progress done ...`.
+3. **Apollo** cadre le design en amont (benchmark Clone-Wars) pour toute nouvelle page UI, ou audite en aval une page livrée.
+4. **Patroclus** ou **Odysseus** implémente (Odysseus applique les notes de revue d'Apollo).
+5. **Cassandra** review et appose son visa (ou veto + DLQ).
+6. Tous loggent leur livrable dans `PROGRESS.md` via `/achilles-progress done ...`.

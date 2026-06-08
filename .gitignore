@@ -38,3 +38,7 @@ scraper/.pytest_cache/
 .vscode/
 .idea/
 *.swp
+
+# Design-review reference (Apollo) — local clone of GorvGoyl/Clone-Wars,
+# a third-party benchmark index. Independently git-pull-able; not vendored.
+reference/clone-wars/
