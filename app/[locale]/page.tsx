@@ -120,7 +120,7 @@ export default async function DashboardPage({
               <span className="absolute inline-flex h-full w-full rounded-full bg-[color:var(--color-champagne-400)] opacity-60 motion-safe:animate-ping" />
               <span className="relative inline-flex size-2 rounded-full bg-[color:var(--color-champagne-400)]" />
             </span>
-            <span>Athena · v0.1.0</span>
+            <span>Athena · v1.3.0</span>
           </p>
           <h1 className="display-xl">
             <span className="text-gradient">Achilles&apos;s</span> Wines.

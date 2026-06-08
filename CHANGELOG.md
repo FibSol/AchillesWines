@@ -7,10 +7,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+---
+
+## [1.3.0] — 2026-06-08
+
 ### Added
 - Cellar KPIs panel (total bottles, locations in use, avg score) + bottle details dialog
 - Tasting page filters (appellation, vintage, score range)
 - Pairing page: purchase price fallback chip when no market price is available
+- **Apollo (Design Reviewer)** added to the team — UI/UX audit role with a local Clone-Wars benchmark catalogue
+
+### Changed
+- **Completed the Dionysus→Athena design migration** — swept ~111 dead `coral` token references across 27 components, plus dead `mint`/`aubergine` tokens, all reclassified to Athena tokens (magenta = interactive, champagne = data) per ADR-012
+- Recolored the categorical data palette (wine-type maps, chart series, map tier markers) to an Athena-derived palette
+- Dashboard refresh: live status pill, editorial hairline, ADR-012 icon semantics; DLQ ops metric moved out of the consumer stat grid into the pipeline-status strip
+- Dashboard strings fully internationalized (quick-card descriptions + pipeline status across all 6 locales)
+
+### Fixed
+- Restored the app's accent color app-wide — icons/accents that silently fell back to cream text after the incomplete ADR-012 migration now render correctly
 
 ---
 
