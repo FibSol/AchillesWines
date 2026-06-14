@@ -21,10 +21,11 @@ describe("regionGate", () => {
 });
 
 describe("criticEnumGate", () => {
-  it("accepts all 16 canonical critic codes", () => {
+  it("accepts all 19 canonical critic codes", () => {
     for (const code of [
       "WA", "Vinous", "BH", "JMIB", "RVF", "Decanter", "JS", "JG",
       "WS", "Hachette", "CT", "WE", "WAL", "WD", "GV", "Halliday",
+      "VI", "XW", "SM",
     ]) {
       expect(criticEnumGate({ criticCode: code, rawRecord: {} }).ok).toBe(true);
     }
@@ -33,9 +34,6 @@ describe("criticEnumGate", () => {
     const r = criticEnumGate({ criticCode: "FAKE", rawRecord: {} });
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.dlqRecord.errorClass).toBe("critic_enum");
-  });
-  it("rejects XW (was found in DB by 2026-05-23 audit but not canonical)", () => {
-    expect(criticEnumGate({ criticCode: "XW", rawRecord: {} }).ok).toBe(false);
   });
 });
 
