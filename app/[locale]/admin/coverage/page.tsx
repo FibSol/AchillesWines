@@ -181,19 +181,19 @@ export default async function AdminCoveragePage({
             {t("tierBreakdownTitle")}
           </h2>
           <div className="grid grid-cols-3 gap-4">
-            <div className="rounded-lg bg-[color:var(--color-surface-muted)] p-4 text-center">
+            <div className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-bg-elevated)] p-4 text-center">
               <div className="text-2xl font-bold text-[color:var(--color-accent)]">
                 {notable.toLocaleString()}
               </div>
               <div className="text-xs text-[color:var(--color-fg-muted)] mt-1">{t("tierNotable")}</div>
             </div>
-            <div className="rounded-lg bg-[color:var(--color-surface-muted)] p-4 text-center">
+            <div className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-bg-elevated)] p-4 text-center">
               <div className="text-2xl font-bold text-[color:var(--color-fg)]">
                 {mid.toLocaleString()}
               </div>
               <div className="text-xs text-[color:var(--color-fg-muted)] mt-1">{t("tierMid")}</div>
             </div>
-            <div className="rounded-lg bg-[color:var(--color-surface-muted)] p-4 text-center">
+            <div className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-bg-elevated)] p-4 text-center">
               <div className="text-2xl font-bold text-[color:var(--color-fg-subtle)]">
                 {longTail.toLocaleString()}
               </div>
