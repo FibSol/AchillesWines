@@ -9,6 +9,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.1] — 2026-06-14
+
+### Fixed
+- **HA add-on never picked up new code.** `addon/Dockerfile` cloned `main` at build time but gated the clone behind a static `CACHEBUST=1.0.2` arg that was never bumped, so Docker reused a stale cached clone on every rebuild — freezing the add-on at an old commit (`package.json 0.1.0`, Next 16.2.6) no matter how many times the manifest version increased. Replaced the static cachebust with an `ADD` of the branch's latest-commit metadata, which auto-invalidates the layer on every push so rebuilds always fetch current `main`.
+
+---
+
 ## [1.4.0] — 2026-06-14
 
 ### Added
