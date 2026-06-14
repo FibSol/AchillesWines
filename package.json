@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "worker": "node scripts/run-worker.mjs",
+    "dev:all": "concurrently -n web,worker -c blue,magenta \"npm run dev\" \"npm run worker\"",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -51,6 +53,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/string-similarity": "^4.0.2",
+    "concurrently": "^10.0.3",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
@@ -58,5 +61,10 @@
     "tsx": "^4.22.0",
     "typescript": "^5",
     "vitest": "^4.1.8"
+  },
+  "overrides": {
+    "esbuild": "^0.28.1",
+    "serialize-javascript": "^7.0.5",
+    "postcss": "^8.5.15"
   }
 }
