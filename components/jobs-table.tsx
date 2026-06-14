@@ -79,6 +79,8 @@ export function JobsTable() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [launching, setLaunching] = useState(false);
+  const [draining, setDraining] = useState(false);
+  const [drainMsg, setDrainMsg] = useState<string | null>(null);
   const [promoting, setPromoting] = useState(false);
   const [promoteStats, setPromoteStats] = useState<PromoteStats | null>(null);
   const [promoteResult, setPromoteResult] = useState<{ promoted: number; pending: number; totalFactPrice: number } | null>(null);
@@ -151,6 +153,25 @@ export function JobsTable() {
       setError(e instanceof Error ? e.message : "Failed to launch job");
     } finally {
       setLaunching(false);
+    }
+  };
+
+  const handleDrain = async () => {
+    setDraining(true);
+    setDrainMsg(null);
+    try {
+      const res = await fetch("/api/worker/run", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setDrainMsg(data.error ?? data.reason ?? `HTTP ${res.status}`);
+      } else {
+        setDrainMsg(`File en cours de traitement (pid ${data.pid})`);
+        await fetchJobs();
+      }
+    } catch (e) {
+      setDrainMsg(e instanceof Error ? e.message : "Échec du démarrage");
+    } finally {
+      setDraining(false);
     }
   };
 
@@ -238,6 +259,21 @@ export function JobsTable() {
           >
             {launching ? "…" : "🚀 Lancer"}
           </button>
+          <div className="ml-auto flex flex-col items-end gap-1">
+            <button
+              onClick={handleDrain}
+              disabled={draining}
+              title="Démarre le worker pour traiter immédiatement les jobs en attente"
+              className="inline-flex items-center gap-2 rounded-lg border border-[color:var(--color-border)] bg-[rgba(255,255,255,0.05)] px-4 py-2 text-sm font-semibold text-[color:var(--color-fg)] transition-colors hover:bg-[rgba(255,255,255,0.1)] disabled:opacity-50"
+            >
+              {draining ? "…" : "⚙️ Traiter la file maintenant"}
+            </button>
+            {drainMsg && (
+              <span className="text-xs text-[color:var(--color-fg-muted)] max-w-[18rem] text-right">
+                {drainMsg}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 

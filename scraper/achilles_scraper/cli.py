@@ -322,14 +322,27 @@ def run(source: str, limit):
 
 
 @cli.command("run-jobs")
-def run_jobs():
-    """Poll ops_job_queue and execute queued jobs."""
+@click.option(
+    "--once",
+    is_flag=True,
+    default=False,
+    help="Drain all currently-queued jobs then exit (no daemon loop). Powers the 'Process queue now' button.",
+)
+def run_jobs(once: bool):
+    """Poll ops_job_queue and execute queued jobs.
+
+    Default: run forever as the queue consumer daemon.
+    --once: claim and run everything queued right now, then exit.
+    """
     from .config import config
     from .db import get_db
     from .job_runner import JobRunner
     conn = get_db(config.db_path)
     runner = JobRunner(conn, SCRAPERS)
-    runner.run_loop()
+    if once:
+        runner.run_once()
+    else:
+        runner.run_loop()
 
 
 @cli.command("benchmark")

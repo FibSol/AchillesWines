@@ -11,8 +11,17 @@ cd /app
 echo "[achilles] Running database migrations..."
 npm run db:migrate
 
-echo "[achilles] Starting scraper job runner..."
-python -m achilles_scraper.cli run-jobs &
+echo "[achilles] Starting scraper job runner (supervised)..."
+# Supervise the worker: if run-jobs ever exits (crash, OOM, unhandled error),
+# restart it after a short backoff. Without this, a dead worker leaves jobs
+# stuck in 'queued' forever while the container stays up (Node keeps it alive).
+(
+  while true; do
+    python -m achilles_scraper.cli run-jobs
+    echo "[achilles] job runner exited (code $?) — restarting in 5s..."
+    sleep 5
+  done
+) &
 JOB_PID=$!
 
 echo "[achilles] Starting web server on :3000..."

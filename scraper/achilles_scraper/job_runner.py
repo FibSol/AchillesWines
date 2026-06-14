@@ -667,6 +667,93 @@ class JobRunner:
             except Exception:
                 pass
 
+    def _reap(self, in_flight: dict[Future, str]) -> None:
+        """Finalise any completed futures: write results and pop them from in_flight."""
+        for future in [f for f in list(in_flight) if f.done()]:
+            job_id = in_flight.pop(future)
+            try:
+                _returned_job_id, result = future.result()
+            except Exception as exc:
+                # Safety-net: exception escaped the worker wrapper.
+                console.print(
+                    f"[red]Worker raised unhandled exception for job {job_id[:8]}…: {exc}[/red]"
+                )
+                result = ScrapeResult(error=str(exc))
+            self._finish_job(job_id, result)
+            icon = "[red]✗[/red]" if result.error else "[green]✓[/green]"
+            console.print(
+                f"{icon} job={job_id[:8]}… "
+                f"fetched={result.rows_fetched} inserted={result.rows_inserted} dlq={result.rows_dlq}"
+            )
+
+    def _fill_slots(self, executor: ThreadPoolExecutor, in_flight: dict[Future, str]) -> None:
+        """Claim queued jobs to fill free worker slots and submit them to the pool."""
+        free_slots = self.max_workers - len(in_flight)
+        if free_slots <= 0:
+            return
+        for job in self._claim_jobs(free_slots):
+            source_code = (
+                self._get_source_code(job["source_key"]) if job.get("source_key") else None
+            )
+            # Normalise to lowercase — SCRAPERS keys are lowercase but
+            # dim_source.source_code may be uppercase (e.g. BIVB, CIVB).
+            scraper_key = source_code.lower() if source_code else None
+            if scraper_key and scraper_key in self.scrapers:
+                params = job.get("params") or {}
+                if not isinstance(params, dict):
+                    params = {}
+                limit = int(params["limit"]) if params.get("limit") else None
+                test_auth = bool(params.get("test_auth"))
+
+                batch_id = _make_batch_id(scraper_key)
+                self._set_batch_id(job["job_id"], batch_id)
+
+                future = executor.submit(
+                    _worker_run_job,
+                    self.db_path,
+                    self.scrapers,
+                    job,
+                    scraper_key,
+                    batch_id,
+                    limit,
+                    test_auth,
+                )
+                in_flight[future] = job["job_id"]
+            else:
+                self.conn.execute(
+                    "UPDATE ops_job_queue SET status='failed', error_message='Unknown source' WHERE job_id=?",
+                    (job["job_id"],),
+                )
+                self.conn.commit()
+
+    def _queued_count(self) -> int:
+        row = self.conn.execute(
+            "SELECT COUNT(*) AS n FROM ops_job_queue WHERE status='queued'"
+        ).fetchone()
+        return (row["n"] if row else 0) or 0
+
+    def run_once(self) -> None:
+        """Drain every currently-queued job, then exit.
+
+        Powers the "Process queue now" button (run-jobs --once). Claims atomically
+        via _claim_jobs, so it is safe to run alongside the always-on daemon —
+        neither can double-claim a job. No scheduler, no auto-requeue: this is a
+        bounded one-shot drain that returns once the queue is empty and all
+        in-flight jobs have finished.
+        """
+        console.print(
+            f"[bold green]Job runner: draining queue once.[/bold green] workers={self.max_workers}"
+        )
+        in_flight: dict[Future, str] = {}
+        with ThreadPoolExecutor(max_workers=self.max_workers, thread_name_prefix="scraper") as executor:
+            while True:
+                self._reap(in_flight)
+                self._fill_slots(executor, in_flight)
+                if not in_flight and self._queued_count() == 0:
+                    break
+                time.sleep(1)
+        console.print("[bold green]Queue drained.[/bold green]")
+
     def run_loop(self):
         console.print(
             f"[bold green]Job runner started.[/bold green] "
@@ -704,64 +791,10 @@ class JobRunner:
                                 self.conn.commit()
 
                         # ── 1. Reap completed futures ────────────────────────────
-                        done_futures = [f for f in list(in_flight) if f.done()]
-                        for future in done_futures:
-                            job_id = in_flight.pop(future)
-                            try:
-                                _returned_job_id, result = future.result()
-                            except Exception as exc:
-                                # Safety-net: exception escaped the worker wrapper.
-                                console.print(
-                                    f"[red]Worker raised unhandled exception for job {job_id[:8]}…: {exc}[/red]"
-                                )
-                                result = ScrapeResult(error=str(exc))
-                            self._finish_job(job_id, result)
-                            icon = "[red]✗[/red]" if result.error else "[green]✓[/green]"
-                            console.print(
-                                f"{icon} job={job_id[:8]}… "
-                                f"fetched={result.rows_fetched} inserted={result.rows_inserted} dlq={result.rows_dlq}"
-                            )
+                        self._reap(in_flight)
 
                         # ── 2. Claim new jobs to fill free worker slots ──────────
-                        free_slots = self.max_workers - len(in_flight)
-                        if free_slots > 0:
-                            jobs = self._claim_jobs(free_slots)
-                            for job in jobs:
-                                source_code = (
-                                    self._get_source_code(job["source_key"])
-                                    if job.get("source_key")
-                                    else None
-                                )
-                                # Normalise to lowercase — SCRAPERS keys are lowercase
-                                # but dim_source.source_code may be uppercase (e.g. BIVB, CIVB)
-                                scraper_key = source_code.lower() if source_code else None
-                                if scraper_key and scraper_key in self.scrapers:
-                                    params = job.get("params") or {}
-                                    if not isinstance(params, dict):
-                                        params = {}
-                                    limit = int(params["limit"]) if params.get("limit") else None
-                                    test_auth = bool(params.get("test_auth"))
-
-                                    batch_id = _make_batch_id(scraper_key)
-                                    self._set_batch_id(job["job_id"], batch_id)
-
-                                    future = executor.submit(
-                                        _worker_run_job,
-                                        self.db_path,
-                                        self.scrapers,
-                                        job,
-                                        scraper_key,
-                                        batch_id,
-                                        limit,
-                                        test_auth,
-                                    )
-                                    in_flight[future] = job["job_id"]
-                                else:
-                                    self.conn.execute(
-                                        "UPDATE ops_job_queue SET status='failed', error_message='Unknown source' WHERE job_id=?",
-                                        (job["job_id"],),
-                                    )
-                                    self.conn.commit()
+                        self._fill_slots(executor, in_flight)
 
                     except (KeyboardInterrupt, SystemExit):
                         raise  # let the outer handler catch these
