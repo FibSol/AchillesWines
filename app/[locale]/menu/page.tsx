@@ -34,6 +34,11 @@ export default async function MenuPage({ params }: { params: Promise<{ locale: s
     budgetPerGuest: t("budgetPerGuest"),
     fromCellar: t("fromCellar"),
     fromRegistry: t("fromRegistry"),
+    consumeBtn: t("consumeBtn"),
+    consumeQty: t("consumeQty"),
+    consumeConfirm: t("consumeConfirm"),
+    consumeCancel: t("consumeCancel"),
+    consumeSuccess: t("consumeSuccess"),
     confidence: {
       verified: tConf.raw("verified") as string,
       reviewed: tConf("reviewed"),

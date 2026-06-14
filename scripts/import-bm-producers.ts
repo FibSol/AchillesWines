@@ -33,6 +33,18 @@ interface BmDomaine {
 
 // ─── Coverage tier mapping ────────────────────────────────────────────────────
 
+/** Clamp raw tier from burgundy-manager to 1–3 (no artefacts above 3). */
+function clampTier(tier: number | null): number | undefined {
+  if (tier === null || tier === undefined) return undefined;
+  return Math.min(Math.max(Math.round(tier), 1), 3);
+}
+
+/**
+ * Derive coverage_tier from prestige tier.
+ * Note: migration 0013 re-runs this logic after hydrating scraped data,
+ * so tier=1 producers are always upgraded to "notable" even if the scraper
+ * hasn't reached them yet.
+ */
 function coverageTier(tier: number | null): "notable" | "mid" | "long_tail" {
   if (tier === 1) return "notable";
   if (tier === 2) return "mid";
@@ -134,7 +146,7 @@ function main() {
           aliases:            row.vigneron ? [row.vigneron] : [],
           latitude:           row.lat  ?? undefined,
           longitude:          row.lng  ?? undefined,
-          tier:               row.tier ?? undefined,
+          tier:               clampTier(row.tier),
           notes:              row.style ?? undefined,
           status:             "active",
           coverageTier:       coverageTier(row.tier),

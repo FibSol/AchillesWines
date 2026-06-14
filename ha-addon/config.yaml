@@ -1,6 +1,6 @@
 name: "Achilles's Wines"
 description: "Personal wine cellar & market intelligence — web UI + scraper sidecar"
-version: "1.3.0"
+version: "1.4.0"
 slug: "achilles_wines"
 init: false
 homeassistant_api: false

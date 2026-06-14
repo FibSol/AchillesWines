@@ -141,7 +141,7 @@ export function VintageDivergenceHeatmap({ cells, labels }: Props) {
       <p className="text-xs text-[rgba(250,247,245,0.50)]">{labels.subtitle}</p>
 
       {/* Heatmap — horizontally scrollable */}
-      <div className="glass-card p-4 overflow-x-auto" style={{ background: "rgba(13,6,26,0.7)" }}>
+      <div className="glass-card p-4 overflow-x-auto" style={{ background: "rgba(9,8,15,0.7)" }}>
         <ResponsiveContainer width="100%" height={svgHeight + 8}>
           <svg
             width={svgWidth}

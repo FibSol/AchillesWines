@@ -9,6 +9,25 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.0] — 2026-06-14
+
+### Added
+- **Hector — security hardening**: access gate, security headers, rate-limiting, SSRF guard, and audit logging
+- **Odysseus — scraper job queue**: supervised background worker, a manual "Process queue now" button, and a dev worker launcher
+- **Consume from cellar** action on the Menu/pairing page — `/api/cellar/consume-by-wine` route plus UI, localized across all 6 languages
+- `dev.ps1` dev launcher script
+
+### Changed
+- **Dependency security upgrades**: Next 16.2.6→16.2.9, React/React-DOM 19.2.4→19.2.7, Vitest 3.2.6→4.1.8, plus npm overrides to patch transitive vulns (0 vulnerabilities)
+- **Coverage-tier derivation** now applies prestige rules: tier-1 (iconic) producers are always `notable`, tier-2 are floored at `mid`, and import tier artefacts are clamped to ≤3 (migration 0013 + `import-bm-producers`)
+
+### Fixed
+- Odysseus coverage-tier tiles now legible on the dark theme
+- Vintage divergence heatmap background color aligned to the Athena noir palette
+- Cassandra critic-enum and `dim_source` test fixtures synced with canonical codes
+
+---
+
 ## [1.3.0] — 2026-06-08
 
 ### Added
