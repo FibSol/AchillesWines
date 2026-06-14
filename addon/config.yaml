@@ -1,6 +1,6 @@
 name: "Achilles's Wines"
 description: "Home wine cellar — multilingual, price tracking & cellar inventory"
-version: "1.4.1"
+version: "1.4.2"
 slug: "achilles_wines"
 init: false
 arch:

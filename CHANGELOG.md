@@ -9,6 +9,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.2] — 2026-06-14
+
+### Fixed
+- **Add-on rebuild failed (~90s) and rolled back, so updates never took.** The repo shipped two add-on directories with the same `slug: achilles_wines` (`addon/` and the stale `ha-addon/`). HA's Supervisor resolves a duplicate slug to the last-loaded directory (`ha-addon/`), whose Dockerfile is `FROM $BUILD_FROM` but which has no `build.yaml` to supply it — so a real rebuild died instantly on an empty base image. Removed the unused `ha-addon/` directory so `achilles_wines` resolves only to the buildable `addon/` add-on.
+
+---
+
 ## [1.4.1] — 2026-06-14
 
 ### Fixed
