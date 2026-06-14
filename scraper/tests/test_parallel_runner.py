@@ -22,7 +22,8 @@ _CREATE_DIM_SOURCE = """
 CREATE TABLE IF NOT EXISTS dim_source (
     source_key INTEGER PRIMARY KEY AUTOINCREMENT,
     source_code TEXT NOT NULL UNIQUE,
-    requires_auth INTEGER DEFAULT 0
+    requires_auth INTEGER DEFAULT 0,
+    last_success_at INTEGER
 );
 """
 
