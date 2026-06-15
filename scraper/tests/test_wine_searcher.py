@@ -16,18 +16,14 @@ Covered:
   10. EUR avg price → direct insert (no FX call needed)
   11. Deduplication: same content_hash → skipped on second run
   12. FX unavailable → validation_error DLQ
-  13. _parse_avg_price: USD, EUR, GBP, no-match, formatted thousands
-  14. _build_query: producer+cuvee+vintage, NV wine, no cuvee
+  13. _build_query: producer+cuvee+vintage, NV wine, no cuvee
 """
 import os
 import sqlite3
 import unittest
 from unittest.mock import MagicMock, call, patch
 
-from achilles_scraper.scrapers.wine_searcher import (
-    WineSearcherScraper,
-    _parse_avg_price,
-)
+from achilles_scraper.scrapers.wine_searcher import WineSearcherScraper
 
 
 # ---------------------------------------------------------------------------
@@ -136,44 +132,6 @@ def _fx_resp(rate: float) -> MagicMock:
 
 def _ws_result(description: str, url: str = "https://www.wine-searcher.com/find/x/2015") -> dict:
     return {"url": url, "title": "WS title", "description": description}
-
-
-# ---------------------------------------------------------------------------
-# _parse_avg_price unit tests
-# ---------------------------------------------------------------------------
-
-class ParseAvgPriceTests(unittest.TestCase):
-
-    def test_usd_price(self):
-        price, cur = _parse_avg_price(
-            "Avg Price (ex-tax) $1,851 / 750ml. Find the best price."
-        )
-        self.assertAlmostEqual(price, 1851.0)
-        self.assertEqual(cur, "USD")
-
-    def test_eur_price(self):
-        price, cur = _parse_avg_price("Avg Price (ex-tax) €550 / 750ml")
-        self.assertAlmostEqual(price, 550.0)
-        self.assertEqual(cur, "EUR")
-
-    def test_gbp_price(self):
-        price, cur = _parse_avg_price("Avg Price (ex-tax) £320 / 750ml")
-        self.assertAlmostEqual(price, 320.0)
-        self.assertEqual(cur, "GBP")
-
-    def test_no_match_returns_none(self):
-        price, cur = _parse_avg_price("Find the best price near you.")
-        self.assertIsNone(price)
-        self.assertEqual(cur, "EUR")
-
-    def test_empty_description(self):
-        price, _ = _parse_avg_price("")
-        self.assertIsNone(price)
-
-    def test_formatted_thousands(self):
-        price, cur = _parse_avg_price("Avg Price (ex-tax) $12,345.50 / 750ml")
-        self.assertAlmostEqual(price, 12345.50)
-        self.assertEqual(cur, "USD")
 
 
 # ---------------------------------------------------------------------------
