@@ -7,6 +7,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+- **Official critic ratings** — curated primary-tier critic set ({WA→RP/Parker, Vinous→VN, JD/Jeb Dunnuck, JMIB→JM/Jasper Morris, RVF→LVF/Les Vins de France, Hachette}) via a new `lib/critics.ts` registry holding display labels, full names, and an `official` flag. Official critics now sort first in the vintage divergence heatmap, domaine detail table, and producer charts; all other critics stay ingested as a secondary tier.
+- **`JD` (Jeb Dunnuck) critic code** — added to the canonical enum, schema, scrapers, and migration `0022`.
+
+### Fixed
+- **Jeb Dunnuck was misattributed to code `JG`**, which is actually John Gilman (View from the Cellar). `JG` now correctly maps to John Gilman and Jeb Dunnuck has his own `JD` code.
+
 ---
 
 ## [1.4.2] — 2026-06-14
