@@ -1,0 +1,902 @@
+[
+  {
+    "chateau": "LAFITE-ROTHSCHILD",
+    "classification": "1855 Premier Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "LATOUR",
+    "classification": "1855 Premier Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "MARGAUX",
+    "classification": "1855 Premier Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "MOUTON ROTHSCHILD",
+    "classification": "1855 Premier Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "HAUT BRION",
+    "classification": "1855 Premier Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "RAUZAN-SEGLA",
+    "classification": "1855 Deuxième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "RAUZAN-GASSIES",
+    "classification": "1855 Deuxième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "LEOVILLE LAS CASES",
+    "classification": "1855 Deuxième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "LEOVILLE-POYFERRE",
+    "classification": "1855 Deuxième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "LEOVILLE BARTON",
+    "classification": "1855 Deuxième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "DURFORT-VIVENS",
+    "classification": "1855 Deuxième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "GRUAUD LAROSE",
+    "classification": "1855 Deuxième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "LASCOMBES",
+    "classification": "1855 Deuxième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "BRANE-CANTENAC",
+    "classification": "1855 Deuxième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "PICHON-LONGUEVILLE",
+    "classification": "1855 Deuxième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "PICHON LONGUEVILLE COMTESSE de LALANDE",
+    "classification": "1855 Deuxième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "DUBRU-BEAUCAILLOU",
+    "classification": "1855 Deuxième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "COS d’ESTOURNEL",
+    "classification": "1855 Deuxième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "MONTROSE",
+    "classification": "1855 Deuxième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "KIRWAN",
+    "classification": "1855 Troisième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "CHATEAU d’ISSAN",
+    "classification": "1855 Troisième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "LAGRANGE",
+    "classification": "1855 Troisième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "LANGOA BARTON",
+    "classification": "1855 Troisième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "GISCOURS",
+    "classification": "1855 Troisième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "MALESCOT SAINT-EXUPERY",
+    "classification": "1855 Troisième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "BOYD-CANTENAC",
+    "classification": "1855 Troisième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "CANTENAC BROWN",
+    "classification": "1855 Troisième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "PALMER",
+    "classification": "1855 Troisième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "LA LAGUNE",
+    "classification": "1855 Troisième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "DESMIRAIL",
+    "classification": "1855 Troisième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "CALON-SEGUR",
+    "classification": "1855 Troisième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "FERRIERE",
+    "classification": "1855 Troisième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "MARQUIS d’ALESME",
+    "classification": "1855 Troisième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "SAINT-PIERRE",
+    "classification": "1855 Quatrième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "TALBOT",
+    "classification": "1855 Quatrième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "BRANAIRE-DUCRU",
+    "classification": "1855 Quatrième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "POUGET",
+    "classification": "1855 Quatrième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "LA TOUR CARNET",
+    "classification": "1855 Quatrième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "LAFON ROCHET",
+    "classification": "1855 Quatrième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "BEYCHEVELLE",
+    "classification": "1855 Quatrième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "PRIEURE-LICHINE",
+    "classification": "1855 Quatrième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "MARQUIS DE TERME",
+    "classification": "1855 Quatrième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "PONTET-CANET",
+    "classification": "1855 Cinquième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "BATAILLEY",
+    "classification": "1855 Cinquième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "HAUT-BATAILLEY",
+    "classification": "1855 Cinquième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "GRAND-PUY-LACOSTE",
+    "classification": "1855 Cinquième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "GRAND-PUY-DUCASSE",
+    "classification": "1855 Cinquième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "LYNCH-BAGES",
+    "classification": "1855 Cinquième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "LYNCH-MOUSSAS",
+    "classification": "1855 Cinquième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "DAUZAC",
+    "classification": "1855 Cinquième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "Château d’ARMAILHAC",
+    "classification": "1855 Cinquième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "HAUT-BAGES LIBERAL",
+    "classification": "1855 Cinquième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "PEDESCLAUX",
+    "classification": "1855 Cinquième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "BELGRAVE",
+    "classification": "1855 Cinquième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "CAMENSAC",
+    "classification": "1855 Cinquième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "COS LABORY",
+    "classification": "1855 Cinquième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "CLERC MILON",
+    "classification": "1855 Cinquième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "CROIZET-BAGES",
+    "classification": "1855 Cinquième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "CANTEMERLE",
+    "classification": "1855 Cinquième Cru Classé (Médoc)"
+  },
+  {
+    "chateau": "ANGELUS",
+    "classification": "Saint-Émilion Premier Grand Cru Classé A"
+  },
+  {
+    "chateau": "AUSONE",
+    "classification": "Saint-Émilion Premier Grand Cru Classé A"
+  },
+  {
+    "chateau": "CHEVAL BLANC",
+    "classification": "Saint-Émilion Premier Grand Cru Classé A"
+  },
+  {
+    "chateau": "PAVIE",
+    "classification": "Saint-Émilion Premier Grand Cru Classé A"
+  },
+  {
+    "chateau": "VALANDRAUD",
+    "classification": "Saint-Émilion Premier Grand Cru Classé B"
+  },
+  {
+    "chateau": "TROPLONG-MONDOT",
+    "classification": "Saint-Émilion Premier Grand Cru Classé B"
+  },
+  {
+    "chateau": "CANON",
+    "classification": "Saint-Émilion Premier Grand Cru Classé B"
+  },
+  {
+    "chateau": "PAVIE-MACQUIN",
+    "classification": "Saint-Émilion Premier Grand Cru Classé B"
+  },
+  {
+    "chateau": "LA GAFFELIÈRE",
+    "classification": "Saint-Émilion Premier Grand Cru Classé B"
+  },
+  {
+    "chateau": "BEAU-SÉJOUR BÉCOT",
+    "classification": "Saint-Émilion Premier Grand Cru Classé B"
+  },
+  {
+    "chateau": "Clos FOURTET",
+    "classification": "Saint-Émilion Premier Grand Cru Classé B"
+  },
+  {
+    "chateau": "CANON-LA-GAFFELIÈRE",
+    "classification": "Saint-Émilion Premier Grand Cru Classé B"
+  },
+  {
+    "chateau": "LARCIS-DUCASSE",
+    "classification": "Saint-Émilion Premier Grand Cru Classé B"
+  },
+  {
+    "chateau": "LA MONDOTTE",
+    "classification": "Saint-Émilion Premier Grand Cru Classé B"
+  },
+  {
+    "chateau": "BEAUSÉJOUR (DUFFAU-LAGARROSSE)",
+    "classification": "Saint-Émilion Premier Grand Cru Classé B"
+  },
+  {
+    "chateau": "FIGEAC",
+    "classification": "Saint-Émilion Premier Grand Cru Classé B"
+  },
+  {
+    "chateau": "BALESTARD-LA-TONNELLE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "BARDE-HAUT",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "BELLEFONT-BELCIER",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "BELLEVUE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "BERLIQUET",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "CADET-BON",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "CADET-PIOLA",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "CAP DE MOURLIN",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "CHAUVIN",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "CLOS DES JACOBINS",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "CORBIN",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "CÔTE DE BALEAU",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "COUVENT DES JACOBINS",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "DASSAULT",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "DE FERRAND",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "de PRESSAC",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "DESTIEUX",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "FAUGÈRES",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "FAURIE DE SOUCHARD",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "FLEUR-CARDINALE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "FOMBRAUGE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "FONPLÉGADE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "FONROQUE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "FRANC-MAYNE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "GRAND CORBIN",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "GRAND CORBIN-DESPAGNE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "GRAND-MAYNE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "GRAND-PONTET",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "GUADET",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "HAUT SARPE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "HAUT-SARPE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "JEAN FAURE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "L’ARROSEE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "LA CLOTTE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "LA COMMANDERIE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "LA COUSPAUDE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "LA DOMINIQUE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "LA MARZELLE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "La SERRE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "LA TOUR-FIGEAC",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "LANIOTE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "LARMANDE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "LAROQUE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "LAROZE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "LE CH TELET",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "LE PRIEURÉ",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "LES GRANDES MURAILLES",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "MONBOUSQUET",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "MOULIN DU CADET",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "PAVIE-DECESSE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "PEBY-FAUGÈRES",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "PETIT-FAURIE-DE-SOUTARD",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "QUINAULT L’ENCLOS",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "RIPEAU",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "ROCHEBELLE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "SAINT-GEORGES-CÔTE-PAVIE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "SOUTARD",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "VILLEMAURINE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "YON-FIGEAC",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "Clos de L’ORATOIRE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "Clos LA MADELEINE",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "Clos SAINT-MARTIN",
+    "classification": "Saint-Émilion Grand Cru Classé"
+  },
+  {
+    "chateau": "LAFITE ROTHSCHILD",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "LATOUR",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "MARGAUX",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "HAUT-BRION PESSAC",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "MOUTON-ROTHSCHILD",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "RAUSAN-SÉGLA",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "RAUZAN-GASSIES",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "LÉOVILLE LAS CASES",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "LÉOVILLE POYFERRÉ",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "LÉOVILLE BARTON",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "DURFORT-VIVENS",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "GRUAUD-LAROSE",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "LASCOMBES",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "BRANE-CANTENAC",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "PICHON-LONGUEVILLE BARON",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "PICHON LONGUEVILLE COMTESSE DE LALANDE",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "DUCRU-BEAUCAILLOU",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "COS-D'ESTOURNEL",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "MONTROSE",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "KIRWAN CANTENAC-MARGAUX",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "D'ISSAN CANTENAC-MARGAUX",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "LAGRANGE",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "LANGOA BARTON",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "GISCOURS LABARDE-MARGAUX",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "MALESCOT-ST.-EXUPÉRY MARGAUX",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "CANTENAC-BROWN CANTENAC-MARGAUX",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "BOYD-CANTENAC",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "PALMER CANTENAC-MARGAUX",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "LA LAGUNE LUDON",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "DESMIRAIL",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "CALON-SÉGUR",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "FERRIÈRE",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "MARQUIS-D'ALESME-BECKER",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "ST.-PIERRE ST.-JULIEN",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "TALBOT",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "BRANAIRE-DUCRU",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "DUHART-MILON ROTHSCHILD",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "POUGET CANTENAC-MARGAUX",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "LA TOUR CARNET ST.-LAURENT",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "LAFON-ROCHET",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "BEYCHEVELLE",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "PRIEURÉ-LICHINE CANTENAC-MARGAUX",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "MARQUIS DE TERME",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "PONTET-CANET PAUILLAC",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "BATAILLEY PAUILLAC",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "HAUT-BATAILLEY PAUILLAC",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "GRAND-PUY-LACOSTE PAUILLAC",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "GRAND-PUY-DUCASSE PAUILLAC",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "LYNCH BAGES PAUILLAC",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "LYNCH-MOUSSAS PAUILLAC",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "DAUZAC LABARDE (MARGAUX)",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "MOUTON-BARONNE-PHILIPPE ( D'ARMAILHAC AFTER 1989) PAUILLAC",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "DU TERTRE ARSAC (MARGAUX)",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "HAUT-BAGES LIBÉRAL PAUILLAC",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "PÉDESCLAUX PAUILLAC",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "BELGRAVE ST.-LAURENT (HAUT-MÉDOC)",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "CAMENSAC ( DE CAMENSAC) ST.-LAURENT (HAUT-MÉDOC)",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "COS LABORY ST.-ESTÈPHE",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "CLERC MILON PAUILLAC",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "CROIZET-BAGES PAUILLAC",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "CANTEMERLE MACAU (HAUT-MÉDOC)",
+    "classification": "Cru Bourgeois"
+  },
+  {
+    "chateau": "CHATEAU D'YQUEM",
+    "classification": "Sauternes Premier Cru Supérieur"
+  },
+  {
+    "chateau": "LA TOUR-BLANCHE",
+    "classification": "Sauternes Premier Cru Classé"
+  },
+  {
+    "chateau": "COUTET, BARSAC",
+    "classification": "Sauternes Premier Cru Classé"
+  },
+  {
+    "chateau": "CLIMENS, BARSAC",
+    "classification": "Sauternes Premier Cru Classé"
+  },
+  {
+    "chateau": "LAFAURIE-PERAGUEY",
+    "classification": "Sauternes Premier Cru Classé"
+  },
+  {
+    "chateau": "GUIRAUD",
+    "classification": "Sauternes Premier Cru Classé"
+  },
+  {
+    "chateau": "CLOS HAUT-PEYRAGUEY",
+    "classification": "Sauternes Premier Cru Classé"
+  },
+  {
+    "chateau": "DE RAYNE-VIGNEAU",
+    "classification": "Sauternes Premier Cru Classé"
+  },
+  {
+    "chateau": "RABAUD-PROMIS",
+    "classification": "Sauternes Premier Cru Classé"
+  },
+  {
+    "chateau": "RIEUSSEC",
+    "classification": "Sauternes Premier Cru Classé"
+  },
+  {
+    "chateau": "SIGALAS-RABAUD",
+    "classification": "Sauternes Premier Cru Classé"
+  },
+  {
+    "chateau": "SUDUIRAUT",
+    "classification": "Sauternes Premier Cru Classé"
+  },
+  {
+    "chateau": "CHATEAU D´ARCHE",
+    "classification": "Sauternes Deuxième Cru Classé"
+  },
+  {
+    "chateau": "BROUSTET, BOMMES",
+    "classification": "Sauternes Deuxième Cru Classé"
+  },
+  {
+    "chateau": "CAILLOU",
+    "classification": "Sauternes Deuxième Cru Classé"
+  },
+  {
+    "chateau": "DOISY-DÄNE",
+    "classification": "Sauternes Deuxième Cru Classé"
+  },
+  {
+    "chateau": "DOISY-DUBROCA",
+    "classification": "Sauternes Deuxième Cru Classé"
+  },
+  {
+    "chateau": "DOISY-VÉDRINES",
+    "classification": "Sauternes Deuxième Cru Classé"
+  },
+  {
+    "chateau": "FILHOT",
+    "classification": "Sauternes Deuxième Cru Classé"
+  },
+  {
+    "chateau": "LAMOTHE",
+    "classification": "Sauternes Deuxième Cru Classé"
+  },
+  {
+    "chateau": "LAMOTHE-GUIGNARD",
+    "classification": "Sauternes Deuxième Cru Classé"
+  },
+  {
+    "chateau": "CHATEAU DE MYRAT",
+    "classification": "Sauternes Deuxième Cru Classé"
+  },
+  {
+    "chateau": "CHATEAU DE MALLE",
+    "classification": "Sauternes Deuxième Cru Classé"
+  },
+  {
+    "chateau": "NAIRAC, BOMMES",
+    "classification": "Sauternes Deuxième Cru Classé"
+  },
+  {
+    "chateau": "ROMER, PREIGNAC",
+    "classification": "Sauternes Deuxième Cru Classé"
+  },
+  {
+    "chateau": "ROMER DU HAYOT",
+    "classification": "Sauternes Deuxième Cru Classé"
+  },
+  {
+    "chateau": "CHATEAU SUAU",
+    "classification": "Sauternes Deuxième Cru Classé"
+  }
+]

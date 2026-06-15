@@ -53,6 +53,7 @@ async function seed() {
     { sourceCode: "wine_spectator", sourceName: "Wine Spectator", sourceTier: "F_vintage_authority", cadence: "annual", baseUrl: "https://www.winespectator.com" },
     { sourceCode: "rvf", sourceName: "Revue du Vin de France", sourceTier: "E_press_critic", cadence: "monthly", baseUrl: "https://www.larvf.com" },
     { sourceCode: "xwines", sourceName: "X-Wines (CC0)", sourceTier: "D_user_aggregate", cadence: "annual", licenseClass: "open" },
+    { sourceCode: "tastingbook", sourceName: "Tastingbook (critic panel — James Suckling)", sourceTier: "D_user_aggregate", cadence: "on_demand", baseUrl: "https://tastingbook.com", licenseClass: "public_check_terms" },
   ]).onConflictDoNothing();
 
   console.log("→ Seeding 20 cellar locations…");

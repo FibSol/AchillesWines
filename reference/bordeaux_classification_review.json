@@ -1,0 +1,1062 @@
+[
+  {
+    "chateau": "LAFITE-ROTHSCHILD",
+    "classification": "1855 Premier Cru Classé (Médoc)",
+    "producer_key": 423,
+    "producer_name": "Château Lafite Rothschild",
+    "region": "Bordeaux",
+    "subregion": "Pauillac",
+    "ambiguous": true,
+    "candidate_keys": [
+      423,
+      62094
+    ],
+    "candidates": [
+      "Château Lafite Rothschild (Bordeaux/Pauillac)",
+      "Lafite Rothschild Pauillac (None/None)"
+    ]
+  },
+  {
+    "chateau": "MOUTON ROTHSCHILD",
+    "classification": "1855 Premier Cru Classé (Médoc)",
+    "producer_key": 425,
+    "producer_name": "Château Mouton Rothschild",
+    "region": "Bordeaux",
+    "subregion": "Pauillac",
+    "ambiguous": true,
+    "candidate_keys": [
+      425,
+      62064
+    ],
+    "candidates": [
+      "Château Mouton Rothschild (Bordeaux/Pauillac)",
+      "Mouton Rothschild Pauillac (None/None)"
+    ]
+  },
+  {
+    "chateau": "RAUZAN-SEGLA",
+    "classification": "1855 Deuxième Cru Classé (Médoc)",
+    "producer_key": 436,
+    "producer_name": "Château Rauzan-Ségla",
+    "region": "Bordeaux",
+    "subregion": "Margaux",
+    "ambiguous": true,
+    "candidate_keys": [
+      436,
+      62138
+    ],
+    "candidates": [
+      "Château Rauzan-Ségla (Bordeaux/Margaux)",
+      "Rauzan Segla Margaux (None/None)"
+    ]
+  },
+  {
+    "chateau": "LEOVILLE LAS CASES",
+    "classification": "1855 Deuxième Cru Classé (Médoc)",
+    "producer_key": 430,
+    "producer_name": "Château Léoville Las Cases",
+    "region": "Bordeaux",
+    "subregion": "Saint-Julien",
+    "ambiguous": true,
+    "candidate_keys": [
+      430,
+      61969,
+      63506
+    ],
+    "candidates": [
+      "Château Léoville Las Cases (Bordeaux/Saint-Julien)",
+      "Leoville Las Cases St-Julien (None/None)",
+      "Léoville Las Cases (None/None)"
+    ]
+  },
+  {
+    "chateau": "LEOVILLE-POYFERRE",
+    "classification": "1855 Deuxième Cru Classé (Médoc)",
+    "producer_key": 433,
+    "producer_name": "Château Léoville Poyferré",
+    "region": "Bordeaux",
+    "subregion": "Saint-Julien",
+    "ambiguous": true,
+    "candidate_keys": [
+      433,
+      61968
+    ],
+    "candidates": [
+      "Château Léoville Poyferré (Bordeaux/Saint-Julien)",
+      "Leoville Poyferre St-Julien (None/None)"
+    ]
+  },
+  {
+    "chateau": "LEOVILLE BARTON",
+    "classification": "1855 Deuxième Cru Classé (Médoc)",
+    "producer_key": 432,
+    "producer_name": "Château Léoville Barton",
+    "region": "Bordeaux",
+    "subregion": "Saint-Julien",
+    "ambiguous": true,
+    "candidate_keys": [
+      432,
+      61956
+    ],
+    "candidates": [
+      "Château Léoville Barton (Bordeaux/Saint-Julien)",
+      "Leoville Barton St-Julien (None/None)"
+    ]
+  },
+  {
+    "chateau": "DURFORT-VIVENS",
+    "classification": "1855 Deuxième Cru Classé (Médoc)",
+    "producer_key": 3327,
+    "producer_name": "Château Durfort-Vivens",
+    "region": "Bordeaux",
+    "subregion": "Margaux",
+    "ambiguous": true,
+    "candidate_keys": [
+      3327,
+      62062
+    ],
+    "candidates": [
+      "Château Durfort-Vivens (Bordeaux/Margaux)",
+      "Durfort Vivens Margaux (None/None)"
+    ]
+  },
+  {
+    "chateau": "DUBRU-BEAUCAILLOU",
+    "classification": "1855 Deuxième Cru Classé (Médoc)",
+    "producer_key": 431,
+    "producer_name": "Château Ducru-Beaucaillou",
+    "region": "Bordeaux",
+    "subregion": "Saint-Julien",
+    "ambiguous": true,
+    "candidate_keys": [
+      431,
+      62140
+    ],
+    "candidates": [
+      "Château Ducru-Beaucaillou (Bordeaux/Saint-Julien)",
+      "Ducru Beaucaillou St-Julien (None/None)"
+    ]
+  },
+  {
+    "chateau": "COS d’ESTOURNEL",
+    "classification": "1855 Deuxième Cru Classé (Médoc)",
+    "producer_key": 438,
+    "producer_name": "Château Cos d'Estournel",
+    "region": "Bordeaux",
+    "subregion": "Saint-Estèphe",
+    "ambiguous": true,
+    "candidate_keys": [
+      438,
+      62134
+    ],
+    "candidates": [
+      "Château Cos d'Estournel (Bordeaux/Saint-Estèphe)",
+      "Cos D'Estournel St-Estephe (None/None)"
+    ]
+  },
+  {
+    "chateau": "MONTROSE",
+    "classification": "1855 Deuxième Cru Classé (Médoc)",
+    "producer_key": 439,
+    "producer_name": "Château Montrose",
+    "region": "Bordeaux",
+    "subregion": "Saint-Estèphe",
+    "ambiguous": true,
+    "candidate_keys": [
+      439,
+      61959
+    ],
+    "candidates": [
+      "Château Montrose (Bordeaux/Saint-Estèphe)",
+      "Montrose St-Estephe (None/None)"
+    ]
+  },
+  {
+    "chateau": "LAGRANGE",
+    "classification": "1855 Troisième Cru Classé (Médoc)",
+    "producer_key": 5077,
+    "producer_name": "Château Lagrange",
+    "region": null,
+    "subregion": null,
+    "ambiguous": true,
+    "candidate_keys": [
+      5077,
+      58461
+    ],
+    "candidates": [
+      "Château Lagrange (None/None)",
+      "Château Lagrange (St. Julien) (None/None)"
+    ]
+  },
+  {
+    "chateau": "LANGOA BARTON",
+    "classification": "1855 Troisième Cru Classé (Médoc)",
+    "producer_key": 5148,
+    "producer_name": "Château Langoa Barton",
+    "region": "Bordeaux",
+    "subregion": "Saint-Julien-Beychevelle",
+    "ambiguous": true,
+    "candidate_keys": [
+      5148,
+      62424
+    ],
+    "candidates": [
+      "Château Langoa Barton (Bordeaux/Saint-Julien-Beychevelle)",
+      "Langoa Barton St-Julien (None/None)"
+    ]
+  },
+  {
+    "chateau": "PALMER",
+    "classification": "1855 Troisième Cru Classé (Médoc)",
+    "producer_key": 435,
+    "producer_name": "Château Palmer",
+    "region": "Bordeaux",
+    "subregion": "Margaux",
+    "ambiguous": true,
+    "candidate_keys": [
+      435,
+      48836
+    ],
+    "candidates": [
+      "Château Palmer (Bordeaux/Margaux)",
+      "Palmer (None/None)"
+    ]
+  },
+  {
+    "chateau": "CALON-SEGUR",
+    "classification": "1855 Troisième Cru Classé (Médoc)",
+    "producer_key": 440,
+    "producer_name": "Château Calon-Ségur",
+    "region": "Bordeaux",
+    "subregion": "Saint-Estèphe",
+    "ambiguous": true,
+    "candidate_keys": [
+      440,
+      62225
+    ],
+    "candidates": [
+      "Château Calon-Ségur (Bordeaux/Saint-Estèphe)",
+      "Calon Segur St-Estephe (None/None)"
+    ]
+  },
+  {
+    "chateau": "SAINT-PIERRE",
+    "classification": "1855 Quatrième Cru Classé (Médoc)",
+    "producer_key": 765,
+    "producer_name": "Château Saint-Pierre",
+    "region": "Bordeaux",
+    "subregion": "Saint-Julien",
+    "ambiguous": true,
+    "candidate_keys": [
+      765,
+      62066
+    ],
+    "candidates": [
+      "Château Saint-Pierre (Bordeaux/Saint-Julien)",
+      "Saint Pierre St-Julien (None/None)"
+    ]
+  },
+  {
+    "chateau": "BRANAIRE-DUCRU",
+    "classification": "1855 Quatrième Cru Classé (Médoc)",
+    "producer_key": 1734,
+    "producer_name": "Château Branaire-Ducru",
+    "region": "Bordeaux",
+    "subregion": "Saint-Julien-Beychevelle",
+    "ambiguous": true,
+    "candidate_keys": [
+      1734,
+      62065
+    ],
+    "candidates": [
+      "Château Branaire-Ducru (Bordeaux/Saint-Julien-Beychevelle)",
+      "Branaire Ducru St-Julien (None/None)"
+    ]
+  },
+  {
+    "chateau": "LAFON ROCHET",
+    "classification": "1855 Quatrième Cru Classé (Médoc)",
+    "producer_key": 5057,
+    "producer_name": "Château Lafon-Rochet",
+    "region": "Bordeaux",
+    "subregion": "Saint-Estèphe",
+    "ambiguous": true,
+    "candidate_keys": [
+      5057,
+      61886
+    ],
+    "candidates": [
+      "Château Lafon-Rochet (Bordeaux/Saint-Estèphe)",
+      "Lafon Rochet St-Estephe (None/None)"
+    ]
+  },
+  {
+    "chateau": "BEYCHEVELLE",
+    "classification": "1855 Quatrième Cru Classé (Médoc)",
+    "producer_key": 1475,
+    "producer_name": "Château Beychevelle",
+    "region": "Bordeaux",
+    "subregion": "Saint-Julien",
+    "ambiguous": true,
+    "candidate_keys": [
+      1475,
+      62239
+    ],
+    "candidates": [
+      "Château Beychevelle (Bordeaux/Saint-Julien)",
+      "Beychevelle St-Julien (None/None)"
+    ]
+  },
+  {
+    "chateau": "PONTET-CANET",
+    "classification": "1855 Cinquième Cru Classé (Médoc)",
+    "producer_key": 428,
+    "producer_name": "Château Pontet-Canet",
+    "region": "Bordeaux",
+    "subregion": "Pauillac",
+    "ambiguous": true,
+    "candidate_keys": [
+      428,
+      62074
+    ],
+    "candidates": [
+      "Château Pontet-Canet (Bordeaux/Pauillac)",
+      "Pontet Canet Pauillac (None/None)"
+    ]
+  },
+  {
+    "chateau": "LYNCH-BAGES",
+    "classification": "1855 Cinquième Cru Classé (Médoc)",
+    "producer_key": 429,
+    "producer_name": "Château Lynch-Bages",
+    "region": "Bordeaux",
+    "subregion": "Pauillac",
+    "ambiguous": true,
+    "candidate_keys": [
+      429,
+      62254
+    ],
+    "candidates": [
+      "Château Lynch-Bages (Bordeaux/Pauillac)",
+      "Lynch Bages Pauillac (None/None)"
+    ]
+  },
+  {
+    "chateau": "Château d’ARMAILHAC",
+    "classification": "1855 Cinquième Cru Classé (Médoc)",
+    "producer_key": 1018,
+    "producer_name": "Château d'Armailhac",
+    "region": "Bordeaux",
+    "subregion": "Pauillac",
+    "ambiguous": true,
+    "candidate_keys": [
+      1018,
+      34289
+    ],
+    "candidates": [
+      "Château d'Armailhac (Bordeaux/Pauillac)",
+      "D'ARMAILHAC (None/None)"
+    ]
+  },
+  {
+    "chateau": "CHEVAL BLANC",
+    "classification": "Saint-Émilion Premier Grand Cru Classé A",
+    "producer_key": 445,
+    "producer_name": "Château Cheval Blanc",
+    "region": "Bordeaux",
+    "subregion": "Saint-Émilion",
+    "ambiguous": true,
+    "candidate_keys": [
+      445,
+      62043
+    ],
+    "candidates": [
+      "Château Cheval Blanc (Bordeaux/Saint-Émilion)",
+      "Cheval Blanc St-Emilion (None/None)"
+    ]
+  },
+  {
+    "chateau": "VALANDRAUD",
+    "classification": "Saint-Émilion Premier Grand Cru Classé B",
+    "producer_key": 8292,
+    "producer_name": "Château Valandraud",
+    "region": "Bordeaux",
+    "subregion": "Saint-Étienne-de-Lisse",
+    "ambiguous": true,
+    "candidate_keys": [
+      8292,
+      62250
+    ],
+    "candidates": [
+      "Château Valandraud (Bordeaux/Saint-Étienne-de-Lisse)",
+      "Valandraud St-Emilion (None/None)"
+    ]
+  },
+  {
+    "chateau": "TROPLONG-MONDOT",
+    "classification": "Saint-Émilion Premier Grand Cru Classé B",
+    "producer_key": 8233,
+    "producer_name": "Château Troplong Mondot",
+    "region": "Bordeaux",
+    "subregion": "Saint-Émilion",
+    "ambiguous": true,
+    "candidate_keys": [
+      8233,
+      61973
+    ],
+    "candidates": [
+      "Château Troplong Mondot (Bordeaux/Saint-Émilion)",
+      "Troplong Mondot St-Emilion (None/None)"
+    ]
+  },
+  {
+    "chateau": "PAVIE-MACQUIN",
+    "classification": "Saint-Émilion Premier Grand Cru Classé B",
+    "producer_key": 6583,
+    "producer_name": "Château Pavie-Macquin",
+    "region": "Bordeaux",
+    "subregion": "Saint-Émilion",
+    "ambiguous": true,
+    "candidate_keys": [
+      6583,
+      62456
+    ],
+    "candidates": [
+      "Château Pavie-Macquin (Bordeaux/Saint-Émilion)",
+      "Pavie Macquin St-Emilion (None/None)"
+    ]
+  },
+  {
+    "chateau": "LA GAFFELIÈRE",
+    "classification": "Saint-Émilion Premier Grand Cru Classé B",
+    "producer_key": 3777,
+    "producer_name": "Château La Gaffelière",
+    "region": "Bordeaux",
+    "subregion": "Saint-Émilion",
+    "ambiguous": true,
+    "candidate_keys": [
+      3777,
+      32758
+    ],
+    "candidates": [
+      "Château La Gaffelière (Bordeaux/Saint-Émilion)",
+      "LA GAFFELIERE ST.EMILION (None/None)"
+    ]
+  },
+  {
+    "chateau": "BEAU-SÉJOUR BÉCOT",
+    "classification": "Saint-Émilion Premier Grand Cru Classé B",
+    "producer_key": 1243,
+    "producer_name": "Château Beau-Séjour Bécot",
+    "region": "Bordeaux",
+    "subregion": "Saint-Émilion",
+    "ambiguous": true,
+    "candidate_keys": [
+      1243,
+      61971
+    ],
+    "candidates": [
+      "Château Beau-Séjour Bécot (Bordeaux/Saint-Émilion)",
+      "Beau Sejour Becot St-Emilion (None/None)"
+    ]
+  },
+  {
+    "chateau": "Clos FOURTET",
+    "classification": "Saint-Émilion Premier Grand Cru Classé B",
+    "producer_key": 2597,
+    "producer_name": "Clos Fourtet",
+    "region": "Bordeaux",
+    "subregion": "Saint-Émilion",
+    "ambiguous": true,
+    "candidate_keys": [
+      2597,
+      61948
+    ],
+    "candidates": [
+      "Clos Fourtet (Bordeaux/Saint-Émilion)",
+      "Clos Fourtet St-Emilion (None/None)"
+    ]
+  },
+  {
+    "chateau": "CANON-LA-GAFFELIÈRE",
+    "classification": "Saint-Émilion Premier Grand Cru Classé B",
+    "producer_key": 1946,
+    "producer_name": "Château Canon-La-Gaffelière",
+    "region": "Bordeaux",
+    "subregion": "Saint-Émilion",
+    "ambiguous": true,
+    "candidate_keys": [
+      1946,
+      62251
+    ],
+    "candidates": [
+      "Château Canon-La-Gaffelière (Bordeaux/Saint-Émilion)",
+      "Canon La Gaffeliere St-Emilion (None/None)"
+    ]
+  },
+  {
+    "chateau": "LARCIS-DUCASSE",
+    "classification": "Saint-Émilion Premier Grand Cru Classé B",
+    "producer_key": 752,
+    "producer_name": "Château Larcis Ducasse",
+    "region": "Bordeaux",
+    "subregion": "Saint-Emilion Grand Cru",
+    "ambiguous": true,
+    "candidate_keys": [
+      752,
+      62314
+    ],
+    "candidates": [
+      "Château Larcis Ducasse (Bordeaux/Saint-Emilion Grand Cru)",
+      "Larcis Ducasse St-Emilion (None/None)"
+    ]
+  },
+  {
+    "chateau": "FLEUR-CARDINALE",
+    "classification": "Saint-Émilion Grand Cru Classé",
+    "producer_key": 3581,
+    "producer_name": "Château Fleur Cardinale",
+    "region": "Bordeaux",
+    "subregion": "Saint-Étienne-de-Lisse",
+    "ambiguous": true,
+    "candidate_keys": [
+      3581,
+      62012
+    ],
+    "candidates": [
+      "Château Fleur Cardinale (Bordeaux/Saint-Étienne-de-Lisse)",
+      "Fleur Cardinale St-Emilion (None/None)"
+    ]
+  },
+  {
+    "chateau": "GRAND CORBIN-DESPAGNE",
+    "classification": "Saint-Émilion Grand Cru Classé",
+    "producer_key": 742,
+    "producer_name": "Château Grand Corbin-Despagne",
+    "region": "Bordeaux",
+    "subregion": "Saint-Emilion Grand Cru",
+    "ambiguous": true,
+    "candidate_keys": [
+      742,
+      62391
+    ],
+    "candidates": [
+      "Château Grand Corbin-Despagne (Bordeaux/Saint-Emilion Grand Cru)",
+      "Grand Corbin Despagne St-Emilion (None/None)"
+    ]
+  },
+  {
+    "chateau": "LA DOMINIQUE",
+    "classification": "Saint-Émilion Grand Cru Classé",
+    "producer_key": 3224,
+    "producer_name": "Château La Dominique",
+    "region": "Bordeaux",
+    "subregion": "Saint-Émilion",
+    "ambiguous": true,
+    "candidate_keys": [
+      3224,
+      62261
+    ],
+    "candidates": [
+      "Château La Dominique (Bordeaux/Saint-Émilion)",
+      "La Dominique St-Emilion (None/None)"
+    ]
+  },
+  {
+    "chateau": "La SERRE",
+    "classification": "Saint-Émilion Grand Cru Classé",
+    "producer_key": 751,
+    "producer_name": "Château La Serre",
+    "region": "Bordeaux",
+    "subregion": "Saint-Emilion Grand Cru",
+    "ambiguous": true,
+    "candidate_keys": [
+      751,
+      61833
+    ],
+    "candidates": [
+      "Château La Serre (Bordeaux/Saint-Emilion Grand Cru)",
+      "La Serre St-Emilion (None/None)"
+    ]
+  },
+  {
+    "chateau": "LARMANDE",
+    "classification": "Saint-Émilion Grand Cru Classé",
+    "producer_key": 5175,
+    "producer_name": "Château Larmande",
+    "region": "Bordeaux",
+    "subregion": "Saint-Émilion",
+    "ambiguous": true,
+    "candidate_keys": [
+      5175,
+      61868
+    ],
+    "candidates": [
+      "Château Larmande (Bordeaux/Saint-Émilion)",
+      "Larmande St-Emilion (None/None)"
+    ]
+  },
+  {
+    "chateau": "LAROQUE",
+    "classification": "Saint-Émilion Grand Cru Classé",
+    "producer_key": 753,
+    "producer_name": "Château Laroque",
+    "region": "Bordeaux",
+    "subregion": "Saint-Emilion Grand Cru",
+    "ambiguous": true,
+    "candidate_keys": [
+      753,
+      62322
+    ],
+    "candidates": [
+      "Château Laroque (Bordeaux/Saint-Emilion Grand Cru)",
+      "Laroque St-Emilion (None/None)"
+    ]
+  },
+  {
+    "chateau": "LAROZE",
+    "classification": "Saint-Émilion Grand Cru Classé",
+    "producer_key": 5188,
+    "producer_name": "Château Laroze",
+    "region": "Bordeaux",
+    "subregion": "Saint-Émilion",
+    "ambiguous": true,
+    "candidate_keys": [
+      5188,
+      62358
+    ],
+    "candidates": [
+      "Château Laroze (Bordeaux/Saint-Émilion)",
+      "Laroze St Emilion (None/None)"
+    ]
+  },
+  {
+    "chateau": "QUINAULT L’ENCLOS",
+    "classification": "Saint-Émilion Grand Cru Classé",
+    "producer_key": 7068,
+    "producer_name": "Château Quinault l'Enclos",
+    "region": "Bordeaux",
+    "subregion": "Libourne",
+    "ambiguous": true,
+    "candidate_keys": [
+      7068,
+      62260
+    ],
+    "candidates": [
+      "Château Quinault l'Enclos (Bordeaux/Libourne)",
+      "Quinault L'Enclos St-Emilion (None/None)"
+    ]
+  },
+  {
+    "chateau": "VILLEMAURINE",
+    "classification": "Saint-Émilion Grand Cru Classé",
+    "producer_key": 8533,
+    "producer_name": "Château Villemaurine",
+    "region": "Bordeaux",
+    "subregion": "Saint-Émilion",
+    "ambiguous": true,
+    "candidate_keys": [
+      8533,
+      62172
+    ],
+    "candidates": [
+      "Château Villemaurine (Bordeaux/Saint-Émilion)",
+      "Villemaurine St Emilion (None/None)"
+    ]
+  },
+  {
+    "chateau": "Clos de L’ORATOIRE",
+    "classification": "Saint-Émilion Grand Cru Classé",
+    "producer_key": 2543,
+    "producer_name": "Clos de l'Oratoire",
+    "region": "Bordeaux",
+    "subregion": "Saint-Émilion",
+    "ambiguous": true,
+    "candidate_keys": [
+      2543,
+      40143
+    ],
+    "candidates": [
+      "Clos de l'Oratoire (Bordeaux/Saint-Émilion)",
+      "Clos De L’Oratoire (None/None)"
+    ]
+  },
+  {
+    "chateau": "Clos LA MADELEINE",
+    "classification": "Saint-Émilion Grand Cru Classé",
+    "producer_key": 2610,
+    "producer_name": "Clos La Madeleine",
+    "region": "Bordeaux",
+    "subregion": "Saint-Emilion",
+    "ambiguous": true,
+    "candidate_keys": [
+      2610,
+      62368
+    ],
+    "candidates": [
+      "Clos La Madeleine (Bordeaux/Saint-Emilion)",
+      "Clos La Madeleine St Emilion (None/None)"
+    ]
+  },
+  {
+    "chateau": "LAFITE ROTHSCHILD",
+    "classification": "Cru Bourgeois",
+    "producer_key": 423,
+    "producer_name": "Château Lafite Rothschild",
+    "region": "Bordeaux",
+    "subregion": "Pauillac",
+    "ambiguous": true,
+    "candidate_keys": [
+      423,
+      62094
+    ],
+    "candidates": [
+      "Château Lafite Rothschild (Bordeaux/Pauillac)",
+      "Lafite Rothschild Pauillac (None/None)"
+    ]
+  },
+  {
+    "chateau": "MOUTON-ROTHSCHILD",
+    "classification": "Cru Bourgeois",
+    "producer_key": 425,
+    "producer_name": "Château Mouton Rothschild",
+    "region": "Bordeaux",
+    "subregion": "Pauillac",
+    "ambiguous": true,
+    "candidate_keys": [
+      425,
+      62064
+    ],
+    "candidates": [
+      "Château Mouton Rothschild (Bordeaux/Pauillac)",
+      "Mouton Rothschild Pauillac (None/None)"
+    ]
+  },
+  {
+    "chateau": "LÉOVILLE LAS CASES",
+    "classification": "Cru Bourgeois",
+    "producer_key": 430,
+    "producer_name": "Château Léoville Las Cases",
+    "region": "Bordeaux",
+    "subregion": "Saint-Julien",
+    "ambiguous": true,
+    "candidate_keys": [
+      430,
+      61969,
+      63506
+    ],
+    "candidates": [
+      "Château Léoville Las Cases (Bordeaux/Saint-Julien)",
+      "Leoville Las Cases St-Julien (None/None)",
+      "Léoville Las Cases (None/None)"
+    ]
+  },
+  {
+    "chateau": "LÉOVILLE POYFERRÉ",
+    "classification": "Cru Bourgeois",
+    "producer_key": 433,
+    "producer_name": "Château Léoville Poyferré",
+    "region": "Bordeaux",
+    "subregion": "Saint-Julien",
+    "ambiguous": true,
+    "candidate_keys": [
+      433,
+      61968
+    ],
+    "candidates": [
+      "Château Léoville Poyferré (Bordeaux/Saint-Julien)",
+      "Leoville Poyferre St-Julien (None/None)"
+    ]
+  },
+  {
+    "chateau": "LÉOVILLE BARTON",
+    "classification": "Cru Bourgeois",
+    "producer_key": 432,
+    "producer_name": "Château Léoville Barton",
+    "region": "Bordeaux",
+    "subregion": "Saint-Julien",
+    "ambiguous": true,
+    "candidate_keys": [
+      432,
+      61956
+    ],
+    "candidates": [
+      "Château Léoville Barton (Bordeaux/Saint-Julien)",
+      "Leoville Barton St-Julien (None/None)"
+    ]
+  },
+  {
+    "chateau": "DURFORT-VIVENS",
+    "classification": "Cru Bourgeois",
+    "producer_key": 3327,
+    "producer_name": "Château Durfort-Vivens",
+    "region": "Bordeaux",
+    "subregion": "Margaux",
+    "ambiguous": true,
+    "candidate_keys": [
+      3327,
+      62062
+    ],
+    "candidates": [
+      "Château Durfort-Vivens (Bordeaux/Margaux)",
+      "Durfort Vivens Margaux (None/None)"
+    ]
+  },
+  {
+    "chateau": "DUCRU-BEAUCAILLOU",
+    "classification": "Cru Bourgeois",
+    "producer_key": 431,
+    "producer_name": "Château Ducru-Beaucaillou",
+    "region": "Bordeaux",
+    "subregion": "Saint-Julien",
+    "ambiguous": true,
+    "candidate_keys": [
+      431,
+      62140
+    ],
+    "candidates": [
+      "Château Ducru-Beaucaillou (Bordeaux/Saint-Julien)",
+      "Ducru Beaucaillou St-Julien (None/None)"
+    ]
+  },
+  {
+    "chateau": "COS-D'ESTOURNEL",
+    "classification": "Cru Bourgeois",
+    "producer_key": 438,
+    "producer_name": "Château Cos d'Estournel",
+    "region": "Bordeaux",
+    "subregion": "Saint-Estèphe",
+    "ambiguous": true,
+    "candidate_keys": [
+      438,
+      62134
+    ],
+    "candidates": [
+      "Château Cos d'Estournel (Bordeaux/Saint-Estèphe)",
+      "Cos D'Estournel St-Estephe (None/None)"
+    ]
+  },
+  {
+    "chateau": "MONTROSE",
+    "classification": "Cru Bourgeois",
+    "producer_key": 439,
+    "producer_name": "Château Montrose",
+    "region": "Bordeaux",
+    "subregion": "Saint-Estèphe",
+    "ambiguous": true,
+    "candidate_keys": [
+      439,
+      61959
+    ],
+    "candidates": [
+      "Château Montrose (Bordeaux/Saint-Estèphe)",
+      "Montrose St-Estephe (None/None)"
+    ]
+  },
+  {
+    "chateau": "LAGRANGE",
+    "classification": "Cru Bourgeois",
+    "producer_key": 5077,
+    "producer_name": "Château Lagrange",
+    "region": null,
+    "subregion": null,
+    "ambiguous": true,
+    "candidate_keys": [
+      5077,
+      58461
+    ],
+    "candidates": [
+      "Château Lagrange (None/None)",
+      "Château Lagrange (St. Julien) (None/None)"
+    ]
+  },
+  {
+    "chateau": "LANGOA BARTON",
+    "classification": "Cru Bourgeois",
+    "producer_key": 5148,
+    "producer_name": "Château Langoa Barton",
+    "region": "Bordeaux",
+    "subregion": "Saint-Julien-Beychevelle",
+    "ambiguous": true,
+    "candidate_keys": [
+      5148,
+      62424
+    ],
+    "candidates": [
+      "Château Langoa Barton (Bordeaux/Saint-Julien-Beychevelle)",
+      "Langoa Barton St-Julien (None/None)"
+    ]
+  },
+  {
+    "chateau": "MALESCOT-ST.-EXUPÉRY MARGAUX",
+    "classification": "Cru Bourgeois",
+    "producer_key": 32809,
+    "producer_name": "Château Malescot St Exupéry",
+    "region": null,
+    "subregion": null,
+    "ambiguous": true,
+    "candidate_keys": [
+      32809,
+      62099
+    ],
+    "candidates": [
+      "Château Malescot St Exupéry (None/None)",
+      "Malescot St Exupery Margaux (None/None)"
+    ]
+  },
+  {
+    "chateau": "PALMER CANTENAC-MARGAUX",
+    "classification": "Cru Bourgeois",
+    "producer_key": 435,
+    "producer_name": "Château Palmer",
+    "region": "Bordeaux",
+    "subregion": "Margaux",
+    "ambiguous": true,
+    "candidate_keys": [
+      435,
+      48836
+    ],
+    "candidates": [
+      "Château Palmer (Bordeaux/Margaux)",
+      "Palmer (None/None)"
+    ]
+  },
+  {
+    "chateau": "CALON-SÉGUR",
+    "classification": "Cru Bourgeois",
+    "producer_key": 440,
+    "producer_name": "Château Calon-Ségur",
+    "region": "Bordeaux",
+    "subregion": "Saint-Estèphe",
+    "ambiguous": true,
+    "candidate_keys": [
+      440,
+      62225
+    ],
+    "candidates": [
+      "Château Calon-Ségur (Bordeaux/Saint-Estèphe)",
+      "Calon Segur St-Estephe (None/None)"
+    ]
+  },
+  {
+    "chateau": "BRANAIRE-DUCRU",
+    "classification": "Cru Bourgeois",
+    "producer_key": 1734,
+    "producer_name": "Château Branaire-Ducru",
+    "region": "Bordeaux",
+    "subregion": "Saint-Julien-Beychevelle",
+    "ambiguous": true,
+    "candidate_keys": [
+      1734,
+      62065
+    ],
+    "candidates": [
+      "Château Branaire-Ducru (Bordeaux/Saint-Julien-Beychevelle)",
+      "Branaire Ducru St-Julien (None/None)"
+    ]
+  },
+  {
+    "chateau": "LAFON-ROCHET",
+    "classification": "Cru Bourgeois",
+    "producer_key": 5057,
+    "producer_name": "Château Lafon-Rochet",
+    "region": "Bordeaux",
+    "subregion": "Saint-Estèphe",
+    "ambiguous": true,
+    "candidate_keys": [
+      5057,
+      61886
+    ],
+    "candidates": [
+      "Château Lafon-Rochet (Bordeaux/Saint-Estèphe)",
+      "Lafon Rochet St-Estephe (None/None)"
+    ]
+  },
+  {
+    "chateau": "BEYCHEVELLE",
+    "classification": "Cru Bourgeois",
+    "producer_key": 1475,
+    "producer_name": "Château Beychevelle",
+    "region": "Bordeaux",
+    "subregion": "Saint-Julien",
+    "ambiguous": true,
+    "candidate_keys": [
+      1475,
+      62239
+    ],
+    "candidates": [
+      "Château Beychevelle (Bordeaux/Saint-Julien)",
+      "Beychevelle St-Julien (None/None)"
+    ]
+  },
+  {
+    "chateau": "PONTET-CANET PAUILLAC",
+    "classification": "Cru Bourgeois",
+    "producer_key": 428,
+    "producer_name": "Château Pontet-Canet",
+    "region": "Bordeaux",
+    "subregion": "Pauillac",
+    "ambiguous": true,
+    "candidate_keys": [
+      428,
+      62074
+    ],
+    "candidates": [
+      "Château Pontet-Canet (Bordeaux/Pauillac)",
+      "Pontet Canet Pauillac (None/None)"
+    ]
+  },
+  {
+    "chateau": "LYNCH BAGES PAUILLAC",
+    "classification": "Cru Bourgeois",
+    "producer_key": 429,
+    "producer_name": "Château Lynch-Bages",
+    "region": "Bordeaux",
+    "subregion": "Pauillac",
+    "ambiguous": true,
+    "candidate_keys": [
+      429,
+      62254
+    ],
+    "candidates": [
+      "Château Lynch-Bages (Bordeaux/Pauillac)",
+      "Lynch Bages Pauillac (None/None)"
+    ]
+  },
+  {
+    "chateau": "COUTET, BARSAC",
+    "classification": "Sauternes Premier Cru Classé",
+    "producer_key": 734,
+    "producer_name": "Château Coutet",
+    "region": "Bordeaux",
+    "subregion": "Barsac",
+    "ambiguous": true,
+    "candidate_keys": [
+      734,
+      8668,
+      53423
+    ],
+    "candidates": [
+      "Château Coutet (Bordeaux/Barsac)",
+      "Château Coutet (St-Em) (Bordeaux/Saint-Émilion)",
+      "Château Coutet Saint-Emilion (None/None)"
+    ]
+  },
+  {
+    "chateau": "CLOS HAUT-PEYRAGUEY",
+    "classification": "Sauternes Premier Cru Classé",
+    "producer_key": 2602,
+    "producer_name": "Clos Haut Peyraguey",
+    "region": "Bordeaux",
+    "subregion": "Bommes",
+    "ambiguous": true,
+    "candidate_keys": [
+      2602,
+      63441
+    ],
+    "candidates": [
+      "Clos Haut Peyraguey (Bordeaux/Bommes)",
+      "Château Clos Haut-Peyraguey (None/None)"
+    ]
+  }
+]

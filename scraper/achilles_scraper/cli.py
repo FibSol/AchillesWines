@@ -126,6 +126,7 @@ def _load_scrapers():
     from .scrapers.rvf import RvfScraper
     from .scrapers.decanter_ratings import DecanterRatingsScraper
     from .scrapers.james_suckling import JamesSucklingScraper
+    from .scrapers.tastingbook import TastingbookScraper
     from .scrapers.hachette_vins_guide import HachetteVinsGuideScraper
     from .scrapers.figaro_vin import FigaroVinScraper
     from .scrapers.terredevins import TerreDeVinsScraper
@@ -181,6 +182,7 @@ def _load_scrapers():
     SCRAPERS["rvf"] = RvfScraper
     SCRAPERS["decanter"] = DecanterRatingsScraper
     SCRAPERS["james_suckling"] = JamesSucklingScraper
+    SCRAPERS["tastingbook"] = TastingbookScraper
     SCRAPERS["hachette_vins"] = HachetteVinsGuideScraper
     SCRAPERS["figaro_vin"] = FigaroVinScraper
     SCRAPERS["terredevins"] = TerreDeVinsScraper
