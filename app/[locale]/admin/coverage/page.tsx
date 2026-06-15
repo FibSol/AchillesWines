@@ -1,96 +1,9 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { db } from "@/db";
-import { dimProducer, dimWine, factPrice, factRating } from "@/db/schema";
-import { sql, count, countDistinct } from "drizzle-orm";
 import { PageShell } from "@/components/page-shell";
 import { Target } from "lucide-react";
+import { getCoverageData } from "@/lib/queries/ops";
 
 export const dynamic = "force-dynamic";
-
-interface RegionRow {
-  region: string | null;
-  total: number;
-  withCuvee: number;
-  withPrice: number;
-  withRating: number;
-}
-
-interface TierRow {
-  tier: string | null;
-  n: number;
-}
-
-async function getCoverageData() {
-  const [{ total }] = await db
-    .select({ total: count() })
-    .from(dimProducer);
-
-  const [{ withCuvee }] = await db
-    .select({ withCuvee: countDistinct(dimWine.producerKey) })
-    .from(dimWine);
-
-  const multiPriceRows = await db
-    .select({ wineKey: factPrice.wineKey })
-    .from(factPrice)
-    .groupBy(factPrice.wineKey)
-    .having(sql`count(distinct ${factPrice.sourceKey}) >= 2`);
-
-  const multiRatingRows = await db
-    .select({ wineKey: factRating.wineKey })
-    .from(factRating)
-    .groupBy(factRating.wineKey)
-    .having(sql`count(distinct ${factRating.criticCode}) >= 2`);
-
-  const withMultiPrice = multiPriceRows.length;
-  const withMultiRating = multiRatingRows.length;
-
-  const coverageScore =
-    total > 0 ? (withCuvee + withMultiPrice + withMultiRating) / (3 * total) : 0;
-
-  const tierRows = (await db
-    .select({
-      tier: dimProducer.coverageTier,
-      n: count(),
-    })
-    .from(dimProducer)
-    .groupBy(dimProducer.coverageTier)) as TierRow[];
-
-  // Per-region breakdown (French producers only, top 20 by total)
-  // Using the underlying better-sqlite3 instance for the complex JOIN
-  const sqlite = globalThis.__achillesSqlite!;
-  const regionRows = sqlite.prepare(`
-    SELECT
-      dp.region,
-      COUNT(DISTINCT dp.producer_key) AS total,
-      COUNT(DISTINCT dw.producer_key) AS with_cuvee,
-      COUNT(DISTINCT CASE WHEN fp.wine_key IS NOT NULL THEN dw.producer_key END) AS with_price,
-      COUNT(DISTINCT CASE WHEN fr.wine_key IS NOT NULL THEN dw.producer_key END) AS with_rating
-    FROM dim_producer dp
-    LEFT JOIN dim_wine dw ON dw.producer_key = dp.producer_key
-    LEFT JOIN fact_price fp ON fp.wine_key = dw.wine_key
-    LEFT JOIN fact_rating fr ON fr.wine_key = dw.wine_key
-    WHERE dp.country_code = 'FR'
-    GROUP BY dp.region
-    ORDER BY total DESC
-    LIMIT 20
-  `).all() as RegionRow[];
-
-  const tierMap: Record<string, number> = {};
-  for (const row of tierRows) {
-    tierMap[row.tier ?? "unknown"] = row.n;
-  }
-
-  return {
-    total,
-    withCuvee,
-    withMultiPrice,
-    withMultiRating,
-    coverageScore,
-    coverageScorePct: Math.round(coverageScore * 100),
-    tierMap,
-    regionBreakdown: regionRows,
-  };
-}
 
 function GaugeBar({ pct }: { pct: number }) {
   const color =

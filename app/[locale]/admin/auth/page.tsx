@@ -1,23 +1,10 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { db } from "@/db";
-import { dimSource } from "@/db/schema";
-import { eq, asc } from "drizzle-orm";
 import { PageShell } from "@/components/page-shell";
-import { AuthSourceList, type AuthSourceRow } from "@/components/AuthSourceList";
+import { AuthSourceList } from "@/components/AuthSourceList";
 import { SchedulePanel } from "@/components/SchedulePanel";
+import { getAuthSources } from "@/lib/queries/ops";
 
 export const dynamic = "force-dynamic";
-
-function envKey(sourceCode: string): string {
-  return sourceCode.toUpperCase().replace(/-/g, "_");
-}
-
-function hasCredentials(sourceCode: string): boolean {
-  const k = envKey(sourceCode);
-  const u = process.env[`ACHILLES_AUTH_${k}_USERNAME`]?.trim() ?? "";
-  const p = process.env[`ACHILLES_AUTH_${k}_PASSWORD`] ?? "";
-  return u.length > 0 && p.length > 0;
-}
 
 export default async function AdminAuthPage({
   params,
@@ -29,31 +16,7 @@ export default async function AdminAuthPage({
   const t = await getTranslations("adminAuth");
   const ts = await getTranslations("adminSchedule");
 
-  const sources = await db
-    .select({
-      sourceKey: dimSource.sourceKey,
-      sourceCode: dimSource.sourceCode,
-      sourceName: dimSource.sourceName,
-      sourceTier: dimSource.sourceTier,
-      baseUrl: dimSource.baseUrl,
-      requiresAuth: dimSource.requiresAuth,
-      enabled: dimSource.enabled,
-    })
-    .from(dimSource)
-    .where(eq(dimSource.requiresAuth, true))
-    .orderBy(asc(dimSource.sourceCode));
-
-  const rows: AuthSourceRow[] = sources.map((s) => ({
-    sourceKey: s.sourceKey,
-    sourceCode: s.sourceCode,
-    sourceName: s.sourceName,
-    sourceTier: s.sourceTier,
-    baseUrl: s.baseUrl,
-    enabled: s.enabled,
-    hasCredentials: hasCredentials(s.sourceCode),
-    envUserVar: `ACHILLES_AUTH_${envKey(s.sourceCode)}_USERNAME`,
-    envPassVar: `ACHILLES_AUTH_${envKey(s.sourceCode)}_PASSWORD`,
-  }));
+  const rows = await getAuthSources();
 
   const scheduleLabels = {
     title: ts("title"),

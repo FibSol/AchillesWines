@@ -1,37 +1,11 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { db } from "@/db";
-import { opsDeadLetter, dimSource } from "@/db/schema";
-import { eq, desc, and } from "drizzle-orm";
 import { PageShell } from "@/components/page-shell";
 import { Check } from "lucide-react";
 import { DlqCard } from "@/components/dlq-card";
 import { Link } from "@/i18n/navigation";
+import { getDlqRows, isErrorClass, ERROR_CLASSES } from "@/lib/queries/ops";
 
 export const dynamic = "force-dynamic";
-
-// All valid error classes for the filter pills
-const ERROR_CLASSES = [
-  "network_error",
-  "parse_error",
-  "schema_drift",
-  "auth_error",
-  "validation_error",
-  "region_gate",
-  "critic_enum",
-  "multi_source_rule",
-  "reconcile_error",
-  "fx_missing",
-  "unresolved_dim",
-  "unmatched_wine",
-  "scraper_not_applicable",
-  "source_dead",
-] as const;
-
-type ErrorClass = (typeof ERROR_CLASSES)[number];
-
-function isErrorClass(v: string): v is ErrorClass {
-  return (ERROR_CLASSES as readonly string[]).includes(v);
-}
 
 export default async function QuarantinePage({
   params,
@@ -47,23 +21,7 @@ export default async function QuarantinePage({
 
   const filterClass = sp.class && isErrorClass(sp.class) ? sp.class : null;
 
-  const whereClause = filterClass
-    ? and(
-        eq(opsDeadLetter.resolution, "pending"),
-        eq(opsDeadLetter.errorClass, filterClass)
-      )
-    : eq(opsDeadLetter.resolution, "pending");
-
-  const rows = await db
-    .select({
-      dlq: opsDeadLetter,
-      source: dimSource,
-    })
-    .from(opsDeadLetter)
-    .leftJoin(dimSource, eq(opsDeadLetter.sourceKey, dimSource.sourceKey))
-    .where(whereClause)
-    .orderBy(desc(opsDeadLetter.createdAt))
-    .limit(200);
+  const rows = await getDlqRows(filterClass);
 
   const labels = {
     approve: t("approve"),

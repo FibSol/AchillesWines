@@ -1,15 +1,10 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { db } from "@/db";
-import {
-  dimWine, dimProducer, dimAppellation,
-  factVintageRating, factPrice, factRating,
-} from "@/db/schema";
-import { eq, and, inArray, sql } from "drizzle-orm";
 import { PageShell } from "@/components/page-shell";
 import { ConfidenceBadge, deriveConfidence } from "@/components/ConfidenceBadge";
 import { ArrowLeft } from "lucide-react";
+import { getVintageWines } from "@/lib/queries/vintages";
 
 export const dynamic = "force-dynamic";
 
@@ -31,74 +26,6 @@ function tierStyle(tier: 1 | 2 | 3 | 4 | 5): TierStyle {
     case 2: return { bg: "rgba(165,56,96,0.60)",   text: "rgba(250,247,245,0.9)" };
     case 1: return { bg: "rgba(50,20,38,0.85)",    text: "rgba(250,247,245,0.6)" };
   }
-}
-
-interface WineRow {
-  wineKey: string;
-  producerKey: number;
-  producerName: string;
-  cuveeName: string;
-  canonicalName: string;
-  color: string;
-  appellationName: string;
-  sourceCount: number;
-}
-
-async function loadWines(region: string, vintage: number): Promise<{
-  wines: WineRow[];
-  avgScore: number | null;
-}> {
-  const [wineRows, scoreRows] = await Promise.all([
-    db
-      .select({
-        wineKey: dimWine.wineKey,
-        producerKey: dimProducer.producerKey,
-        producerName: dimProducer.producerName,
-        cuveeName: dimWine.cuveeName,
-        canonicalName: dimWine.canonicalName,
-        color: dimWine.color,
-        appellationName: dimAppellation.appellationName,
-      })
-      .from(dimWine)
-      .innerJoin(dimProducer, eq(dimWine.producerKey, dimProducer.producerKey))
-      .innerJoin(dimAppellation, eq(dimWine.appellationKey, dimAppellation.appellationKey))
-      .where(and(eq(dimAppellation.region, region), eq(dimWine.vintage, vintage)))
-      .limit(200),
-
-    db
-      .select({ avgScore: sql<number>`avg(${factVintageRating.scoreNormalized100})` })
-      .from(factVintageRating)
-      .where(and(eq(factVintageRating.region, region), eq(factVintageRating.vintage, vintage))),
-  ]);
-
-  if (wineRows.length === 0) {
-    const avgScore = scoreRows[0]?.avgScore != null ? Number(scoreRows[0].avgScore) : null;
-    return { wines: [], avgScore };
-  }
-
-  const wineKeys = wineRows.map(w => w.wineKey);
-  const [priceSrc, ratingSrc] = await Promise.all([
-    db.select({ wineKey: factPrice.wineKey, sourceKey: factPrice.sourceKey })
-      .from(factPrice).where(inArray(factPrice.wineKey, wineKeys))
-      .groupBy(factPrice.wineKey, factPrice.sourceKey),
-    db.select({ wineKey: factRating.wineKey, sourceKey: factRating.sourceKey })
-      .from(factRating).where(inArray(factRating.wineKey, wineKeys))
-      .groupBy(factRating.wineKey, factRating.sourceKey),
-  ]);
-
-  const sourcesByWine = new Map<string, Set<number>>();
-  for (const r of [...priceSrc, ...ratingSrc]) {
-    if (!sourcesByWine.has(r.wineKey)) sourcesByWine.set(r.wineKey, new Set());
-    sourcesByWine.get(r.wineKey)!.add(r.sourceKey);
-  }
-
-  const wines: WineRow[] = wineRows.map(w => ({
-    ...w,
-    sourceCount: sourcesByWine.get(w.wineKey)?.size ?? 0,
-  }));
-
-  const avgScore = scoreRows[0]?.avgScore != null ? Number(scoreRows[0].avgScore) : null;
-  return { wines, avgScore };
 }
 
 function ColorDot({ color }: { color: string }) {
@@ -132,7 +59,7 @@ export default async function VintageWinesPage({
   const tConf = await getTranslations("confidence");
   const tDomaine = await getTranslations("domaine");
 
-  const { wines, avgScore } = await loadWines(region, vintage);
+  const { wines, avgScore } = await getVintageWines(region, vintage);
 
   const tier = avgScore !== null ? scoreToTier(avgScore) : null;
   const tierLabels = [t("tiers.t1"), t("tiers.t2"), t("tiers.t3"), t("tiers.t4"), t("tiers.t5")];

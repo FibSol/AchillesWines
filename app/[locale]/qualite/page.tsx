@@ -1,18 +1,9 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { db } from "@/db";
-import {
-  dimWine,
-  opsDeadLetter,
-  factPrice,
-  factRating,
-  opsBatchLog,
-  stagingPriceCandidates,
-} from "@/db/schema";
-import { sql, eq, desc } from "drizzle-orm";
 import { PageShell } from "@/components/page-shell";
 import { ShieldCheck, AlertTriangle, Activity, Settings2, ArrowRight, Database, TrendingUp } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { PromoteButton } from "@/components/promote-button";
+import { getQualityOverview } from "@/lib/queries/ops";
 
 export const dynamic = "force-dynamic";
 
@@ -21,44 +12,10 @@ export default async function QualityPage({ params }: { params: Promise<{ locale
   setRequestLocale(locale);
   const t = await getTranslations("quality");
 
-  // Stat card queries
-  const [totalWines] = await db.select({ n: sql<number>`count(*)` }).from(dimWine);
-  const [pendingDlq] = await db
-    .select({ n: sql<number>`count(*)` })
-    .from(opsDeadLetter)
-    .where(eq(opsDeadLetter.resolution, "pending"));
-  const [pricesTotal] = await db.select({ n: sql<number>`count(*)` }).from(factPrice);
-  const [ratingsTotal] = await db.select({ n: sql<number>`count(*)` }).from(factRating);
-
-  // Staging pending (needs_review=1)
-  const [stagingPending] = await db
-    .select({ n: sql<number>`count(*)` })
-    .from(stagingPriceCandidates)
-    .where(eq(stagingPriceCandidates.needsReview, true));
-
-  // Truly promotable: ≥2 distinct sources AND price spread within ±15% tolerance
-  // MAX/MIN ≤ 1.35 approximates "both prices within ±15% of the median"
-  const promotableRows = await db
-    .select({ wineKey: stagingPriceCandidates.wineKey })
-    .from(stagingPriceCandidates)
-    .where(eq(stagingPriceCandidates.needsReview, true))
-    .groupBy(stagingPriceCandidates.wineKey)
-    .having(
-      sql`count(distinct ${stagingPriceCandidates.sourceKey}) >= 2
-        AND min(${stagingPriceCandidates.amountEur}) > 0
-        AND max(${stagingPriceCandidates.amountEur}) / min(${stagingPriceCandidates.amountEur}) <= 1.35`
-    );
-  const promotableCount = promotableRows.length;
-
-  // Recent batches (20 rows)
-  const recentBatches = await db
-    .select()
-    .from(opsBatchLog)
-    .orderBy(desc(opsBatchLog.startedAt))
-    .limit(20);
-
-  const stagingPendingNum = Number(stagingPending?.n ?? 0);
-  const pricesNum = Number(pricesTotal?.n ?? 0);
+  const { totalWines, pricesTotal, ratingsTotal, pendingDlq, stagingPending, promotableCount, recentBatches } =
+    await getQualityOverview();
+  const stagingPendingNum = stagingPending;
+  const pricesNum = pricesTotal;
 
   return (
     <PageShell title={t("title")} subtitle={t("subtitle")} badge="Cassandra's dashboard">
@@ -84,7 +41,7 @@ export default async function QualityPage({ params }: { params: Promise<{ locale
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
         <div className="stat-card">
           <ShieldCheck className="size-4 text-[color:var(--color-champagne-400)]" strokeWidth={2} />
-          <div className="mt-3 stat-card-value">{Number(totalWines?.n ?? 0).toLocaleString()}</div>
+          <div className="mt-3 stat-card-value">{totalWines.toLocaleString()}</div>
           <div className="stat-card-label">{t("verifiedCount")}</div>
         </div>
         <div className="stat-card">
@@ -94,12 +51,12 @@ export default async function QualityPage({ params }: { params: Promise<{ locale
         </div>
         <div className="stat-card">
           <Activity className="size-4 text-[color:var(--color-champagne-400)]" strokeWidth={2} />
-          <div className="mt-3 stat-card-value">{Number(ratingsTotal?.n ?? 0).toLocaleString()}</div>
+          <div className="mt-3 stat-card-value">{ratingsTotal.toLocaleString()}</div>
           <div className="stat-card-label">{t("ratingsCount")}</div>
         </div>
         <div className="stat-card">
           <AlertTriangle className="size-4 text-[color:var(--color-warning)]" strokeWidth={2} />
-          <div className="mt-3 stat-card-value">{Number(pendingDlq?.n ?? 0).toLocaleString()}</div>
+          <div className="mt-3 stat-card-value">{pendingDlq.toLocaleString()}</div>
           <div className="stat-card-label">{t("needsReviewCount")}</div>
         </div>
         <div className="stat-card">

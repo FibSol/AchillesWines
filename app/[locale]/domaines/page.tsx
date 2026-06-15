@@ -1,17 +1,13 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import Link from "next/link";
-import { db } from "@/db";
-import { dimProducer } from "@/db/schema";
-import { eq, desc, like, or, and, sql, asc, isNotNull, type SQL } from "drizzle-orm";
 import { PageShell } from "@/components/page-shell";
 import { CsvActions, type CsvLabels } from "@/components/CsvActions";
 import { DomainesFilters, type DomainesFiltersLabels } from "@/components/DomainesFilters";
-import { DomaineSidebar, type SidebarCountry } from "@/components/DomaineSidebar";
+import { DomaineSidebar } from "@/components/DomaineSidebar";
 import { MapPin, Globe } from "lucide-react";
+import { getProducers } from "@/lib/queries/producers";
 
 export const dynamic = "force-dynamic";
-
-const PAGE_SIZE = 100;
 
 interface SearchParams {
   q?: string;
@@ -33,87 +29,14 @@ export default async function DomainesPage({
   const t = await getTranslations("domaines");
   const tCommon = await getTranslations("common");
 
-  const conditions: SQL[] = [eq(dimProducer.status, "active")];
-
-  if (sp.q && sp.q.trim()) {
-    const needle = `%${sp.q.trim().toLowerCase()}%`;
-    const orClause = or(
-      like(sql<string>`lower(${dimProducer.producerName})`, needle),
-      like(sql<string>`lower(${dimProducer.producerNorm})`, needle),
-    );
-    if (orClause) conditions.push(orClause);
-  }
-  if (sp.country) {
-    conditions.push(eq(dimProducer.countryCode, sp.country));
-  }
-  if (sp.region) {
-    conditions.push(eq(dimProducer.region, sp.region));
-  }
-  const tierNum = sp.tier ? Number.parseInt(sp.tier, 10) : NaN;
-  if (Number.isFinite(tierNum)) {
-    conditions.push(eq(dimProducer.tier, tierNum));
-  }
-
-  const whereExpr = conditions.length === 1 ? conditions[0] : and(...conditions);
-
-  const [producers, [countRow], countryRegionCounts, tierRows] = await Promise.all([
-    db
-      .select()
-      .from(dimProducer)
-      .where(whereExpr)
-      .orderBy(desc(dimProducer.tier), dimProducer.producerName)
-      .limit(PAGE_SIZE),
-    db
-      .select({ total: sql<number>`count(*)` })
-      .from(dimProducer)
-      .where(whereExpr),
-    db
-      .select({
-        country: dimProducer.countryCode,
-        region: dimProducer.region,
-        count: sql<number>`count(*)`,
-      })
-      .from(dimProducer)
-      .where(eq(dimProducer.status, "active"))
-      .groupBy(dimProducer.countryCode, dimProducer.region)
-      .orderBy(asc(dimProducer.countryCode), asc(dimProducer.region)),
-    db
-      .selectDistinct({ tier: dimProducer.tier })
-      .from(dimProducer)
-      .where(and(eq(dimProducer.status, "active"), isNotNull(dimProducer.tier)))
-      .orderBy(asc(dimProducer.tier)),
-  ]);
-
-  const totalMatching = Number(countRow?.total ?? 0);
-
-  // Build sidebar tree: country → regions with counts
-  const countryMap = new Map<string, { count: number; regions: Map<string, number> }>();
-  for (const row of countryRegionCounts) {
-    const code = row.country;
-    if (!countryMap.has(code)) {
-      countryMap.set(code, { count: 0, regions: new Map() });
-    }
-    const entry = countryMap.get(code)!;
-    const n = Number(row.count);
-    entry.count += n;
-    if (row.region) {
-      entry.regions.set(row.region, (entry.regions.get(row.region) ?? 0) + n);
-    }
-  }
-  const sidebarCountries: SidebarCountry[] = Array.from(countryMap.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([code, { count, regions }]) => ({
-      code,
-      count,
-      regions: Array.from(regions.entries())
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([name, cnt]) => ({ name, count: cnt })),
-    }));
-  const totalAll = sidebarCountries.reduce((s, c) => s + c.count, 0);
-
-  const tiers = tierRows
-    .map((r) => r.tier)
-    .filter((t): t is number => t !== null);
+  const { producers, totalMatching, totalAll, facets } = await getProducers({
+    q: sp.q,
+    country: sp.country,
+    region: sp.region,
+    tier: sp.tier ? Number.parseInt(sp.tier, 10) : undefined,
+  });
+  const sidebarCountries = facets.countries;
+  const tiers = facets.tiers;
 
   const csvLabels: CsvLabels = {
     importBtn: t("importCsv"),
