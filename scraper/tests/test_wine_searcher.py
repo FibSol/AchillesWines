@@ -1,29 +1,47 @@
 """
-Unit tests for the Wine-Searcher scraper (Firecrawl search approach).
+Unit tests for the Wine-Searcher scraper (Firecrawl CLI markdown approach).
 
-All tests use an in-memory SQLite DB and mock httpx — no real HTTP calls.
+These tests target the CURRENT implementation, which scrapes
+wine-searcher.com via the `firecrawl` CLI (subprocess) and parses the
+returned markdown into per-merchant listings.  The CLI seam (`_scrape_page`)
+and the FX HTTP client (`httpx.Client`) are mocked — no real subprocess, no
+real network.
 
-Covered:
-  1.  No FIRECRAWL_API_KEY → scraper_not_applicable DLQ, 0 fetched
-  2.  Missing dim_source row → ScrapeResult.error set, no crash
-  3.  Firecrawl 401 → auth_error DLQ
-  4.  Firecrawl 429 → auth_error DLQ
-  5.  Firecrawl 5xx → network_error DLQ
-  6.  Malformed JSON response → parse_error DLQ
-  7.  Empty search results → rows_skipped_unchanged
-  8.  Description with no price pattern → rows_skipped_unchanged
-  9.  USD avg price → EUR conversion + staging insert
-  10. EUR avg price → direct insert (no FX call needed)
-  11. Deduplication: same content_hash → skipped on second run
-  12. FX unavailable → validation_error DLQ
-  13. _build_query: producer+cuvee+vintage, NV wine, no cuvee
+NOTE: an earlier `fcc2ff0` rework briefly used the Firecrawl *search API*
+(httpx POST, HTTP status taxonomy, no FX). The module was reworked again to
+the CLI/markdown approach since; these tests assert that current behaviour:
+
+  DLQ taxonomy (the only paths that exist now):
+    - scraper_not_applicable : firecrawl CLI not found in PATH
+    - network_error          : scrape returned no markdown content
+    - (ScrapeResult.error)   : dim_source row missing
+
+  Pricing:
+    - listings are parsed from markdown by `_parse_listings`
+    - prices are FX-converted to EUR via the Frankfurter client
+    - EUR prices need no FX call; non-EUR are converted
+    - FX unavailable → listing skipped (rows_skipped_unchanged), NOT a DLQ
+
+  Other:
+    - empty / no-listing pages → rows_skipped_unchanged
+    - vintage not present in the cuvée's DB rows → skipped
+    - price outside [_PRICE_MIN_EUR, _PRICE_MAX_EUR] → skipped
+    - duplicate listing (same content_hash) → inserted once, then skipped
+    - `_build_ws_url` slug construction
+    - `_progress_key` / `_mark_attempted` resume bookkeeping
 """
-import os
 import sqlite3
 import unittest
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
-from achilles_scraper.scrapers.wine_searcher import WineSearcherScraper
+from achilles_scraper.scrapers import wine_searcher as ws
+from achilles_scraper.scrapers.wine_searcher import (
+    WineSearcherScraper,
+    _build_ws_url,
+    _parse_listings,
+    _progress_key,
+    _PRICE_MIN_EUR,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -94,6 +112,13 @@ def _make_db() -> sqlite3.Connection:
             raw_object_path  TEXT,
             created_at      INTEGER
         );
+        CREATE TABLE ops_content_hashes (
+            url             TEXT PRIMARY KEY,
+            source_key      INTEGER,
+            last_hash       TEXT,
+            last_fetched_at INTEGER,
+            fetch_count     INTEGER DEFAULT 0
+        );
     """)
     conn.execute("INSERT INTO dim_source (source_code) VALUES ('wine_searcher')")
     conn.execute(
@@ -104,6 +129,7 @@ def _make_db() -> sqlite3.Connection:
         "INSERT INTO dim_appellation (appellation_norm, appellation_name) "
         "VALUES ('margaux', 'Margaux')"
     )
+    # Only the 2015 vintage exists in the DB for this cuvée.
     conn.execute(
         "INSERT INTO dim_wine (wine_key, producer_key, appellation_key, "
         "cuvee_name, cuvee_norm, color, vintage) "
@@ -113,219 +139,275 @@ def _make_db() -> sqlite3.Connection:
     return conn
 
 
-def _fc_resp(status: int, data: list | None = None) -> MagicMock:
-    """Build a mock Firecrawl search response."""
-    resp = MagicMock()
-    resp.status_code = status
-    resp.is_success = (200 <= status < 300)
-    resp.json.return_value = {"success": True, "data": data or []}
-    resp.text = ""
-    return resp
-
-
 def _fx_resp(rate: float) -> MagicMock:
+    """Mock a successful Frankfurter response: 1 unit of `from` = `rate` EUR."""
     resp = MagicMock()
     resp.is_success = True
     resp.json.return_value = {"rates": {"EUR": rate}}
     return resp
 
 
-def _ws_result(description: str, url: str = "https://www.wine-searcher.com/find/x/2015") -> dict:
-    return {"url": url, "title": "WS title", "description": description}
+def _listing_md(merchant: str, price_str: str, vintage="2015",
+                offer="Retail", shop="https://shop.example.com/x") -> str:
+    """
+    Build one Wine-Searcher-style merchant block as it appears in the scraped
+    markdown.  `_parse_listings` reads a 35-line window after the merchant link,
+    so each field sits on its own line.
+    """
+    return "\n".join([
+        f"[{merchant}](https://www.wine-searcher.com/merchant/1000)",
+        "",
+        "France",
+        "",
+        price_str,
+        "",
+        str(vintage),
+        "",
+        offer,
+        "",
+        f"[Go to shop]({shop})",
+        "",
+    ])
+
+
+def _page_md(*blocks: str) -> str:
+    """Wrap merchant blocks in some page chrome."""
+    return "Find the best price on Chateau Margaux\n\n" + "\n".join(blocks) + "\n"
 
 
 # ---------------------------------------------------------------------------
-# Scraper integration tests
+# Scraper integration tests (current Firecrawl-CLI behaviour)
 # ---------------------------------------------------------------------------
 
-# STALE: these integration tests assert the pre-Firecrawl wine_searcher
-# behaviour (price-string parsing, FX conversion, old error taxonomy). They
-# were never executing — the module failed to import on the removed
-# `_parse_avg_price` symbol — so the rework (fcc2ff0) left them behind. Skipped
-# until rewritten against the current Firecrawl-search scraper. See NEXT.md.
-@unittest.skip("Stale vs Firecrawl rework (fcc2ff0) — needs rewrite to current scraper behaviour")
 class WineSearcherScraperTests(unittest.TestCase):
 
     def setUp(self):
         self.conn = _make_db()
+        # Avoid the 1s inter-request sleep in every loop-reaching test.
+        sleep_patch = patch.object(ws.time, "sleep", lambda *_: None)
+        sleep_patch.start()
+        self.addCleanup(sleep_patch.stop)
 
     def _scraper(self):
         s = WineSearcherScraper(self.conn)
         s.batch_id = "batch_test"
         return s
 
-    def _env(self, **extra):
-        """Return env without FIRECRAWL_API_KEY, then add extras."""
-        base = {k: v for k, v in os.environ.items() if k != "FIRECRAWL_API_KEY"}
-        base.update(extra)
-        return base
+    def _run_with_markdown(self, markdown, fx=None, limit=1):
+        """
+        Run the scraper with the CLI seam (`_scrape_page`) mocked to return
+        `markdown` (str or None), the CLI presence forced true, and httpx.Client
+        mocked for FX (its .get returns `fx` if provided).
+        """
+        mock_fx_client = MagicMock()
+        if fx is not None:
+            mock_fx_client.get.return_value = fx
+        with patch.object(ws.shutil, "which", return_value="/usr/bin/firecrawl"), \
+             patch.object(ws, "_scrape_page", return_value=markdown), \
+             patch("httpx.Client", return_value=mock_fx_client):
+            result = self._scraper().run(limit=limit)
+        return result, mock_fx_client
 
-    # 1. No API key
-    def test_no_api_key_logs_not_applicable(self):
-        with patch.dict(os.environ, self._env(), clear=True):
+    # 1. firecrawl CLI not found → scraper_not_applicable, nothing fetched
+    def test_no_firecrawl_cli_logs_not_applicable(self):
+        with patch.object(ws.shutil, "which", return_value=None):
             result = self._scraper().run(limit=10)
         self.assertEqual(result.rows_dlq, 1)
         self.assertEqual(result.rows_fetched, 0)
         row = self.conn.execute("SELECT error_class FROM ops_dead_letter").fetchone()
         self.assertEqual(row[0], "scraper_not_applicable")
 
-    # 2. Missing dim_source row
+    # 2. Missing dim_source row → ScrapeResult.error, no crash
     def test_missing_dim_source_returns_error(self):
         conn = sqlite3.connect(":memory:")
         conn.execute(
             "CREATE TABLE dim_source (source_key INTEGER PRIMARY KEY, source_code TEXT UNIQUE)"
         )
         conn.commit()
-        s = WineSearcherScraper(conn)
-        with patch.dict(os.environ, {"FIRECRAWL_API_KEY": "KEY"}):
-            result = s.run()
+        result = WineSearcherScraper(conn).run()
         self.assertIsNotNone(result.error)
 
-    # 3. Firecrawl 401
-    def test_401_logs_auth_error(self):
-        resp = _fc_resp(401)
-        with patch("httpx.Client") as MC, \
-             patch.dict(os.environ, self._env(FIRECRAWL_API_KEY="BAD")):
-            MC.return_value.__enter__.return_value.post.return_value = resp
-            MC.return_value.__enter__.return_value.get.return_value = _fx_resp(0.92)
-            result = self._scraper().run(limit=1)
+    # 3. Scrape returned no content → network_error DLQ
+    def test_scrape_no_content_logs_network_error(self):
+        result, _ = self._run_with_markdown(None)
+        self.assertEqual(result.rows_fetched, 1)
         self.assertGreater(result.rows_dlq, 0)
-        row = self.conn.execute(
-            "SELECT error_class FROM ops_dead_letter WHERE error_class='auth_error'"
-        ).fetchone()
-        self.assertIsNotNone(row)
-
-    # 4. Firecrawl 429
-    def test_429_logs_auth_error(self):
-        resp = _fc_resp(429)
-        with patch("httpx.Client") as MC, \
-             patch.dict(os.environ, self._env(FIRECRAWL_API_KEY="KEY")):
-            MC.return_value.__enter__.return_value.post.return_value = resp
-            MC.return_value.__enter__.return_value.get.return_value = _fx_resp(0.92)
-            result = self._scraper().run(limit=1)
-        self.assertGreater(result.rows_dlq, 0)
-
-    # 5. Firecrawl 5xx
-    def test_5xx_logs_network_error(self):
-        resp = _fc_resp(503)
-        with patch("httpx.Client") as MC, \
-             patch.dict(os.environ, self._env(FIRECRAWL_API_KEY="KEY")):
-            MC.return_value.__enter__.return_value.post.return_value = resp
-            MC.return_value.__enter__.return_value.get.return_value = _fx_resp(0.92)
-            result = self._scraper().run(limit=1)
         row = self.conn.execute("SELECT error_class FROM ops_dead_letter").fetchone()
         self.assertEqual(row[0], "network_error")
 
-    # 6. Malformed JSON
-    def test_malformed_json_logs_parse_error(self):
-        resp = MagicMock()
-        resp.status_code = 200
-        resp.is_success = True
-        resp.json.side_effect = ValueError("bad json")
-        resp.text = "NOT JSON"
-        with patch("httpx.Client") as MC, \
-             patch.dict(os.environ, self._env(FIRECRAWL_API_KEY="KEY")):
-            MC.return_value.__enter__.return_value.post.return_value = resp
-            MC.return_value.__enter__.return_value.get.return_value = _fx_resp(0.92)
-            result = self._scraper().run(limit=1)
-        row = self.conn.execute("SELECT error_class FROM ops_dead_letter").fetchone()
-        self.assertEqual(row[0], "parse_error")
-
-    # 7. Empty search results
-    def test_empty_results_skipped(self):
-        resp = _fc_resp(200, data=[])
-        with patch("httpx.Client") as MC, \
-             patch.dict(os.environ, self._env(FIRECRAWL_API_KEY="KEY")):
-            MC.return_value.__enter__.return_value.post.return_value = resp
-            MC.return_value.__enter__.return_value.get.return_value = _fx_resp(0.92)
-            result = self._scraper().run(limit=1)
+    # 4. Page with no merchant listings → skipped, no DLQ, no insert
+    def test_empty_page_skipped(self):
+        result, _ = self._run_with_markdown(_page_md())
         self.assertEqual(result.rows_dlq, 0)
         self.assertEqual(result.rows_inserted, 0)
         self.assertGreater(result.rows_skipped_unchanged, 0)
 
-    # 8. No price in description
-    def test_no_price_in_description_skipped(self):
-        resp = _fc_resp(200, data=[_ws_result("Find stores near you.")])
-        with patch("httpx.Client") as MC, \
-             patch.dict(os.environ, self._env(FIRECRAWL_API_KEY="KEY")):
-            MC.return_value.__enter__.return_value.post.return_value = resp
-            MC.return_value.__enter__.return_value.get.return_value = _fx_resp(0.92)
-            result = self._scraper().run(limit=1)
-        self.assertEqual(result.rows_inserted, 0)
-        self.assertEqual(result.rows_dlq, 0)
-
-    # 9. USD price → EUR conversion + insert
-    def test_usd_price_converted_and_inserted(self):
-        desc = "Avg Price (ex-tax) $2,000 / 750ml. Find the best price."
-        resp = _fc_resp(200, data=[_ws_result(desc)])
-        fx = _fx_resp(0.9)   # 1 USD = 0.9 EUR → 2000 * 0.9 = 1800 EUR
-        with patch("httpx.Client") as MC, \
-             patch.dict(os.environ, self._env(FIRECRAWL_API_KEY="KEY")):
-            MC.return_value.__enter__.return_value.post.return_value = resp
-            MC.return_value.__enter__.return_value.get.return_value = fx
-            result = self._scraper().run(limit=1)
+    # 5. EUR listing → direct insert, no FX call
+    def test_eur_listing_inserted_no_fx(self):
+        md = _page_md(_listing_md("Millesima", "€ 152.95 / 750ml"))
+        result, fx_client = self._run_with_markdown(md)
         self.assertEqual(result.rows_inserted, 1)
         self.assertEqual(result.rows_dlq, 0)
+        fx_client.get.assert_not_called()  # EUR needs no Frankfurter lookup
         row = self.conn.execute(
             "SELECT amount_eur, currency_code, retailer FROM staging_price_candidates"
         ).fetchone()
-        self.assertAlmostEqual(row[0], 1800.0)
+        self.assertAlmostEqual(row[0], 152.95)
         self.assertEqual(row[1], "EUR")
-        self.assertEqual(row[2], "wine-searcher.com")
+        self.assertEqual(row[2], "Millesima")
 
-    # 10. EUR price → no FX call, direct insert
-    def test_eur_price_no_fx_conversion(self):
-        desc = "Avg Price (ex-tax) €550 / 750ml"
-        resp = _fc_resp(200, data=[_ws_result(desc)])
-        with patch("httpx.Client") as MC, \
-             patch.dict(os.environ, self._env(FIRECRAWL_API_KEY="KEY")):
-            mock_client = MC.return_value.__enter__.return_value
-            mock_client.post.return_value = resp
-            result = self._scraper().run(limit=1)
+    # 6. USD listing → FX-converted to EUR + insert
+    def test_usd_listing_converted_and_inserted(self):
+        md = _page_md(_listing_md("Wine.com", "$ 200.00 / 750ml"))
+        # 1 USD = 0.9 EUR → 200 * 0.9 = 180 EUR
+        result, fx_client = self._run_with_markdown(md, fx=_fx_resp(0.9))
         self.assertEqual(result.rows_inserted, 1)
-        # No GET call should have been made (no FX needed for EUR)
-        mock_client.get.assert_not_called()
+        self.assertEqual(result.rows_dlq, 0)
+        fx_client.get.assert_called()  # non-EUR triggers a Frankfurter lookup
         row = self.conn.execute(
-            "SELECT amount_eur FROM staging_price_candidates"
+            "SELECT amount_eur, currency_code FROM staging_price_candidates"
         ).fetchone()
-        self.assertAlmostEqual(row[0], 550.0)
+        self.assertAlmostEqual(row[0], 180.0)
+        self.assertEqual(row[1], "EUR")
 
-    # 11. Deduplication
-    def test_deduplication_on_second_run(self):
-        desc = "Avg Price (ex-tax) €550 / 750ml"
-        resp = _fc_resp(200, data=[_ws_result(desc)])
-        env = self._env(FIRECRAWL_API_KEY="KEY")
-        with patch("httpx.Client") as MC, patch.dict(os.environ, env):
-            MC.return_value.__enter__.return_value.post.return_value = resp
-            r1 = self._scraper().run(limit=1)
-        with patch("httpx.Client") as MC, patch.dict(os.environ, env):
-            MC.return_value.__enter__.return_value.post.return_value = resp
-            r2 = self._scraper().run(limit=1)
-        self.assertEqual(r1.rows_inserted, 1)
-        self.assertEqual(r2.rows_inserted, 0)
-        self.assertEqual(r2.rows_skipped_unchanged, 1)
+    # 7. FX unavailable → listing skipped (NOT a DLQ)
+    def test_fx_unavailable_skips_listing(self):
+        md = _page_md(_listing_md("Wine.com", "$ 500.00 / 750ml"))
+        bad_fx = MagicMock()
+        bad_fx.is_success = False
+        bad_fx.json.return_value = {}
+        result, _ = self._run_with_markdown(md, fx=bad_fx)
+        self.assertEqual(result.rows_inserted, 0)
+        self.assertEqual(result.rows_dlq, 0)
+        self.assertGreater(result.rows_skipped_unchanged, 0)
+
+    # 8. Vintage not present in the cuvée's DB rows → skipped
+    def test_vintage_not_in_db_skipped(self):
+        # DB only has 2015; this listing is 2010.
+        md = _page_md(_listing_md("Millesima", "€ 300.00 / 750ml", vintage="2010"))
+        result, _ = self._run_with_markdown(md)
+        self.assertEqual(result.rows_inserted, 0)
+        self.assertEqual(result.rows_dlq, 0)
+        self.assertGreater(result.rows_skipped_unchanged, 0)
+
+    # 9. Price below the EUR floor → skipped
+    def test_price_below_floor_skipped(self):
+        self.assertGreater(_PRICE_MIN_EUR, 1.0)  # guard the fixture's intent
+        md = _page_md(_listing_md("Millesima", "€ 1.00 / 750ml"))
+        result, _ = self._run_with_markdown(md)
+        self.assertEqual(result.rows_inserted, 0)
+        self.assertGreater(result.rows_skipped_unchanged, 0)
+
+    # 10. Duplicate listing (same content_hash) → inserted once, then skipped
+    def test_dedup_same_content_hash(self):
+        block = _listing_md("Millesima", "€ 152.95 / 750ml")
+        md = _page_md(block, block)  # identical listing twice
+        result, _ = self._run_with_markdown(md)
+        self.assertEqual(result.rows_inserted, 1)
+        self.assertEqual(result.rows_skipped_unchanged, 1)
         total = self.conn.execute(
             "SELECT COUNT(*) FROM staging_price_candidates"
         ).fetchone()[0]
         self.assertEqual(total, 1)
 
-    # 12. FX unavailable → validation_error DLQ
-    def test_fx_unavailable_logs_validation_error(self):
-        desc = "Avg Price (ex-tax) $500 / 750ml"
-        resp = _fc_resp(200, data=[_ws_result(desc)])
-        fx = MagicMock()
-        fx.is_success = False
-        fx.json.return_value = {}
-        with patch("httpx.Client") as MC, \
-             patch.dict(os.environ, self._env(FIRECRAWL_API_KEY="KEY")):
-            MC.return_value.__enter__.return_value.post.return_value = resp
-            MC.return_value.__enter__.return_value.get.return_value = fx
-            result = self._scraper().run(limit=1)
-        self.assertGreater(result.rows_dlq, 0)
-        row = self.conn.execute(
-            "SELECT error_class FROM ops_dead_letter WHERE error_class='validation_error'"
-        ).fetchone()
-        self.assertIsNotNone(row)
+    # 11. _mark_attempted bookkeeping excludes the cuvée on the next load
+    def test_attempt_recorded_and_resumes(self):
+        md = _page_md(_listing_md("Millesima", "€ 152.95 / 750ml"))
+        self._run_with_markdown(md)
+        # The cuvée is now recorded in ops_content_hashes …
+        hashes = self.conn.execute(
+            "SELECT url, last_hash FROM ops_content_hashes"
+        ).fetchall()
+        self.assertEqual(len(hashes), 1)
+        self.assertTrue(hashes[0][0].startswith("ws_cuvee:"))
+        self.assertEqual(hashes[0][1], "attempted")
+        # … so a second run finds nothing to scrape (resume cursor advanced).
+        result2, _ = self._run_with_markdown(md)
+        self.assertEqual(result2.rows_fetched, 0)
+        self.assertEqual(result2.rows_inserted, 0)
+
+
+# ---------------------------------------------------------------------------
+# Pure-function unit tests
+# ---------------------------------------------------------------------------
+
+class BuildWsUrlTests(unittest.TestCase):
+
+    def test_producer_only(self):
+        url = _build_ws_url({"producer_norm": "chateau margaux", "cuvee_norm": None})
+        self.assertEqual(url, "https://www.wine-searcher.com/find/chateau+margaux?sl-cur=EUR")
+
+    def test_cuvee_same_as_producer_not_duplicated(self):
+        url = _build_ws_url(
+            {"producer_norm": "chateau margaux", "cuvee_norm": "chateau margaux"}
+        )
+        self.assertEqual(url, "https://www.wine-searcher.com/find/chateau+margaux?sl-cur=EUR")
+
+    def test_cuvee_tokens_appended(self):
+        url = _build_ws_url(
+            {"producer_norm": "domaine leflaive", "cuvee_norm": "les pucelles"}
+        )
+        self.assertEqual(
+            url,
+            "https://www.wine-searcher.com/find/domaine+leflaive+les+pucelles?sl-cur=EUR",
+        )
+
+
+class ProgressKeyTests(unittest.TestCase):
+
+    def test_key_format(self):
+        self.assertEqual(
+            _progress_key({"producer_norm": "chateau margaux", "cuvee_norm": "grand vin"}),
+            "ws_cuvee:chateau margaux|grand vin",
+        )
+
+    def test_key_handles_missing_cuvee(self):
+        self.assertEqual(
+            _progress_key({"producer_norm": "chateau margaux", "cuvee_norm": None}),
+            "ws_cuvee:chateau margaux|",
+        )
+
+
+class ParseListingsTests(unittest.TestCase):
+
+    def test_extracts_all_fields(self):
+        md = (
+            "[Millesima](https://www.wine-searcher.com/merchant/1000)\n"
+            "\nFrance\n\n"
+            "€ 152.95 / 750ml\n"
+            "\n2015\n\nRetail\n\n"
+            "[Go to shop](https://www.millesima.com/x)\n"
+        )
+        listings = _parse_listings(md)
+        self.assertEqual(len(listings), 1)
+        lst = listings[0]
+        self.assertEqual(lst["retailer"], "Millesima")
+        self.assertAlmostEqual(lst["price_local"], 152.95)
+        self.assertEqual(lst["currency"], "EUR")
+        self.assertEqual(lst["vintage"], 2015)
+        self.assertEqual(lst["offer_type"], "Retail")
+        self.assertEqual(lst["source_url"], "https://www.millesima.com/x")
+
+    def test_usd_currency_and_comma_thousands(self):
+        md = (
+            "[Wine.com](https://www.wine-searcher.com/merchant/1000)\n"
+            "$ 2,000.00 / 750ml\n2015\n"
+            "[Go to shop](https://wine.com/x)\n"
+        )
+        listings = _parse_listings(md)
+        self.assertEqual(len(listings), 1)
+        self.assertEqual(listings[0]["currency"], "USD")
+        self.assertAlmostEqual(listings[0]["price_local"], 2000.0)
+
+    def test_merchant_without_price_is_skipped(self):
+        md = (
+            "[Millesima](https://www.wine-searcher.com/merchant/1000)\n"
+            "France\nNo price here\n"
+        )
+        self.assertEqual(_parse_listings(md), [])
+
+    def test_empty_markdown(self):
+        self.assertEqual(_parse_listings(""), [])
 
 
 if __name__ == "__main__":

@@ -164,3 +164,7 @@ Wine press (E_press_critic → write to fact_rating):
 - [x] **P2 · 3h** [Helena+Cassandra] Manual review of naming pollution CSV (~6 400 rows flagged by cleanup scripts) — [#41](https://github.com/FibSol/AchillesWines/issues/41) ✓ 2026-05-27
 - [x] **P2 · 4h** [Patroclus] Populate `bridge_wine_variety` via appellation-default grape rules + scraper composition data — [#42](https://github.com/FibSol/AchillesWines/issues/42) ✓ 2026-05-30
 - [x] **P2 · 3h** [Patroclus] Naming cleanup wave 2: add cleanup rule for `(CB6)` / `(CB3)` carton-of-N codes in cuvée names; strip appellation suffix from `cuvee_appellation_tail` (60 entries); second-pass VdF research for 1 438 remaining mixed-portfolio entries — [#45](https://github.com/FibSol/AchillesWines/issues/45) ✓ 2026-05-27
+
+## Test debt
+
+- [x] **P2 · 1h** [Cassandra] Rewrite stale `WineSearcherScraperTests` (`scraper/tests/test_wine_searcher.py`) against the current Firecrawl-CLI scraper and remove the `@unittest.skip`. Tests now assert the real DLQ taxonomy (`scraper_not_applicable` / `network_error` / `ScrapeResult.error`), markdown listing extraction (`_parse_listings`), USD→EUR FX, FX-unavailable skip, content-hash dedup, resume bookkeeping, and `_build_ws_url`. Note: the skipped tests targeted the short-lived fcc2ff0 *search-API* variant; the module was reworked again to the CLI approach since, so they were rewritten to current behaviour, not fcc2ff0's. Full suite green (243 tests). ✓ 2026-06-15
