@@ -6,7 +6,7 @@
 # Target: linux/arm64 (Raspberry Pi 5) and linux/amd64 (CI).
 # =============================================================================
 
-ARG NODE_VERSION=20
+ARG NODE_VERSION=24
 
 # ---- Stage 1: deps -----------------------------------------------------------
 # Native build tools needed because better-sqlite3 compiles from source.
