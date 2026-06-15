@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { ResponsiveContainer } from "recharts";
+import { CRITIC_DISPLAY_ORDER, criticLabel } from "@/lib/critics";
 
 /* ─── Types ────────────────────────────────────────────────────────────────── */
 
@@ -105,10 +106,9 @@ export function VintageDivergenceHeatmap({ cells, labels }: Props) {
     }
 
     const years = Array.from(yearsSet).sort((a, b) => a - b);
-    // Preferred order for known critics; rest appended alphabetically
-    const CRITIC_ORDER = ["WA", "Vinous", "BH", "JMIB", "RVF", "Decanter", "JS", "JG", "WS", "Hachette", "CT", "XW", "WE", "VI"];
-    const known = CRITIC_ORDER.filter(c => criticsSet.has(c));
-    const rest = Array.from(criticsSet).filter(c => !CRITIC_ORDER.includes(c)).sort();
+    // Preferred order for known critics (official first); rest appended alphabetically
+    const known = CRITIC_DISPLAY_ORDER.filter(c => criticsSet.has(c));
+    const rest = Array.from(criticsSet).filter(c => !CRITIC_DISPLAY_ORDER.includes(c)).sort();
     const critics = [...known, ...rest];
 
     return { years, critics, cellMap };
@@ -179,7 +179,7 @@ export function VintageDivergenceHeatmap({ cells, labels }: Props) {
                     fontFamily="monospace"
                     fontWeight={500}
                   >
-                    {critic}
+                    {criticLabel(critic)}
                   </text>
 
                   {/* Cells for this row */}

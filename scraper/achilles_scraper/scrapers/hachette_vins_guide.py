@@ -43,7 +43,7 @@ _USER_AGENT = (
 _BASE = "https://www.hachette-vins.com"
 _LIST_URL = "https://www.hachette-vins.com/vins/list/"
 
-VALID_CRITIC_CODES = {"WA", "Vinous", "BH", "JMIB", "RVF", "Decanter", "JS", "JG", "WS", "Hachette", "CT"}
+VALID_CRITIC_CODES = {"WA", "Vinous", "BH", "JMIB", "RVF", "Decanter", "JS", "JG", "JD", "WS", "Hachette", "CT"}
 CRITIC_CODE = "Hachette"
 
 # appellation_key for the generic "France" fallback (dim_appellation.appellation_key=1854)

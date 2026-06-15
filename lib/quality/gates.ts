@@ -17,7 +17,8 @@ export const CANONICAL_CRITIC_CODES = [
   "RVF",       // La Revue du Vin de France
   "Decanter",
   "JS",        // James Suckling
-  "JG",        // Jeb Dunnuck (column key 'JG' in CT exports)
+  "JG",        // John Gilman / View from the Cellar (CT export column 'JG')
+  "JD",        // Jeb Dunnuck (CT export column 'JD')
   "WS",        // Wine Spectator
   "Hachette",  // Guide Hachette des Vins
   "CT",        // CellarTracker community avg

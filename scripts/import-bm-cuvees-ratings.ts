@@ -30,9 +30,9 @@ interface BmCuvee    { id: number; domaine_id: number; name: string; appellation
 interface BmRating   { id: number; cuvee_id: number; vintage: number; critic: string; score: number; scale: string; date_recorded: number; }
 
 type WineColor  = "red"|"white"|"rosé"|"sparkling"|"sweet"|"fortified"|"orange";
-type CriticCode = "WA"|"Vinous"|"BH"|"JMIB"|"RVF"|"Decanter"|"JS"|"JG"|"WS"|"Hachette"|"CT"|"XW"|"WE"|"VI";
+type CriticCode = "WA"|"Vinous"|"BH"|"JMIB"|"RVF"|"Decanter"|"JS"|"JG"|"JD"|"WS"|"Hachette"|"CT"|"XW"|"WE"|"VI";
 
-const VALID_CRITICS = new Set(["WA","Vinous","BH","JMIB","RVF","Decanter","JS","JG","WS","Hachette","CT","XW","WE","VI"]);
+const VALID_CRITICS = new Set(["WA","Vinous","BH","JMIB","RVF","Decanter","JS","JG","JD","WS","Hachette","CT","XW","WE","VI"]);
 const VALID_SCALES  = new Set(["/100","/20","/5","stars"]);
 
 // ─── Color mapping ────────────────────────────────────────────────────────────

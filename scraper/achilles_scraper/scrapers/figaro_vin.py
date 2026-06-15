@@ -40,7 +40,7 @@ _USER_AGENT = (
 _BASE = "https://avis-vin.lefigaro.fr"
 _WINES_URL = "https://avis-vin.lefigaro.fr/vins"
 
-VALID_CRITIC_CODES = {"WA", "Vinous", "BH", "JMIB", "RVF", "Decanter", "JS", "JG", "WS", "Hachette", "CT"}
+VALID_CRITIC_CODES = {"WA", "Vinous", "BH", "JMIB", "RVF", "Decanter", "JS", "JG", "JD", "WS", "Hachette", "CT"}
 CRITIC_CODE = "RVF"  # French press mapping
 
 

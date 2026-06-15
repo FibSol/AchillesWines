@@ -38,7 +38,7 @@ _USER_AGENT = (
 _BASE = "https://www.decanter.com"
 _SEARCH_URL = "https://www.decanter.com/wine-reviews/search/"
 
-VALID_CRITIC_CODES = {"WA", "Vinous", "BH", "JMIB", "RVF", "Decanter", "JS", "JG", "WS", "Hachette", "CT"}
+VALID_CRITIC_CODES = {"WA", "Vinous", "BH", "JMIB", "RVF", "Decanter", "JS", "JG", "JD", "WS", "Hachette", "CT"}
 CRITIC_CODE = "Decanter"
 
 

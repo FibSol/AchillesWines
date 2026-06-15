@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { ConfidenceBadge, deriveConfidence } from "@/components/ConfidenceBadge";
+import { criticLabel, criticName, compareCriticCodes } from "@/lib/critics";
 
 export interface DetailRow {
   wineKey: string;
@@ -251,17 +252,19 @@ export function DomaineDetailTable({
                           </span>
                           {row.criticBreakdown.length > 0 && (
                             <div className="flex gap-1 flex-wrap justify-end">
-                              {row.criticBreakdown.map((c) => (
+                              {[...row.criticBreakdown]
+                                .sort((a, b) => compareCriticCodes(a.criticCode, b.criticCode))
+                                .map((c) => (
                                 <span
                                   key={c.criticCode}
-                                  title={`${c.criticCode}: ${c.score.toFixed(1)}/100`}
+                                  title={`${criticName(c.criticCode)}: ${c.score.toFixed(1)}/100`}
                                   className="text-[9px] font-mono px-1 py-px rounded"
                                   style={{
                                     background: "rgba(165,56,96,0.22)",
                                     color: "rgba(250,247,245,0.65)",
                                   }}
                                 >
-                                  {c.criticCode}&nbsp;{c.score.toFixed(0)}
+                                  {criticLabel(c.criticCode)}&nbsp;{c.score.toFixed(0)}
                                 </span>
                               ))}
                             </div>

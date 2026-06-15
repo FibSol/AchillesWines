@@ -86,7 +86,8 @@ _CRITIC_COLUMNS: dict[str, tuple[str, str]] = {
     "WE":  ("WE", "/100"),    # Wine Enthusiast
     "WAL": ("WAL", "/100"),   # Wine Align
     "WD":  ("WD", "/100"),    # Wine Doctor
-    "JG":  ("JG", "/100"),    # Jeb Dunnuck (his column key is JD elsewhere — verify)
+    "JG":  ("JG", "/100"),    # John Gilman / View from the Cellar
+    "JD":  ("JD", "/100"),    # Jeb Dunnuck
     "GV":  ("GV", "/100"),    # Gilbert & Gaillard
 }
 

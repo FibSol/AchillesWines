@@ -21,9 +21,9 @@ describe("regionGate", () => {
 });
 
 describe("criticEnumGate", () => {
-  it("accepts all 19 canonical critic codes", () => {
+  it("accepts all 20 canonical critic codes", () => {
     for (const code of [
-      "WA", "Vinous", "BH", "JMIB", "RVF", "Decanter", "JS", "JG",
+      "WA", "Vinous", "BH", "JMIB", "RVF", "Decanter", "JS", "JG", "JD",
       "WS", "Hachette", "CT", "WE", "WAL", "WD", "GV", "Halliday",
       "VI", "XW", "SM",
     ]) {

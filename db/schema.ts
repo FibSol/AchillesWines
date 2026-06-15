@@ -281,7 +281,7 @@ export const factRating = sqliteTable(
       .notNull()
       .references(() => dimSource.sourceKey),
     criticCode: text("critic_code", {
-      enum: ["WA", "Vinous", "BH", "JMIB", "RVF", "Decanter", "JS", "JG", "WS", "Hachette", "CT", "XW", "WE", "VI", "SM"],
+      enum: ["WA", "Vinous", "BH", "JMIB", "RVF", "Decanter", "JS", "JG", "JD", "WS", "Hachette", "CT", "XW", "WE", "VI", "SM"],
     }).notNull(),
     reviewerType: text("reviewer_type", {
       enum: ["critic", "user_aggregate"],
@@ -668,7 +668,7 @@ export const stagingRatingCandidates = sqliteTable(
       .notNull()
       .references(() => dimSource.sourceKey),
     criticCode: text("critic_code", {
-      enum: ["WA", "Vinous", "BH", "JMIB", "RVF", "Decanter", "JS", "JG", "WS", "Hachette", "CT", "XW", "WE", "VI", "SM"],
+      enum: ["WA", "Vinous", "BH", "JMIB", "RVF", "Decanter", "JS", "JG", "JD", "WS", "Hachette", "CT", "XW", "WE", "VI", "SM"],
     }).notNull(),
     reviewerType: text("reviewer_type", {
       enum: ["critic", "user_aggregate"],

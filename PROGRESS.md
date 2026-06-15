@@ -432,3 +432,16 @@
 - `npx tsc --noEmit` : 0 erreurs
 - `npx vitest run tests/tasting.test.ts` : 16/16 tests passent
 - Browser preview /en/tasting : flight auto-composé, ordre de service correct, 0 erreur console
+
+## 2026-06-15
+
+### Critic registry & official ratings (RP/VN/JD/JM/LVF/Hachette)
+- Added `lib/critics.ts` — single source for critic display labels/names + official primary-tier set {WA, Vinous, JD, JMIB, RVF, Hachette}. Labels: WA→RP/Parker, Vinous→VN, JMIB→JM/Jasper Morris, RVF→LVF/Les Vins de France, Hachette, JD→Jeb Dunnuck. Official critics sort first everywhere; others stay ingested as secondary.
+- Added `JD` (Jeb Dunnuck) as a proper critic_code — previously misattributed to `JG`, which is actually John Gilman (View from the Cellar). Fixed the misattribution comments. Added JD to: gates.ts CANONICAL_CRITIC_CODES, db/schema.ts (fact_rating + staging enums), migration 0022, Python VALID_CRITIC_CODES (figaro/hachette/decanter), CT xlquery column map (column 'JD'), import-bm-cuvees-ratings.ts, gates.test.ts.
+- Wired registry into UI: VintageDivergenceHeatmap (order + row labels), DomaineDetailTable (badge label, full-name tooltip, official-first sort), ProducerCharts (axis tickFormatter + tooltip name).
+- Migration `db/migrations/0022_jeb_dunnuck_critic_code.sql` rebuilds fact_rating + staging_rating_candidates CHECK to include JD (must be applied on the live DB — no local DB in this checkout).
+- Critic labels/names are brand proper nouns → not i18n keys (same rule as canonical_name).
+
+### Validation
+- `npm run type-check` (tsc --noEmit): 0 errors
+- `npx vitest run tests/gates.test.ts`: 34/34 pass (incl. "accepts all 20 canonical critic codes")

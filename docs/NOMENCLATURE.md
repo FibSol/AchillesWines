@@ -109,9 +109,25 @@ def compute_wine_key(producer_norm: str,
 (`iconic` = non-classifiés mais cultes type Tignanello, Sassicaia)
 
 ### `critic_code` (Cassandra's enum)
-`WA | Vinous | BH | JMIB | RVF | Decanter | JS | JG | WS | Hachette | CT`
+`WA | Vinous | BH | JMIB | RVF | Decanter | JS | JG | JD | WS | Hachette | CT | WE | WAL | WD | GV | Halliday | VI | XW | SM`
 
 (`CT` = CellarTracker community = `reviewer_type = user_aggregate`)
+
+`JG` = John Gilman (View from the Cellar); `JD` = Jeb Dunnuck — these are distinct critics, do not conflate.
+
+**Official critics (primary tier).** Six curated critics display first everywhere; all
+others stay ingested as secondary. Display labels/names live in `lib/critics.ts`:
+
+| code | label | name |
+|---|---|---|
+| `WA` | RP | Parker |
+| `Vinous` | VN | Vinous |
+| `JD` | JD | Jeb Dunnuck |
+| `JMIB` | JM | Jasper Morris |
+| `RVF` | LVF | Les Vins de France |
+| `Hachette` | Hachette | Guide Hachette |
+
+Critic labels/names are brand proper nouns and are **never translated** (same rule as `canonical_name`).
 
 ### `reviewer_type`
 `critic | user_aggregate`
