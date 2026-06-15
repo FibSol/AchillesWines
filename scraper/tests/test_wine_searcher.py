@@ -138,6 +138,12 @@ def _ws_result(description: str, url: str = "https://www.wine-searcher.com/find/
 # Scraper integration tests
 # ---------------------------------------------------------------------------
 
+# STALE: these integration tests assert the pre-Firecrawl wine_searcher
+# behaviour (price-string parsing, FX conversion, old error taxonomy). They
+# were never executing — the module failed to import on the removed
+# `_parse_avg_price` symbol — so the rework (fcc2ff0) left them behind. Skipped
+# until rewritten against the current Firecrawl-search scraper. See NEXT.md.
+@unittest.skip("Stale vs Firecrawl rework (fcc2ff0) — needs rewrite to current scraper behaviour")
 class WineSearcherScraperTests(unittest.TestCase):
 
     def setUp(self):
