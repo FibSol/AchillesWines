@@ -27,6 +27,7 @@ except ImportError:
 from .base import BaseScraper, ScrapeResult
 from ..identity import normalize_producer, normalize_cuvee, compute_wine_key, norm_text
 from ..dlq import write_dlq, insert_staging_candidate
+from ..critic_ratings import parse_critic_score, upsert_critic_rating
 
 _USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -179,6 +180,8 @@ def _parse_product(p: dict) -> Optional[dict]:
     appellation = _attr_value(attrs, "appellation").strip()
     region = _attr_value(attrs, "vignoble").strip() or _attr_value(attrs, "region").strip()
     color = _map_color(_attr_value(attrs, "couleur"))
+    # Republished James Suckling score (self-labelled "J. Suckling" in the JSON).
+    note_js = _attr_value(attrs, "note_js").strip()
 
     # seoKeyword already includes .html suffix on some products — strip to avoid double
     seo = (p.get("seoKeyword") or "").removesuffix(".html")
@@ -192,6 +195,7 @@ def _parse_product(p: dict) -> Optional[dict]:
         "appellation": appellation,
         "region": region,
         "color": color,
+        "note_js": note_js,
         "card_hash": hashlib.sha256(json.dumps(p, sort_keys=True).encode()).hexdigest(),
     }
 
@@ -355,6 +359,7 @@ class MillesimaScraper(BaseScraper):
 
         page = 1
         total_fetched = 0
+        ratings_upserted = 0
 
         with httpx.Client(headers=headers, timeout=30, follow_redirects=True) as client:
             # Wrap client.get so all HTTP calls go through the retry wrapper.
@@ -488,6 +493,25 @@ class MillesimaScraper(BaseScraper):
                         result.rows_dlq += 1
                         continue
 
+                    # Capture the republished James Suckling score (note_js),
+                    # which the catalogue JSON carries but we previously discarded.
+                    js_score = parse_critic_score(card.get("note_js", ""))
+                    if js_score is not None:
+                        try:
+                            if upsert_critic_rating(
+                                self.conn, wine_key=wine_key, source_key=SOURCE_KEY,
+                                critic_code="JS", score=js_score,
+                                source_url=source_url, batch_id=batch_id,
+                            ):
+                                ratings_upserted += 1
+                                self.conn.commit()
+                        except Exception as e:
+                            write_dlq(
+                                self.conn, SOURCE_KEY, batch_id,
+                                "validation_error", f"JS rating upsert failed: {e}",
+                                {"wine_key": wine_key, "note_js": card.get("note_js")},
+                            )
+
                     try:
                         inserted = insert_staging_candidate(
                             self.conn,
@@ -514,4 +538,6 @@ class MillesimaScraper(BaseScraper):
                 page += 1
                 time.sleep(1.0)
 
+        if ratings_upserted:
+            _logger.info("millesima: upserted %d James Suckling ratings", ratings_upserted)
         return result
