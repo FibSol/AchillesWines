@@ -25,6 +25,13 @@ if (!src) {
 }
 const SOURCE_KEY = src.source_key;
 
+// Idempotency: the unique index includes `subregion`, which is NULL for every
+// vintage_consensus row — and SQLite treats NULLs as DISTINCT in unique indexes,
+// so INSERT OR REPLACE never fires a conflict and would duplicate on every run.
+// Clear this source's rows first, then re-insert cleanly (mirrors seed_hachette_millesime.mjs).
+const cleared = db.prepare("DELETE FROM fact_vintage_rating WHERE source_key=?").run(SOURCE_KEY).changes;
+console.log(`Cleared ${cleared} existing vintage_consensus rows for clean re-seed.`);
+
 // ── 2. Rating tables per region-family (year → score 1-5) ─────────────────
 
 // Burgundy: Côte de Nuits / Côte de Beaune (reds and whites share same harvest year quality)
