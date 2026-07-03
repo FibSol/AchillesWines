@@ -7,6 +7,11 @@
  *   - refrigerator (~4 °C): ≈ 10 min per °C to drop
  *   - ice + water bucket:   ≈ 2.5 min per °C to drop
  * e.g. 19 °C → 7 °C (sparkling): ~2 h fridge, ~30 min ice bucket.
+ *
+ * Alternative start ("fridge overnight"): bottles were refrigerated the night
+ * before and sit at ~6 °C. The plan inverts — sparkling/whites stay in the
+ * fridge until serving, reds are taken out early to warm up at room
+ * temperature (≈ 8 min per °C to gain, e.g. 6 °C → 17 °C ≈ 1 h 30).
  */
 
 import type { TastingFlight, FlightStop, DirectiveNote } from "@/lib/tasting/engine";
@@ -33,6 +38,19 @@ export function chillPlan(serveTempC: [number, number], cellarTempC: number): Ch
     fridgeMinutes: roundTo5(delta * 10),
     iceBathMinutes: roundTo5(delta * 2.5),
   };
+}
+
+export type BottleStart = "cellar" | "fridgeOvernight";
+
+export const FRIDGE_TEMP_C = 6;
+const WARM_MIN_PER_C = 8; // bottle warming at room temperature
+
+/** Minutes to warm a fridge-cold bottle up to the serving range (0 = keep chilled). */
+export function warmMinutes(serveTempC: [number, number], startTempC: number): number {
+  const target = (serveTempC[0] + serveTempC[1]) / 2;
+  const delta = target - startTempC;
+  if (delta <= 1) return 0;
+  return roundTo5(delta * WARM_MIN_PER_C);
 }
 
 function esc(s: string): string {
@@ -76,9 +94,20 @@ export interface PrintSheetInput {
   renderNote: (note: DirectiveNote) => string;
   /** AI-written blurb per wineKey (description + anecdote). Optional. */
   wineNotes?: Record<string, WineNote>;
+  /** Where the bottles start: in the cellar (default) or fridge-cold since the night before. */
+  bottlesStart?: BottleStart;
 }
 
-export function buildPrintHtml({ flight, cellarTempC, locale, t, renderNote, wineNotes }: PrintSheetInput): string {
+export function buildPrintHtml({
+  flight,
+  cellarTempC,
+  locale,
+  t,
+  renderNote,
+  wineNotes,
+  bottlesStart = "cellar",
+}: PrintSheetInput): string {
+  const fromFridge = bottlesStart === "fridgeOvernight";
   const modeName = t(`modes.${flight.mode}.name`);
   const axis = flight.selectedAxis ? ` · ${flight.selectedAxis.label}` : "";
   const date = new Date().toLocaleDateString(locale, {
@@ -90,25 +119,44 @@ export function buildPrintHtml({ flight, cellarTempC, locale, t, renderNote, win
   // ---- Preparation plan: one action per chill / decant, longest lead first ----
   const actions: PrepAction[] = [];
   for (const stop of flight.stops) {
-    const chill = chillPlan(stop.serveTempC, cellarTempC);
     const wine = `${stop.position}. ${stopDisplayName(stop)}`;
     const location = locationSummary(stop);
-    if (chill.fridgeMinutes > 0) {
-      actions.push({
-        // Chilling happens on the closed bottle, so it must finish before the
-        // wine is opened / decanted — shift its start back by the decant time.
-        minutesBefore: chill.fridgeMinutes + stop.decantMinutes,
-        label:
-          t("print.actionFridge", {
-            temp: cellarTempC,
+    if (fromFridge) {
+      // Bottles start fridge-cold: take the warmer-served ones out early.
+      const warm = warmMinutes(stop.serveTempC, FRIDGE_TEMP_C);
+      if (warm > 0) {
+        actions.push({
+          // The bottle must be out of the fridge to be decanted, so the
+          // take-out happens at least as early as the decant.
+          minutesBefore: Math.max(warm, stop.decantMinutes),
+          label: t("print.actionTakeOut", {
+            temp: FRIDGE_TEMP_C,
             low: stop.serveTempC[0],
             high: stop.serveTempC[1],
-          }) +
-          " " +
-          t("print.actionIceAlt", { minutes: chill.iceBathMinutes }),
-        wine,
-        location,
-      });
+          }),
+          wine,
+          location,
+        });
+      }
+    } else {
+      const chill = chillPlan(stop.serveTempC, cellarTempC);
+      if (chill.fridgeMinutes > 0) {
+        actions.push({
+          // Chilling happens on the closed bottle, so it must finish before the
+          // wine is opened / decanted — shift its start back by the decant time.
+          minutesBefore: chill.fridgeMinutes + stop.decantMinutes,
+          label:
+            t("print.actionFridge", {
+              temp: cellarTempC,
+              low: stop.serveTempC[0],
+              high: stop.serveTempC[1],
+            }) +
+            " " +
+            t("print.actionIceAlt", { minutes: chill.iceBathMinutes }),
+          wine,
+          location,
+        });
+      }
     }
     if (stop.decantMinutes > 0) {
       actions.push({
@@ -133,21 +181,30 @@ export function buildPrintHtml({ flight, cellarTempC, locale, t, renderNote, win
             </tr>`,
           )
           .join("")
-      : `<tr><td colspan="2" class="muted">${esc(t("print.nothingToPrep"))}</td></tr>`;
+      : `<tr><td colspan="2" class="muted">${esc(t(fromFridge ? "print.keepInFridge" : "print.nothingToPrep"))}</td></tr>`;
 
   // ---- Serving order ----
   const stopBlocks = flight.stops
     .map((stop) => {
-      const chill = chillPlan(stop.serveTempC, cellarTempC);
       const facts: string[] = [
         t("print.serveAt", { low: stop.serveTempC[0], high: stop.serveTempC[1] }),
         t(`glass.${stop.glassType}`),
       ];
-      if (chill.fridgeMinutes > 0) {
-        facts.push(t("print.chillFridge", { minutes: chill.fridgeMinutes }));
-        facts.push(t("print.chillIce", { minutes: chill.iceBathMinutes }));
+      if (fromFridge) {
+        const warm = warmMinutes(stop.serveTempC, FRIDGE_TEMP_C);
+        if (warm > 0) {
+          facts.push(t("print.warmUpFact", { minutes: Math.max(warm, stop.decantMinutes) }));
+        } else {
+          facts.push(t("print.keepInFridge"));
+        }
       } else {
-        facts.push(t("print.readyFromCellar"));
+        const chill = chillPlan(stop.serveTempC, cellarTempC);
+        if (chill.fridgeMinutes > 0) {
+          facts.push(t("print.chillFridge", { minutes: chill.fridgeMinutes }));
+          facts.push(t("print.chillIce", { minutes: chill.iceBathMinutes }));
+        } else {
+          facts.push(t("print.readyFromCellar"));
+        }
       }
       if (stop.decantMinutes > 0) {
         facts.push(t("print.decant", { minutes: stop.decantMinutes }));
@@ -213,7 +270,9 @@ export function buildPrintHtml({ flight, cellarTempC, locale, t, renderNote, win
 <body>
 <header>
   <h1>Achilles's Wines <small>· ${esc(t("print.sheetTitle"))}</small></h1>
-  <p class="subline">${esc(modeName)}${esc(axis)} — ${esc(t("print.printedOn", { date }))} · ${esc(t("print.cellarAt", { temp: cellarTempC }))}</p>
+  <p class="subline">${esc(modeName)}${esc(axis)} — ${esc(t("print.printedOn", { date }))} · ${esc(
+    fromFridge ? t("print.fridgeAt", { temp: FRIDGE_TEMP_C }) : t("print.cellarAt", { temp: cellarTempC }),
+  )}</p>
 </header>
 
 <h2>${esc(t("print.prepTitle"))}</h2>

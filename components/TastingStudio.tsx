@@ -152,6 +152,7 @@ export function TastingStudio() {
 
   const [mode, setMode] = useState<TastingMode>("progressive");
   const [cellarTemp, setCellarTemp] = useState(19);
+  const [fridgeOvernight, setFridgeOvernight] = useState(false);
   const [printing, setPrinting] = useState(false);
   const [count, setCount] = useState(6);
   const [axisId, setAxisId] = useState<string | undefined>(undefined);
@@ -344,6 +345,7 @@ export function TastingStudio() {
       t: (key, values) => t(key, values),
       renderNote,
       wineNotes,
+      bottlesStart: fridgeOvernight ? "fridgeOvernight" : "cellar",
     });
     w.document.open();
     w.document.write(html);
@@ -640,9 +642,19 @@ export function TastingStudio() {
             min={0}
             max={30}
             value={cellarTemp}
+            disabled={fridgeOvernight}
             onChange={(e) => setCellarTemp(Number(e.target.value))}
-            className="w-16 px-2 py-1.5 rounded bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)]"
+            className="w-16 px-2 py-1.5 rounded bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)] disabled:opacity-40"
           />
+        </label>
+        <label className="flex items-center gap-1.5 text-xs text-[color:var(--color-fg-muted)] cursor-pointer">
+          <input
+            type="checkbox"
+            checked={fridgeOvernight}
+            onChange={(e) => setFridgeOvernight(e.target.checked)}
+            className="accent-[#A53860]"
+          />
+          {t("print.fridgeOvernight")}
         </label>
         <button
           onClick={printSheet}

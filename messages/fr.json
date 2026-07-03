@@ -366,6 +366,11 @@
       "readyFromCellar": "À température — servir directement de la cave",
       "decant": "Carafer {minutes} min avant le service",
       "location": "Cave : {location}",
+      "fridgeOvernight": "Au frigo depuis la veille (6 °C)",
+      "fridgeAt": "Bouteilles au réfrigérateur depuis la veille : {temp} °C",
+      "actionTakeOut": "Sortir du réfrigérateur : {temp} °C → {low}–{high} °C",
+      "keepInFridge": "Garder au réfrigérateur jusqu'au service",
+      "warmUpFact": "Sortir du frigo ~{minutes} min avant",
       "funFact": "Le saviez-vous ?",
       "generating": "Préparation de la fiche…",
       "aiDisclaimer": "Descriptions et anecdotes générées par IA (Claude) — vérifiez les faits marquants."

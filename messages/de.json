@@ -366,6 +366,11 @@
       "readyFromCellar": "Auf Temperatur — direkt aus dem Keller servieren",
       "decant": "{minutes} Min vor dem Servieren dekantieren",
       "location": "Keller: {location}",
+      "fridgeOvernight": "Über Nacht im Kühlschrank (6 °C)",
+      "fridgeAt": "Flaschen über Nacht im Kühlschrank: {temp} °C",
+      "actionTakeOut": "Aus dem Kühlschrank nehmen: {temp} °C → {low}–{high} °C",
+      "keepInFridge": "Bis zum Servieren im Kühlschrank lassen",
+      "warmUpFact": "~{minutes} Min vorher aus dem Kühlschrank",
       "funFact": "Wussten Sie schon?",
       "generating": "Blatt wird vorbereitet…",
       "aiDisclaimer": "Beschreibungen und Anekdoten sind KI-generiert (Claude) — prüfen Sie auffällige Angaben."

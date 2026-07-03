@@ -384,6 +384,11 @@
       "readyFromCellar": "At temperature — serve straight from the cellar",
       "decant": "Decant {minutes} min before serving",
       "location": "Cellar: {location}",
+      "fridgeOvernight": "In the fridge overnight (6 °C)",
+      "fridgeAt": "Bottles refrigerated overnight: {temp} °C",
+      "actionTakeOut": "Take out of the refrigerator: {temp} °C → {low}–{high} °C",
+      "keepInFridge": "Keep refrigerated until serving",
+      "warmUpFact": "Out of the fridge ~{minutes} min before",
       "funFact": "Did you know?",
       "generating": "Preparing the sheet…",
       "aiDisclaimer": "Descriptions and anecdotes are AI-generated (Claude) — double-check notable claims."

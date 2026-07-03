@@ -366,6 +366,11 @@
       "readyFromCellar": "A temperatura — servir directamente de la bodega",
       "decant": "Decantar {minutes} min antes del servicio",
       "location": "Bodega: {location}",
+      "fridgeOvernight": "En el frigorífico desde la víspera (6 °C)",
+      "fridgeAt": "Botellas en el frigorífico desde la víspera: {temp} °C",
+      "actionTakeOut": "Sacar del frigorífico: {temp} °C → {low}–{high} °C",
+      "keepInFridge": "Mantener en el frigorífico hasta el servicio",
+      "warmUpFact": "Sacar del frigorífico ~{minutes} min antes",
       "funFact": "¿Sabía que…?",
       "generating": "Preparando la ficha…",
       "aiDisclaimer": "Las descripciones y anécdotas son generadas por IA (Claude) — verifique las afirmaciones destacadas."

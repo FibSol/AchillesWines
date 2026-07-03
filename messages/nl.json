@@ -366,6 +366,11 @@
       "readyFromCellar": "Op temperatuur — direct uit de kelder serveren",
       "decant": "Decanteer {minutes} min vóór het serveren",
       "location": "Kelder: {location}",
+      "fridgeOvernight": "Sinds de vooravond in de koelkast (6 °C)",
+      "fridgeAt": "Flessen sinds de vooravond in de koelkast: {temp} °C",
+      "actionTakeOut": "Uit de koelkast halen: {temp} °C → {low}–{high} °C",
+      "keepInFridge": "In de koelkast bewaren tot het serveren",
+      "warmUpFact": "~{minutes} min vooraf uit de koelkast",
       "funFact": "Wist u dat?",
       "generating": "Blad wordt voorbereid…",
       "aiDisclaimer": "Beschrijvingen en anekdotes zijn AI-gegenereerd (Claude) — controleer opvallende beweringen."
