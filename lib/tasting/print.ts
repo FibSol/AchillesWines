@@ -66,6 +66,16 @@ function stopDisplayName(stop: FlightStop): string {
   return `${stop.producerName} — ${stop.cuveeName}${vintage}`;
 }
 
+function formatPrice(eur: number | null, locale: string): string | null {
+  if (eur === null || eur <= 0) return null;
+  const formatted = new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(eur);
+  return `≈ ${formatted}`;
+}
+
 interface PrepAction {
   minutesBefore: number;
   label: string;
@@ -209,7 +219,12 @@ export function buildPrintHtml({
       if (stop.decantMinutes > 0) {
         facts.push(t("print.decant", { minutes: stop.decantMinutes }));
       }
-      const meta = [stop.appellationName, stop.region, stop.grapes.join(", ")]
+      const meta = [
+        stop.appellationName,
+        stop.region,
+        stop.grapes.join(", "),
+        formatPrice(stop.avgPriceEur, locale),
+      ]
         .filter(Boolean)
         .join(" · ");
       const notes = stop.notes.map((n) => `<li>${esc(renderNote(n))}</li>`).join("");

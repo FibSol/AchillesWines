@@ -104,6 +104,7 @@ export interface FlightStop {
   alcoholPct: number | null;
   avgRating: number | null;
   vintageScore: number | null;
+  avgPriceEur: number | null;
   qty: number;
   weight: number;
   serveTempC: [number, number];
@@ -601,6 +602,7 @@ function buildStop(
     alcoholPct: c.alcoholPct,
     avgRating: c.avgRating,
     vintageScore: c.vintageScore,
+    avgPriceEur: c.avgPriceEur,
     qty: c.qty,
     locations: c.locations,
     weight,
