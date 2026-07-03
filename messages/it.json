@@ -365,6 +365,7 @@
       "chillIce": "ghiaccio + acqua ~{minutes} min",
       "readyFromCellar": "A temperatura — servire direttamente dalla cantina",
       "decant": "Decantare {minutes} min prima del servizio",
+      "location": "Cantina: {location}",
       "funFact": "Lo sapevate?",
       "generating": "Preparazione della scheda…",
       "aiDisclaimer": "Descrizioni e aneddoti generati dall'IA (Claude) — verificate le affermazioni rilevanti."

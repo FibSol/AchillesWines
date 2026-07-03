@@ -383,6 +383,7 @@
       "chillIce": "ice + water ~{minutes} min",
       "readyFromCellar": "At temperature — serve straight from the cellar",
       "decant": "Decant {minutes} min before serving",
+      "location": "Cellar: {location}",
       "funFact": "Did you know?",
       "generating": "Preparing the sheet…",
       "aiDisclaimer": "Descriptions and anecdotes are AI-generated (Claude) — double-check notable claims."

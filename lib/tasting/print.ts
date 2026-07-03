@@ -52,6 +52,14 @@ interface PrepAction {
   minutesBefore: number;
   label: string;
   wine: string;
+  /** Cellar location(s) holding the bottle, e.g. "Casier A3 ×2, Casier B1". */
+  location: string;
+}
+
+function locationSummary(stop: FlightStop): string {
+  return stop.locations
+    .map((l) => (stop.locations.length > 1 ? `${l.name} ×${l.qty}` : l.name))
+    .join(", ");
 }
 
 export interface WineNote {
@@ -84,6 +92,7 @@ export function buildPrintHtml({ flight, cellarTempC, locale, t, renderNote, win
   for (const stop of flight.stops) {
     const chill = chillPlan(stop.serveTempC, cellarTempC);
     const wine = `${stop.position}. ${stopDisplayName(stop)}`;
+    const location = locationSummary(stop);
     if (chill.fridgeMinutes > 0) {
       actions.push({
         // Chilling happens on the closed bottle, so it must finish before the
@@ -98,6 +107,7 @@ export function buildPrintHtml({ flight, cellarTempC, locale, t, renderNote, win
           " " +
           t("print.actionIceAlt", { minutes: chill.iceBathMinutes }),
         wine,
+        location,
       });
     }
     if (stop.decantMinutes > 0) {
@@ -105,6 +115,7 @@ export function buildPrintHtml({ flight, cellarTempC, locale, t, renderNote, win
         minutesBefore: stop.decantMinutes,
         label: t("print.actionDecant"),
         wine,
+        location,
       });
     }
   }
@@ -116,7 +127,9 @@ export function buildPrintHtml({ flight, cellarTempC, locale, t, renderNote, win
           .map(
             (a) => `<tr>
               <td class="time">${esc(t("print.hMinus", { minutes: a.minutesBefore }))}</td>
-              <td><strong>${esc(a.wine)}</strong><br/><span class="muted">${esc(a.label)}</span></td>
+              <td><strong>${esc(a.wine)}</strong>${
+                a.location ? ` <span class="loc">— ${esc(t("print.location", { location: a.location }))}</span>` : ""
+              }<br/><span class="muted">${esc(a.label)}</span></td>
             </tr>`,
           )
           .join("")
@@ -181,6 +194,7 @@ export function buildPrintHtml({ flight, cellarTempC, locale, t, renderNote, win
   td { padding: 1.6mm 2mm; border-bottom: 1px solid #ddd; vertical-align: top; }
   td.time { white-space: nowrap; font-weight: bold; width: 26mm; font-variant-numeric: tabular-nums; }
   .muted { color: #666; font-size: 9pt; }
+  .loc { color: #a53860; font-size: 9pt; white-space: nowrap; }
   ul { margin: 0; padding-left: 5mm; }
   li { margin-bottom: 1mm; }
   .stop { border: 1px solid #ccc; border-radius: 2mm; padding: 3mm 4mm; margin-bottom: 3mm; page-break-inside: avoid; }
