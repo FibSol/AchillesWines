@@ -106,7 +106,7 @@ export default async function VintageWinesPage({
 
       {/* Wine table */}
       {wines.length === 0 ? (
-        <div className="glass-card p-12 text-center text-[rgba(250,247,245,0.5)] text-sm">
+        <div className="glass-card p-12 text-center text-[color:var(--color-fg-muted)] text-sm">
           {t("noWines")}
         </div>
       ) : (

@@ -48,6 +48,14 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
+      <head>
+        {/* Apply the persisted theme before first paint to avoid a flash. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem("achilles-theme");if(t==="light")document.documentElement.dataset.theme="light";}catch(e){}`,
+          }}
+        />
+      </head>
       <body className={`${fraunces.variable} ${inter.variable} grain`} suppressHydrationWarning>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <SiteNav />

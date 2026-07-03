@@ -435,7 +435,7 @@ export function TastingStudio() {
           <SlidersHorizontal className="size-3.5" strokeWidth={2.5} />
           <span className="uppercase tracking-[0.06em]">{t("filters.title")}</span>
           {activeFilterCount > 0 && (
-            <span className="px-1.5 py-0.5 rounded bg-[rgba(165,56,96,0.2)] text-[color:var(--color-primary)] font-mono text-[10px]">
+            <span className="px-1.5 py-0.5 rounded bg-[color:var(--color-primary-soft)] text-[color:var(--color-primary)] font-mono text-[10px]">
               {t("filters.active", { count: activeFilterCount })}
             </span>
           )}
@@ -456,7 +456,7 @@ export function TastingStudio() {
                     const val = e.target.value;
                     applyFilters({ ...filters, countries: val ? [val] : [], regions: [] });
                   }}
-                  className="w-full px-2 py-1.5 rounded bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)]"
+                  className="w-full px-2 py-1.5 rounded bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)]"
                 >
                   <option value="">{t("filters.all")}</option>
                   {pool.countries.map((c) => (
@@ -476,7 +476,7 @@ export function TastingStudio() {
                     const val = e.target.value;
                     applyFilters({ ...filters, regions: val ? [val] : [] });
                   }}
-                  className="w-full px-2 py-1.5 rounded bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)]"
+                  className="w-full px-2 py-1.5 rounded bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)]"
                 >
                   <option value="">{t("filters.all")}</option>
                   {pool.regions.map((r) => (
@@ -496,7 +496,7 @@ export function TastingStudio() {
                     const val = e.target.value;
                     applyFilters({ ...filters, colors: val ? [val] : [] });
                   }}
-                  className="w-full px-2 py-1.5 rounded bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)]"
+                  className="w-full px-2 py-1.5 rounded bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)]"
                 >
                   <option value="">{t("filters.all")}</option>
                   {pool.colors.map((c) => (
@@ -520,7 +520,7 @@ export function TastingStudio() {
                     applyFilters({ ...filters, minRating: val });
                   }}
                   placeholder="0–100"
-                  className="w-full px-2 py-1.5 rounded bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-primary)]"
+                  className="w-full px-2 py-1.5 rounded bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-primary)]"
                 />
               </div>
 
@@ -538,7 +538,7 @@ export function TastingStudio() {
                     applyFilters({ ...filters, maxPriceEur: val });
                   }}
                   placeholder="€"
-                  className="w-full px-2 py-1.5 rounded bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-primary)]"
+                  className="w-full px-2 py-1.5 rounded bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-primary)]"
                 />
               </div>
 
@@ -612,7 +612,7 @@ export function TastingStudio() {
             <select
               value={flight.selectedAxis?.id ?? ""}
               onChange={(e) => changeAxis(e.target.value)}
-              className="px-2 py-1.5 rounded bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)] max-w-[16rem]"
+              className="px-2 py-1.5 rounded bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)] max-w-[16rem]"
             >
               {flight.availableAxes.map((a) => (
                 <option key={a.id} value={a.id}>
@@ -631,7 +631,7 @@ export function TastingStudio() {
           <select
             value={count}
             onChange={(e) => changeCount(Number.parseInt(e.target.value, 10))}
-            className="px-2 py-1.5 rounded bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)]"
+            className="px-2 py-1.5 rounded bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)]"
           >
             {COUNT_OPTIONS.map((n) => (
               <option key={n} value={n}>
@@ -670,7 +670,7 @@ export function TastingStudio() {
             value={cellarTemp}
             disabled={fridgeOvernight}
             onChange={(e) => setCellarTemp(Number(e.target.value))}
-            className="w-16 px-2 py-1.5 rounded bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)] disabled:opacity-40"
+            className="w-16 px-2 py-1.5 rounded bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)] disabled:opacity-40"
           />
         </label>
         <label className="flex items-center gap-1.5 text-xs text-[color:var(--color-fg-muted)] cursor-pointer">
@@ -678,7 +678,7 @@ export function TastingStudio() {
             type="checkbox"
             checked={fridgeOvernight}
             onChange={(e) => setFridgeOvernight(e.target.checked)}
-            className="accent-[#A53860]"
+            className="accent-[color:var(--color-primary)]"
           />
           {t("print.fridgeOvernight")}
         </label>
@@ -696,7 +696,7 @@ export function TastingStudio() {
       </section>
 
       {error && (
-        <div className="p-3 rounded-md border border-[color:var(--color-champagne-700)] bg-[rgba(165,56,96,0.1)] text-sm text-[color:var(--color-champagne-400)] font-mono">
+        <div className="p-3 rounded-md border border-[color:var(--color-champagne-700)] bg-[color:var(--color-primary-wash)] text-sm text-[color:var(--color-champagne-400)] font-mono">
           {error}
         </div>
       )}
@@ -922,7 +922,7 @@ function StopCard({
           {/* Body / weight bar */}
           <div className="mt-3 flex items-center gap-2">
             <span className="font-mono text-[9px] text-[color:var(--color-fg-subtle)] w-8">{t("ui.light")}</span>
-            <div className="flex-1 h-1.5 rounded-full bg-[rgba(255,255,255,0.08)] overflow-hidden">
+            <div className="flex-1 h-1.5 rounded-full bg-[color:var(--color-fill)] overflow-hidden">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-[color:var(--color-accent)] to-[color:var(--color-primary)]"
                 style={{ width: `${stop.weight}%` }}
@@ -1009,7 +1009,7 @@ function WineIdentityCard({
   return (
     <div
       onClick={(e) => e.stopPropagation()}
-      className="absolute left-0 top-full mt-1 z-40 w-80 max-w-[85vw] rounded-lg border border-[color:var(--color-border)] bg-[#14121D] p-4 shadow-2xl space-y-2.5 text-xs cursor-default"
+      className="absolute left-0 top-full mt-1 z-40 w-80 max-w-[85vw] rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-popover)] p-4 shadow-2xl space-y-2.5 text-xs cursor-default"
     >
       {/* Header */}
       <div>
@@ -1122,8 +1122,8 @@ function IconBtn({
       className={[
         "p-1.5 rounded-md transition",
         active
-          ? "bg-[rgba(165,56,96,0.18)] text-[color:var(--color-primary)]"
-          : "text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-primary)] hover:bg-[rgba(165,56,96,0.08)]",
+          ? "bg-[color:var(--color-primary-soft)] text-[color:var(--color-primary)]"
+          : "text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-primary)] hover:bg-[color:var(--color-primary-tint)]",
       ].join(" ")}
     >
       {children}
@@ -1157,7 +1157,7 @@ function PoolPicker({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(8,5,15,0.7)] backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[color:var(--color-scrim)] backdrop-blur-sm p-4"
       onClick={onClose}
     >
       <div
@@ -1176,14 +1176,14 @@ function PoolPicker({
           onChange={(e) => setQ(e.target.value)}
           placeholder={searchLabel}
           autoFocus
-          className="w-full px-3 py-2 rounded-md bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-primary)] mb-3"
+          className="w-full px-3 py-2 rounded-md bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-primary)] mb-3"
         />
         <div className="overflow-y-auto scrollbar-thin space-y-1">
           {filtered.map((w) => (
             <button
               key={w.wineKey}
               onClick={() => onPick(w.wineKey)}
-              className="w-full text-left p-2.5 rounded-md hover:bg-[rgba(165,56,96,0.08)] transition flex items-center gap-2"
+              className="w-full text-left p-2.5 rounded-md hover:bg-[color:var(--color-primary-tint)] transition flex items-center gap-2"
             >
               <span
                 className="inline-block size-2 rounded-full shrink-0"

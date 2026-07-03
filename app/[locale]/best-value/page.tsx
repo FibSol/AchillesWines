@@ -58,8 +58,8 @@ function RankBadge({ rank }: { rank: number }) {
     <div
       className={`flex-shrink-0 size-9 rounded-full flex items-center justify-center text-sm font-bold font-mono ${
         isTop3
-          ? "bg-[rgba(165,56,96,0.2)] text-[color:var(--color-champagne-400)] border border-[rgba(165,56,96,0.4)]"
-          : "bg-[rgba(165,56,96,0.07)] text-[color:var(--color-fg-muted)] border border-[color:var(--color-border)]"
+          ? "bg-[color:var(--color-primary-soft)] text-[color:var(--color-champagne-400)] border border-[color:var(--color-border-strong)]"
+          : "bg-[color:var(--color-primary-tint)] text-[color:var(--color-fg-muted)] border border-[color:var(--color-border)]"
       }`}
     >
       {rank}

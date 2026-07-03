@@ -215,7 +215,7 @@ export function MenuComposer({ labels }: { labels: MenuLabels }) {
               max={50}
               value={guests}
               onChange={(e) => setGuests(Math.max(1, Number.parseInt(e.target.value, 10) || 1))}
-              className="w-full px-3 py-2 rounded-md bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
+              className="w-full px-3 py-2 rounded-md bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
             />
           </label>
           <label className="block">
@@ -230,7 +230,7 @@ export function MenuComposer({ labels }: { labels: MenuLabels }) {
               value={budget}
               placeholder="optional"
               onChange={(e) => setBudget(e.target.value)}
-              className="w-full px-3 py-2 rounded-md bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
+              className="w-full px-3 py-2 rounded-md bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
             />
           </label>
           <div className="flex items-end">
@@ -252,7 +252,7 @@ export function MenuComposer({ labels }: { labels: MenuLabels }) {
           {courses.map((c, idx) => (
             <div
               key={c.id}
-              className="flex items-center gap-2 p-3 rounded-md bg-[rgba(9,8,15,0.4)] border border-[color:var(--color-border)]"
+              className="flex items-center gap-2 p-3 rounded-md bg-[color:var(--color-inset-bg)] border border-[color:var(--color-border)]"
             >
               <span className="font-mono text-[10px] text-[color:var(--color-fg-subtle)] w-5 shrink-0">
                 {idx + 1}.
@@ -260,7 +260,7 @@ export function MenuComposer({ labels }: { labels: MenuLabels }) {
               <select
                 value={c.type}
                 onChange={(e) => updateCourse(c.id, { type: e.target.value as CourseType })}
-                className="px-2 py-1.5 rounded bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)] shrink-0"
+                className="px-2 py-1.5 rounded bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)] shrink-0"
               >
                 {(Object.keys(labels.courseTypes) as CourseType[]).map((k) => (
                   <option key={k} value={k}>
@@ -273,11 +273,11 @@ export function MenuComposer({ labels }: { labels: MenuLabels }) {
                 value={c.dish}
                 onChange={(e) => updateCourse(c.id, { dish: e.target.value })}
                 placeholder={labels.dishPlaceholder}
-                className="flex-1 px-3 py-1.5 rounded bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
+                className="flex-1 px-3 py-1.5 rounded bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
               />
               <button
                 onClick={() => removeCourse(c.id)}
-                className="p-1.5 rounded text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-magenta-400)] hover:bg-[rgba(165,56,96,0.08)] transition shrink-0"
+                className="p-1.5 rounded text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-magenta-400)] hover:bg-[color:var(--color-primary-tint)] transition shrink-0"
                 title={labels.remove}
                 aria-label={labels.remove}
               >
@@ -297,7 +297,7 @@ export function MenuComposer({ labels }: { labels: MenuLabels }) {
 
       {/* Errors */}
       {error && (
-        <div className="p-3 rounded-md border border-[color:var(--color-champagne-700)] bg-[rgba(165,56,96,0.1)] text-sm text-[color:var(--color-champagne-400)] font-mono">
+        <div className="p-3 rounded-md border border-[color:var(--color-champagne-700)] bg-[color:var(--color-primary-wash)] text-sm text-[color:var(--color-champagne-400)] font-mono">
           {error}
         </div>
       )}
@@ -455,7 +455,7 @@ export function MenuComposer({ labels }: { labels: MenuLabels }) {
                                         qty: Math.max(1, Math.min(effectiveQty, Number.parseInt(e.target.value, 10) || 1)),
                                       })
                                     }
-                                    className="w-14 px-1.5 py-0.5 rounded bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-xs font-mono text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
+                                    className="w-14 px-1.5 py-0.5 rounded bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-xs font-mono text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
                                   />
                                   <button
                                     type="button"

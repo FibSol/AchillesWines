@@ -4,6 +4,7 @@
     "tagline": "Ta vinothèque, sans concession."
   },
   "nav": {
+    "themeToggle": "Basculer entre thème sombre et clair",
     "dashboard": "Tableau de bord",
     "domaines": "Domaines",
     "bestValue": "Meilleurs rapports Q/P",

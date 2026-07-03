@@ -202,7 +202,7 @@ export function CellarBoard({ locations, bottles, labels }: Props) {
   return (
     <div>
       {errorMsg && (
-        <div className="mb-4 p-3 rounded-md border border-[color:var(--color-champagne-700)] bg-[rgba(165,56,96,0.1)] text-sm text-[color:var(--color-champagne-400)]">
+        <div className="mb-4 p-3 rounded-md border border-[color:var(--color-champagne-700)] bg-[color:var(--color-primary-wash)] text-sm text-[color:var(--color-champagne-400)]">
           {errorMsg}
         </div>
       )}
@@ -217,7 +217,7 @@ export function CellarBoard({ locations, bottles, labels }: Props) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={labels.filterSearch}
-              className="w-full pl-9 pr-3 py-1.5 rounded-md bg-[rgba(9,8,15,0.5)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
+              className="w-full pl-9 pr-3 py-1.5 rounded-md bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
             />
           </div>
           {isFiltered && (
@@ -246,7 +246,7 @@ export function CellarBoard({ locations, bottles, labels }: Props) {
               onClick={() => setColorFilter(null)}
               className={`text-[10px] px-2 py-0.5 rounded-full border transition ${
                 !colorFilter
-                  ? "border-[color:var(--color-magenta-400)] bg-[rgba(165,56,96,0.15)] text-[color:var(--color-magenta-300)]"
+                  ? "border-[color:var(--color-magenta-400)] bg-[color:var(--color-primary-wash)] text-[color:var(--color-magenta-300)]"
                   : "border-[color:var(--color-border)] text-[color:var(--color-fg-muted)] hover:border-[color:var(--color-magenta-400)]"
               }`}
             >
@@ -259,7 +259,7 @@ export function CellarBoard({ locations, bottles, labels }: Props) {
                 onClick={() => setColorFilter(colorFilter === c ? null : c)}
                 className={`flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border transition ${
                   colorFilter === c
-                    ? "border-[color:var(--color-magenta-400)] bg-[rgba(165,56,96,0.15)] text-[color:var(--color-magenta-300)]"
+                    ? "border-[color:var(--color-magenta-400)] bg-[color:var(--color-primary-wash)] text-[color:var(--color-magenta-300)]"
                     : "border-[color:var(--color-border)] text-[color:var(--color-fg-muted)] hover:border-[color:var(--color-magenta-400)]"
                 }`}
               >
@@ -276,7 +276,7 @@ export function CellarBoard({ locations, bottles, labels }: Props) {
           <select
             value={regionFilter}
             onChange={(e) => setRegionFilter(e.target.value)}
-            className="text-[10px] px-2 py-1 rounded-md bg-[rgba(9,8,15,0.5)] border border-[color:var(--color-border)] text-[color:var(--color-fg-muted)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
+            className="text-[10px] px-2 py-1 rounded-md bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-[color:var(--color-fg-muted)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
           >
             <option value="">{labels.filterAllRegions}</option>
             {allRegions.map((r) => (
@@ -294,7 +294,7 @@ export function CellarBoard({ locations, bottles, labels }: Props) {
               value={vintageFrom}
               onChange={(e) => setVintageFrom(e.target.value)}
               placeholder={String(vintageMin || "—")}
-              className="w-16 px-1.5 py-0.5 rounded-md bg-[rgba(9,8,15,0.5)] border border-[color:var(--color-border)] text-[color:var(--color-fg)] font-mono text-[10px] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
+              className="w-16 px-1.5 py-0.5 rounded-md bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-[color:var(--color-fg)] font-mono text-[10px] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
             />
             <span>{labels.filterVintageTo}</span>
             <input
@@ -304,7 +304,7 @@ export function CellarBoard({ locations, bottles, labels }: Props) {
               value={vintageTo}
               onChange={(e) => setVintageTo(e.target.value)}
               placeholder={String(vintageMax || "—")}
-              className="w-16 px-1.5 py-0.5 rounded-md bg-[rgba(9,8,15,0.5)] border border-[color:var(--color-border)] text-[color:var(--color-fg)] font-mono text-[10px] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
+              className="w-16 px-1.5 py-0.5 rounded-md bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-[color:var(--color-fg)] font-mono text-[10px] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
             />
           </div>
         </div>
@@ -402,7 +402,7 @@ export function CellarBoard({ locations, bottles, labels }: Props) {
                           setHover(null);
                           setConsumeBottle(b);
                         }}
-                        className={`group block w-full text-left rounded px-1.5 py-1 bg-[rgba(165,56,96,0.07)] hover:bg-[rgba(165,56,96,0.18)] transition [touch-action:manipulation] ${
+                        className={`group block w-full text-left rounded px-1.5 py-1 bg-[color:var(--color-primary-tint)] hover:bg-[color:var(--color-primary-soft)] transition [touch-action:manipulation] ${
                           dragEnabled ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
                         } ${
                           draggingId === b.inventoryId ? "opacity-40" : ""
@@ -691,7 +691,7 @@ function AddBottleDialog({
   return (
     <Dialog.Root open={open} onOpenChange={(v) => !v && onClose()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-[rgba(9,8,15,0.7)] backdrop-blur-sm z-40" />
+        <Dialog.Overlay className="fixed inset-0 bg-[color:var(--color-overlay)] backdrop-blur-sm z-40" />
         <Dialog.Content
           className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[min(560px,90vw)] max-h-[85vh] overflow-hidden glass-card p-6 flex flex-col"
           onOpenAutoFocus={(e) => e.preventDefault()}
@@ -735,7 +735,7 @@ function AddBottleDialog({
                 )}
               </button>
               {ocrState === "done" && ocrResult && (
-                <div className="mt-1.5 px-2 py-1.5 rounded bg-[rgba(165,56,96,0.06)] border border-[color:var(--color-border)] text-[10px] text-[color:var(--color-fg-muted)] flex items-start gap-2">
+                <div className="mt-1.5 px-2 py-1.5 rounded bg-[color:var(--color-primary-tint)] border border-[color:var(--color-border)] text-[10px] text-[color:var(--color-fg-muted)] flex items-start gap-2">
                   <CheckCircle2 className="size-3.5 text-[color:var(--color-champagne-400)] shrink-0 mt-0.5" />
                   <span>
                     <span className="font-semibold text-[color:var(--color-fg)]">{ocrResult.producer}</span>
@@ -761,12 +761,12 @@ function AddBottleDialog({
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder={labels.search}
-                  className="w-full pl-9 pr-3 py-2 rounded-md bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
+                  className="w-full pl-9 pr-3 py-2 rounded-md bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
                 />
               </div>
             </div>
 
-            <div className="max-h-48 overflow-y-auto rounded-md border border-[color:var(--color-border)] bg-[rgba(9,8,15,0.4)]">
+            <div className="max-h-48 overflow-y-auto rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-inset-bg)]">
               {results.length === 0 ? (
                 <p className="px-3 py-2 text-xs text-[color:var(--color-fg-subtle)] italic">
                   {labels.noResults}
@@ -776,8 +776,8 @@ function AddBottleDialog({
                   <button
                     key={w.wineKey}
                     onClick={() => setPicked(w)}
-                    className={`block w-full text-left px-3 py-2 text-xs border-b border-[color:var(--color-border)] last:border-b-0 hover:bg-[rgba(165,56,96,0.08)] ${
-                      picked?.wineKey === w.wineKey ? "bg-[rgba(165,56,96,0.12)]" : ""
+                    className={`block w-full text-left px-3 py-2 text-xs border-b border-[color:var(--color-border)] last:border-b-0 hover:bg-[color:var(--color-primary-tint)] ${
+                      picked?.wineKey === w.wineKey ? "bg-[color:var(--color-primary-wash)]" : ""
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -809,7 +809,7 @@ function AddBottleDialog({
                   min={1}
                   value={qty}
                   onChange={(e) => setQty(Math.max(1, Number.parseInt(e.target.value, 10) || 1))}
-                  className="w-full px-3 py-2 rounded-md bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
+                  className="w-full px-3 py-2 rounded-md bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
                 />
               </div>
               <div>
@@ -819,7 +819,7 @@ function AddBottleDialog({
                 <select
                   value={pickedLocationId ?? ""}
                   onChange={(e) => setPickedLocationId(Number.parseInt(e.target.value, 10))}
-                  className="w-full px-3 py-2 rounded-md bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
+                  className="w-full px-3 py-2 rounded-md bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
                 >
                   {locations.map((l) => (
                     <option key={l.locationId} value={l.locationId}>
@@ -997,7 +997,7 @@ function ConsumeDialog({
   return (
     <Dialog.Root open={bottle !== null} onOpenChange={(v) => !v && onClose()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-[rgba(9,8,15,0.7)] backdrop-blur-sm z-40" />
+        <Dialog.Overlay className="fixed inset-0 bg-[color:var(--color-overlay)] backdrop-blur-sm z-40" />
         <Dialog.Content
           className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[min(520px,90vw)] max-h-[90vh] overflow-y-auto glass-card p-6"
           onOpenAutoFocus={(e) => e.preventDefault()}
@@ -1027,7 +1027,7 @@ function ConsumeDialog({
           </p>
 
           {/* 3-tab switcher */}
-          <div className="flex items-center gap-1 mb-4 p-1 rounded-md border border-[color:var(--color-border)] bg-[rgba(9,8,15,0.4)]">
+          <div className="flex items-center gap-1 mb-4 p-1 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-inset-bg)]">
             {(["consume", "move", "details"] as const).map((m) => {
               const Icon = m === "consume" ? GlassWater : m === "move" ? Warehouse : Info;
               const label = m === "consume" ? labels.consume : m === "move" ? labels.move : labels.editDetails;
@@ -1063,7 +1063,7 @@ function ConsumeDialog({
                     onChange={(e) =>
                       setQty(Math.max(1, Math.min(bottle?.qty ?? 1, Number.parseInt(e.target.value, 10) || 1)))
                     }
-                    className="w-full px-3 py-2 rounded-md bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
+                    className="w-full px-3 py-2 rounded-md bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
                   />
                 </div>
                 <div>
@@ -1077,7 +1077,7 @@ function ConsumeDialog({
                     value={score}
                     onChange={(e) => setScore(e.target.value)}
                     placeholder="0–100"
-                    className="w-full px-3 py-2 rounded-md bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
+                    className="w-full px-3 py-2 rounded-md bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
                   />
                 </div>
               </div>
@@ -1089,7 +1089,7 @@ function ConsumeDialog({
                   type="text"
                   value={occasion}
                   onChange={(e) => setOccasion(e.target.value)}
-                  className="w-full px-3 py-2 rounded-md bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
+                  className="w-full px-3 py-2 rounded-md bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
                 />
               </div>
               <div>
@@ -1100,7 +1100,7 @@ function ConsumeDialog({
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   rows={3}
-                  className="w-full px-3 py-2 rounded-md bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)] resize-none"
+                  className="w-full px-3 py-2 rounded-md bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)] resize-none"
                 />
               </div>
             </div>
@@ -1114,7 +1114,7 @@ function ConsumeDialog({
               <select
                 value={moveTo ?? ""}
                 onChange={(e) => setMoveTo(Number.parseInt(e.target.value, 10))}
-                className="w-full px-3 py-2 rounded-md bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
+                className="w-full px-3 py-2 rounded-md bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
               >
                 {locations.map((l) => (
                   <option key={l.locationId} value={l.locationId}>
@@ -1143,7 +1143,7 @@ function ConsumeDialog({
                         value={purchasePrice}
                         onChange={(e) => setPurchasePrice(e.target.value)}
                         placeholder="0.00"
-                        className="w-full pl-9 pr-3 py-2 rounded-md bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
+                        className="w-full pl-9 pr-3 py-2 rounded-md bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
                       />
                     </div>
                   </div>
@@ -1155,7 +1155,7 @@ function ConsumeDialog({
                       type="date"
                       value={purchaseDateStr}
                       onChange={(e) => setPurchaseDateStr(e.target.value)}
-                      className="w-full px-3 py-2 rounded-md bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
+                      className="w-full px-3 py-2 rounded-md bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
                     />
                   </div>
                 </div>
@@ -1167,7 +1167,7 @@ function ConsumeDialog({
                     type="text"
                     value={purchaseSourceStr}
                     onChange={(e) => setPurchaseSourceStr(e.target.value)}
-                    className="w-full px-3 py-2 rounded-md bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
+                    className="w-full px-3 py-2 rounded-md bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)]"
                   />
                 </div>
               </div>
@@ -1189,7 +1189,7 @@ function ConsumeDialog({
                       {wineDetails.ratings.map((r, i) => (
                         <span
                           key={i}
-                          className="px-2 py-0.5 rounded bg-[rgba(165,56,96,0.08)] border border-[color:var(--color-border)] text-xs font-mono text-[color:var(--color-fg)]"
+                          className="px-2 py-0.5 rounded bg-[color:var(--color-primary-tint)] border border-[color:var(--color-border)] text-xs font-mono text-[color:var(--color-fg)]"
                         >
                           <span className="text-[color:var(--color-champagne-400)] font-semibold mr-1">{r.criticCode}</span>
                           {Math.round(r.score)}/100

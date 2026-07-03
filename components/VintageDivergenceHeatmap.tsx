@@ -126,7 +126,7 @@ export function VintageDivergenceHeatmap({ cells, labels }: Props) {
 
   if (cells.length === 0) {
     return (
-      <div className="glass-card p-12 flex items-center justify-center text-[rgba(250,247,245,0.5)] text-sm">
+      <div className="glass-card p-12 flex items-center justify-center text-[color:var(--color-fg-muted)] text-sm">
         {labels.noData}
       </div>
     );
@@ -138,7 +138,7 @@ export function VintageDivergenceHeatmap({ cells, labels }: Props) {
   return (
     <div className="space-y-4">
       {/* Subtitle */}
-      <p className="text-xs text-[rgba(250,247,245,0.50)]">{labels.subtitle}</p>
+      <p className="text-xs text-[color:var(--color-fg-muted)]">{labels.subtitle}</p>
 
       {/* Heatmap — horizontally scrollable */}
       <div className="glass-card p-4 overflow-x-auto" style={{ background: "rgba(9,8,15,0.7)" }}>
@@ -246,7 +246,7 @@ export function VintageDivergenceHeatmap({ cells, labels }: Props) {
 
       {/* Legend */}
       <div className="flex items-center gap-4 px-1">
-        <span className="text-[10px] text-[rgba(250,247,245,0.45)]">{labels.legend}</span>
+        <span className="text-[10px] text-[color:var(--color-fg-subtle)]">{labels.legend}</span>
         <svg width={LEGEND_BAR_W} height={LEGEND_BAR_H + 20} overflow="visible">
           <defs>
             <linearGradient id="divergenceLegendGrad" x1="0" y1="0" x2="1" y2="0">
@@ -284,18 +284,18 @@ export function VintageDivergenceHeatmap({ cells, labels }: Props) {
             zIndex: 50,
             pointerEvents: "none",
           }}
-          className="glass-card px-3 py-2 text-[11px] space-y-0.5 shadow-xl border border-[rgba(165,56,96,0.4)]"
+          className="glass-card px-3 py-2 text-[11px] space-y-0.5 shadow-xl border border-[color:var(--color-border-strong)]"
         >
           <div className="font-semibold text-[color:var(--color-champagne,#E5B25D)]">
             {tooltip.cell.critic} · {tooltip.cell.year}
           </div>
-          <div className="text-[rgba(250,247,245,0.85)]">
+          <div className="text-[color:var(--color-fg)]">
             {labels.tooltipAvg}: <span className="font-mono font-semibold">{tooltip.cell.avg.toFixed(1)}</span>
           </div>
-          <div className="text-[rgba(250,247,245,0.65)]">
+          <div className="text-[color:var(--color-fg-muted)]">
             {labels.tooltipCount}: <span className="font-mono">{tooltip.cell.count}</span>
           </div>
-          <div className="text-[rgba(250,247,245,0.65)]">
+          <div className="text-[color:var(--color-fg-muted)]">
             {labels.tooltipDivergence}: <span className="font-mono">±{tooltip.cell.divergence.toFixed(1)}</span>
           </div>
         </div>

@@ -4,6 +4,7 @@
     "tagline": "Dein Heimkeller, ohne Kompromisse."
   },
   "nav": {
+    "themeToggle": "Zwischen dunklem und hellem Design wechseln",
     "dashboard": "Übersicht",
     "domaines": "Weingüter",
     "bestValue": "Bestes P/L",

@@ -138,7 +138,7 @@ export function CsvActions({
 
       <Dialog.Root open={dialogOpen} onOpenChange={(v) => !v && closeDialog()}>
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 bg-[rgba(9,8,15,0.7)] backdrop-blur-sm z-40" />
+          <Dialog.Overlay className="fixed inset-0 bg-[color:var(--color-overlay)] backdrop-blur-sm z-40" />
           <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[min(560px,90vw)] max-h-[85vh] overflow-y-auto glass-card p-6">
             <div className="flex items-center justify-between mb-4">
               <Dialog.Title className="text-lg font-display text-[color:var(--color-fg)]">
@@ -158,7 +158,7 @@ export function CsvActions({
 
             {!busy && error && (
               <div className="space-y-3">
-                <div className="flex items-start gap-2 p-3 rounded-md border border-[color:var(--color-champagne-700)] bg-[rgba(165,56,96,0.1)]">
+                <div className="flex items-start gap-2 p-3 rounded-md border border-[color:var(--color-champagne-700)] bg-[color:var(--color-primary-wash)]">
                   <AlertTriangle className="size-4 text-[color:var(--color-champagne-400)] shrink-0 mt-0.5" />
                   <div className="text-sm">
                     <p className="font-semibold text-[color:var(--color-champagne-400)]">{labels.uploadError}</p>
@@ -173,7 +173,7 @@ export function CsvActions({
 
             {!busy && result && (
               <div className="space-y-4">
-                <div className="flex items-start gap-2 p-3 rounded-md border border-[color:var(--color-success)] bg-[rgba(94,168,122,0.1)]">
+                <div className="flex items-start gap-2 p-3 rounded-md border border-[color:var(--color-success)] bg-[color:var(--color-success-tint)]">
                   <CheckCircle2 className="size-5 text-[color:var(--color-success)] shrink-0 mt-0.5" />
                   <div>
                     <p className="font-semibold text-[color:var(--color-success)]">{labels.resultDone}</p>
@@ -215,7 +215,7 @@ export function CsvActions({
                     <summary className="cursor-pointer text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-magenta-400)] mb-2">
                       {labels.resultDetails} ({result.rejections.length})
                     </summary>
-                    <div className="max-h-48 overflow-y-auto space-y-1 font-mono text-[10px] bg-[rgba(9,8,15,0.5)] rounded p-2">
+                    <div className="max-h-48 overflow-y-auto space-y-1 font-mono text-[10px] bg-[color:var(--color-input-bg)] rounded p-2">
                       {result.rejections.map((r) => (
                         <p key={r.row} className="text-[color:var(--color-fg-muted)]">
                           <span className="text-[color:var(--color-warning)]">row {r.row}:</span>{" "}

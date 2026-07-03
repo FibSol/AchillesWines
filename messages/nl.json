@@ -4,6 +4,7 @@
     "tagline": "Jouw thuiskelder, zonder compromis."
   },
   "nav": {
+    "themeToggle": "Wissel tussen donker en licht thema",
     "dashboard": "Dashboard",
     "domaines": "Wijnhuizen",
     "bestValue": "Beste prijs-kwaliteit",

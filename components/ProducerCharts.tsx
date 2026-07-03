@@ -150,8 +150,8 @@ function RatingTooltip({ active, payload }: { active?: boolean; payload?: Rating
       className="glass-card p-3 text-xs space-y-1"
       style={{ background: "rgba(15, 14, 23, 0.94)", border: "1px solid rgba(165,56,96,0.4)" }}
     >
-      <p className="font-semibold text-[#FAF7F5]">{criticName(d.criticCode)}</p>
-      <p className="font-mono text-[#E5B25D]">{d.score.toFixed(1)} / 100</p>
+      <p className="font-semibold text-[color:var(--color-fg)]">{criticName(d.criticCode)}</p>
+      <p className="font-mono text-[color:var(--color-accent)]">{d.score.toFixed(1)} / 100</p>
     </div>
   );
 }

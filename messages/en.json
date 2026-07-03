@@ -4,6 +4,7 @@
     "tagline": "Your home cellar, no compromise."
   },
   "nav": {
+    "themeToggle": "Toggle dark / light theme",
     "dashboard": "Dashboard",
     "domaines": "Producers",
     "bestValue": "Best Value",

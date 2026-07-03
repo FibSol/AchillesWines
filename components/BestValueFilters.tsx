@@ -48,10 +48,10 @@ interface Props {
 }
 
 const selectCls =
-  "h-8 px-2 text-sm bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] rounded-md text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)] cursor-pointer";
+  "h-8 px-2 text-sm bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] rounded-md text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-magenta-400)] cursor-pointer";
 
 const inputCls =
-  "h-8 px-2 text-sm bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] rounded-md text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-magenta-400)] w-20 font-mono";
+  "h-8 px-2 text-sm bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] rounded-md text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-magenta-400)] w-20 font-mono";
 
 const labelCls =
   "block text-[10px] uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)] mb-1";
@@ -164,8 +164,8 @@ export function BestValueFilters({ countries, regions, vintages, labels }: Props
                   onClick={() => updateParam("color", active ? "" : c.value)}
                   className={`h-8 px-2 flex items-center gap-1.5 rounded-md border text-xs transition-colors ${
                     active
-                      ? "border-[color:var(--color-magenta-400)] bg-[rgba(165,56,96,0.18)] text-[color:var(--color-fg)]"
-                      : "border-[color:var(--color-border)] bg-[rgba(9,8,15,0.6)] text-[color:var(--color-fg-muted)] hover:border-[color:var(--color-magenta-400)]"
+                      ? "border-[color:var(--color-magenta-400)] bg-[color:var(--color-primary-soft)] text-[color:var(--color-fg)]"
+                      : "border-[color:var(--color-border)] bg-[color:var(--color-input-bg)] text-[color:var(--color-fg-muted)] hover:border-[color:var(--color-magenta-400)]"
                   }`}
                 >
                   <span className="size-2 rounded-full shrink-0" style={{ background: c.dot }} />
@@ -193,8 +193,8 @@ export function BestValueFilters({ countries, regions, vintages, labels }: Props
                   onClick={() => updateParam("drinkingIntent", active ? "" : opt.value)}
                   className={`h-8 px-2 flex items-center gap-1.5 rounded-md border text-xs transition-colors ${
                     active
-                      ? "border-[color:var(--color-magenta-400)] bg-[rgba(165,56,96,0.18)] text-[color:var(--color-fg)]"
-                      : "border-[color:var(--color-border)] bg-[rgba(9,8,15,0.6)] text-[color:var(--color-fg-muted)] hover:border-[color:var(--color-magenta-400)]"
+                      ? "border-[color:var(--color-magenta-400)] bg-[color:var(--color-primary-soft)] text-[color:var(--color-fg)]"
+                      : "border-[color:var(--color-border)] bg-[color:var(--color-input-bg)] text-[color:var(--color-fg-muted)] hover:border-[color:var(--color-magenta-400)]"
                   }`}
                 >
                   <span className="text-sm leading-none">{opt.icon}</span>

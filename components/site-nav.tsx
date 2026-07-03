@@ -3,6 +3,7 @@
 import { Link, usePathname } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { LanguageSwitcher } from "./language-switcher";
+import { ThemeToggle } from "./theme-toggle";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -67,8 +68,8 @@ export function SiteNav() {
               className={cn(
                 "inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-all",
                 isActive(href)
-                  ? "bg-[rgba(165,56,96,0.12)] text-[color:var(--color-primary)]"
-                  : "text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)] hover:bg-[rgba(165,56,96,0.06)]"
+                  ? "bg-[color:var(--color-primary-wash)] text-[color:var(--color-primary)]"
+                  : "text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)] hover:bg-[color:var(--color-primary-tint)]"
               )}
             >
               <Icon className="size-3.5" strokeWidth={2.5} />
@@ -86,13 +87,14 @@ export function SiteNav() {
               className={cn(
                 "inline-flex items-center justify-center rounded-lg p-2 transition-all",
                 isActive(href)
-                  ? "bg-[rgba(165,56,96,0.12)] text-[color:var(--color-primary)]"
-                  : "text-[color:var(--color-fg-subtle)] hover:text-[color:var(--color-fg)] hover:bg-[rgba(165,56,96,0.06)]"
+                  ? "bg-[color:var(--color-primary-wash)] text-[color:var(--color-primary)]"
+                  : "text-[color:var(--color-fg-subtle)] hover:text-[color:var(--color-fg)] hover:bg-[color:var(--color-primary-tint)]"
               )}
             >
               <Icon className="size-4" strokeWidth={2} />
             </Link>
           ))}
+          <ThemeToggle />
           <LanguageSwitcher />
         </div>
       </div>
@@ -106,7 +108,7 @@ export function SiteNav() {
             className={cn(
               "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all",
               isActive(href)
-                ? "bg-[rgba(165,56,96,0.12)] text-[color:var(--color-primary)]"
+                ? "bg-[color:var(--color-primary-wash)] text-[color:var(--color-primary)]"
                 : "text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)]"
             )}
           >

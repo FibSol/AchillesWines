@@ -149,7 +149,7 @@ export function VintageHeatmap({ cells, regions, years, labels }: Props) {
 
   if (cells.length === 0) {
     return (
-      <div className="glass-card p-12 flex items-center justify-center text-[rgba(250,247,245,0.5)] text-sm">
+      <div className="glass-card p-12 flex items-center justify-center text-[color:var(--color-fg-muted)] text-sm">
         {labels.noData}
       </div>
     );
@@ -164,7 +164,7 @@ export function VintageHeatmap({ cells, regions, years, labels }: Props) {
           onClick={() => setCountryFilter("ALL")}
           className={`text-xs px-3 py-1 rounded-full border transition ${
             countryFilter === "ALL"
-              ? "border-[color:var(--color-magenta-400)] bg-[rgba(165,56,96,0.18)] text-[color:var(--color-magenta-400)]"
+              ? "border-[color:var(--color-magenta-400)] bg-[color:var(--color-primary-soft)] text-[color:var(--color-magenta-400)]"
               : "border-[color:var(--color-border)] text-[color:var(--color-fg-muted)] hover:border-[color:var(--color-magenta-400)]"
           }`}
         >
@@ -177,7 +177,7 @@ export function VintageHeatmap({ cells, regions, years, labels }: Props) {
             onClick={() => setCountryFilter(cc)}
             className={`text-xs px-3 py-1 rounded-full border transition font-mono ${
               countryFilter === cc
-                ? "border-[color:var(--color-magenta-400)] bg-[rgba(165,56,96,0.18)] text-[color:var(--color-magenta-400)]"
+                ? "border-[color:var(--color-magenta-400)] bg-[color:var(--color-primary-soft)] text-[color:var(--color-magenta-400)]"
                 : "border-[color:var(--color-border)] text-[color:var(--color-fg-muted)] hover:border-[color:var(--color-magenta-400)]"
             }`}
           >
@@ -187,7 +187,7 @@ export function VintageHeatmap({ cells, regions, years, labels }: Props) {
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[10px] text-[rgba(250,247,245,0.55)] px-1">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[10px] text-[color:var(--color-fg-muted)] px-1">
         {([5, 4, 3, 2, 1] as const).map(t => {
           const s = tierStyle(t);
           return (
@@ -212,7 +212,7 @@ export function VintageHeatmap({ cells, regions, years, labels }: Props) {
             {/* Sticky corner spacer */}
             <div style={{ width: `${LABEL_W}px`, flexShrink: 0, position: "sticky", left: 0, zIndex: 2, background: "rgba(9,8,15,0.95)" }} />
             {visibleYears.map(y => (
-              <div key={y} style={{ width: `${CELL_W}px`, flexShrink: 0, fontSize: "9px", marginRight: "2px" }} className="text-center text-[rgba(250,247,245,0.38)] select-none">
+              <div key={y} style={{ width: `${CELL_W}px`, flexShrink: 0, fontSize: "9px", marginRight: "2px" }} className="text-center text-[color:var(--color-fg-subtle)] select-none">
                 {String(y).slice(2)}
               </div>
             ))}
@@ -234,18 +234,18 @@ export function VintageHeatmap({ cells, regions, years, labels }: Props) {
                       style={{ width: `${LABEL_W}px`, position: "sticky", left: 0, zIndex: 1, background: "rgba(9,8,15,0.95)" }}
                     >
                       <ChevronRight
-                        className={`size-3 text-[rgba(250,247,245,0.4)] group-hover:text-[color:var(--color-magenta-400)] transition-transform ${isCollapsed ? "" : "rotate-90"}`}
+                        className={`size-3 text-[color:var(--color-fg-subtle)] group-hover:text-[color:var(--color-magenta-400)] transition-transform ${isCollapsed ? "" : "rotate-90"}`}
                         strokeWidth={2.5}
                       />
-                      <span className="text-[11px] font-mono font-semibold text-[rgba(250,247,245,0.55)] group-hover:text-[color:var(--color-magenta-400)] transition-colors uppercase tracking-wider">
+                      <span className="text-[11px] font-mono font-semibold text-[color:var(--color-fg-muted)] group-hover:text-[color:var(--color-magenta-400)] transition-colors uppercase tracking-wider">
                         {country}
                       </span>
-                      <span className="text-[9px] text-[rgba(250,247,245,0.25)] ml-1">
+                      <span className="text-[9px] text-[color:var(--color-fg-faint)] ml-1">
                         {countryRegions.length}
                       </span>
                     </div>
                     {/* Thin spacer line across years */}
-                    <div className="flex-1 h-px bg-[rgba(255,255,255,0.06)]" />
+                    <div className="flex-1 h-px bg-[color:var(--color-fill-subtle)]" />
                   </div>
 
                   {/* Region rows */}
@@ -259,7 +259,7 @@ export function VintageHeatmap({ cells, regions, years, labels }: Props) {
                             style={{ width: `${LABEL_W}px`, position: "sticky", left: 0, zIndex: 1, background: "rgba(9,8,15,0.95)" }}
                             title={region}
                           >
-                            <span className="text-[rgba(250,247,245,0.58)] text-[11px] font-medium truncate">
+                            <span className="text-[color:var(--color-fg-muted)] text-[11px] font-medium truncate">
                               {region}
                             </span>
                           </div>
@@ -323,7 +323,7 @@ export function VintageHeatmap({ cells, regions, years, labels }: Props) {
         </div>
       </div>
 
-      <p className="text-xs text-[rgba(250,247,245,0.38)] text-center py-1">{labels.clickToExplore}</p>
+      <p className="text-xs text-[color:var(--color-fg-subtle)] text-center py-1">{labels.clickToExplore}</p>
     </div>
   );
 }

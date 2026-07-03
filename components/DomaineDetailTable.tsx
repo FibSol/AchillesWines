@@ -193,7 +193,7 @@ export function DomaineDetailTable({
                 {filtered.map((row) => (
                   <tr
                     key={row.wineKey}
-                    className="transition-colors hover:bg-[rgba(165,56,96,0.05)]"
+                    className="transition-colors hover:bg-[color:var(--color-primary-tint)]"
                     style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
                   >
                     {/* Canonical name */}

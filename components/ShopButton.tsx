@@ -28,7 +28,7 @@ export function ShopButton({ prompt }: Props) {
       title="Copie le prompt caviste et ouvre Claude"
       className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md border transition-all duration-200 whitespace-nowrap ${
         copied
-          ? "border-[color:var(--color-success)] text-[color:var(--color-success)] bg-[rgba(34,197,94,0.08)]"
+          ? "border-[color:var(--color-success)] text-[color:var(--color-success)] bg-[color:var(--color-success-tint)]"
           : "border-[color:var(--color-border)] text-[color:var(--color-fg-muted)] hover:border-[color:var(--color-magenta-400)] hover:text-[color:var(--color-magenta-400)]"
       }`}
     >

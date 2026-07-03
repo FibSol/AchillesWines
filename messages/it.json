@@ -4,6 +4,7 @@
     "tagline": "La tua cantina di casa, senza compromessi."
   },
   "nav": {
+    "themeToggle": "Passa dal tema scuro a quello chiaro",
     "dashboard": "Cruscotto",
     "domaines": "Cantine",
     "bestValue": "Miglior Q/P",

@@ -156,7 +156,7 @@ export function AuthSourceList({
                 <summary className="cursor-pointer text-[10px] uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)]">
                   {labels.envVars}
                 </summary>
-                <div className="mt-2 space-y-1 font-mono text-[11px] text-[color:var(--color-fg-muted)] bg-[rgba(9,8,15,0.5)] rounded p-2">
+                <div className="mt-2 space-y-1 font-mono text-[11px] text-[color:var(--color-fg-muted)] bg-[color:var(--color-input-bg)] rounded p-2">
                   <p>{r.envUserVar}=…</p>
                   <p>{r.envPassVar}=…</p>
                 </div>
@@ -166,8 +166,8 @@ export function AuthSourceList({
                 <div
                   className={`mt-3 p-3 rounded-md text-xs ${
                     result.ok
-                      ? "border border-[color:var(--color-success)] bg-[rgba(94,168,122,0.1)]"
-                      : "border border-[color:var(--color-champagne-700)] bg-[rgba(165,56,96,0.08)]"
+                      ? "border border-[color:var(--color-success)] bg-[color:var(--color-success-tint)]"
+                      : "border border-[color:var(--color-champagne-700)] bg-[color:var(--color-primary-tint)]"
                   }`}
                 >
                   {result.ok ? (

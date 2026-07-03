@@ -218,7 +218,7 @@ export function JobsTable() {
             <select
               ref={sourceRef}
               onChange={handleSourceChange}
-              className="rounded-lg border border-[color:var(--color-border)] bg-[rgba(255,255,255,0.05)] px-3 py-2 text-sm text-[color:var(--color-fg)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] min-w-[16rem] [&>option]:bg-white [&>option]:text-gray-900"
+              className="rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-fill-subtle)] px-3 py-2 text-sm text-[color:var(--color-fg)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] min-w-[16rem] [&>option]:bg-white [&>option]:text-gray-900"
               disabled={sources.length === 0}
             >
               <option value="">
@@ -249,7 +249,7 @@ export function JobsTable() {
               type="number"
               defaultValue={100}
               min={1}
-              className="w-24 rounded-lg border border-[color:var(--color-border)] bg-[rgba(255,255,255,0.05)] px-3 py-2 text-sm text-[color:var(--color-fg)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]"
+              className="w-24 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-fill-subtle)] px-3 py-2 text-sm text-[color:var(--color-fg)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]"
             />
           </div>
           <button
@@ -264,7 +264,7 @@ export function JobsTable() {
               onClick={handleDrain}
               disabled={draining}
               title="Démarre le worker pour traiter immédiatement les jobs en attente"
-              className="inline-flex items-center gap-2 rounded-lg border border-[color:var(--color-border)] bg-[rgba(255,255,255,0.05)] px-4 py-2 text-sm font-semibold text-[color:var(--color-fg)] transition-colors hover:bg-[rgba(255,255,255,0.1)] disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-fill-subtle)] px-4 py-2 text-sm font-semibold text-[color:var(--color-fg)] transition-colors hover:bg-[color:var(--color-fill)] disabled:opacity-50"
             >
               {draining ? "…" : "⚙️ Traiter la file maintenant"}
             </button>
@@ -348,7 +348,7 @@ export function JobsTable() {
                 <tr key={i} className="border-t border-[color:var(--color-border)] animate-pulse">
                   {Array.from({ length: 9 }).map((_, j) => (
                     <td key={j} className="p-3">
-                      <div className="h-4 rounded bg-[rgba(255,255,255,0.06)]" />
+                      <div className="h-4 rounded bg-[color:var(--color-fill-subtle)]" />
                     </td>
                   ))}
                 </tr>
@@ -366,7 +366,7 @@ export function JobsTable() {
                 <tr
                   key={job.jobId}
                   onClick={() => isInspectable && setOpenLogsJob(job)}
-                  className={`border-t border-[color:var(--color-border)] hover:bg-[rgba(255,255,255,0.02)] transition-colors ${
+                  className={`border-t border-[color:var(--color-border)] hover:bg-[color:var(--color-fill-subtle)] transition-colors ${
                     isInspectable ? "cursor-pointer" : ""
                   }`}
                   title={isInspectable ? "Click to view logs" : undefined}
@@ -412,7 +412,7 @@ export function JobsTable() {
                           e.stopPropagation();
                           handleCancel(job.jobId);
                         }}
-                        className="rounded px-2 py-1 text-xs font-medium bg-[rgba(255,255,255,0.06)] text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)] hover:bg-[rgba(255,255,255,0.1)] transition-colors"
+                        className="rounded px-2 py-1 text-xs font-medium bg-[color:var(--color-fill-subtle)] text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)] hover:bg-[color:var(--color-fill)] transition-colors"
                       >
                         ✋ Annuler
                       </button>

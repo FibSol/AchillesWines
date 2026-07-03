@@ -30,7 +30,7 @@ export default async function QualityPage({ params }: { params: Promise<{ locale
         </Link>
         <Link
           href="/quarantaine"
-          className="inline-flex items-center gap-2 rounded-lg border border-[color:var(--color-border)] bg-[rgba(255,255,255,0.04)] px-4 py-2 text-sm font-semibold text-[color:var(--color-fg)] transition-colors hover:bg-[rgba(255,255,255,0.08)]"
+          className="inline-flex items-center gap-2 rounded-lg border border-[color:var(--color-border)] bg-[rgba(255,255,255,0.04)] px-4 py-2 text-sm font-semibold text-[color:var(--color-fg)] transition-colors hover:bg-[color:var(--color-fill)]"
         >
           <AlertTriangle className="size-4 text-[color:var(--color-warning)]" strokeWidth={2} />
           {t("viewQuarantine")}
@@ -76,21 +76,21 @@ export default async function QualityPage({ params }: { params: Promise<{ locale
         <h2 className="text-xl font-semibold">{t("promotePipeline")}</h2>
         <div className="glass-card p-6">
           <div className="flex flex-wrap items-center gap-2 mb-6">
-            <div className="flex flex-col items-center gap-1 px-4 py-3 rounded-lg bg-[rgba(255,255,255,0.05)]">
+            <div className="flex flex-col items-center gap-1 px-4 py-3 rounded-lg bg-[color:var(--color-fill-subtle)]">
               <span className="text-2xl font-bold text-[color:var(--color-fg)]">
                 {stagingPendingNum.toLocaleString()}
               </span>
               <span className="text-xs text-[color:var(--color-fg-muted)]">{t("stagingPending")}</span>
             </div>
             <ArrowRight className="size-5 text-[color:var(--color-fg-subtle)] shrink-0" strokeWidth={1.5} />
-            <div className="flex flex-col items-center gap-1 px-4 py-3 rounded-lg bg-[rgba(255,255,255,0.05)]">
+            <div className="flex flex-col items-center gap-1 px-4 py-3 rounded-lg bg-[color:var(--color-fill-subtle)]">
               <span className="text-2xl font-bold text-emerald-400">
                 {promotableCount.toLocaleString()}
               </span>
               <span className="text-xs text-[color:var(--color-fg-muted)]">{t("promotable")}</span>
             </div>
             <ArrowRight className="size-5 text-[color:var(--color-fg-subtle)] shrink-0" strokeWidth={1.5} />
-            <div className="flex flex-col items-center gap-1 px-4 py-3 rounded-lg bg-[rgba(255,255,255,0.05)]">
+            <div className="flex flex-col items-center gap-1 px-4 py-3 rounded-lg bg-[color:var(--color-fill-subtle)]">
               <span className="text-2xl font-bold text-[color:var(--color-accent)]">
                 {pricesNum.toLocaleString()}
               </span>

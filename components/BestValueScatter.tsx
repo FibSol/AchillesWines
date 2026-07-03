@@ -33,13 +33,13 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Toolti
       className="glass-card p-3 text-sm space-y-1"
       style={{ background: "rgba(15, 14, 23, 0.92)", border: "1px solid rgba(165,56,96,0.4)" }}
     >
-      <p className="font-semibold text-[#FAF7F5] leading-tight max-w-[200px]">{d.canonicalName}</p>
-      <p className="text-[rgba(250,247,245,0.7)]">
-        <span className="font-mono text-[#E5B25D]">€{d.priceEur.toFixed(2)}</span>
+      <p className="font-semibold text-[color:var(--color-fg)] leading-tight max-w-[200px]">{d.canonicalName}</p>
+      <p className="text-[color:var(--color-fg-muted)]">
+        <span className="font-mono text-[color:var(--color-accent)]">€{d.priceEur.toFixed(2)}</span>
         {" · "}
-        <span className="font-mono text-[#E5B25D]">{d.ratingNorm100.toFixed(1)}/100</span>
+        <span className="font-mono text-[color:var(--color-accent)]">{d.ratingNorm100.toFixed(1)}/100</span>
       </p>
-      <p className="text-xs text-[rgba(250,247,245,0.5)]">
+      <p className="text-xs text-[color:var(--color-fg-muted)]">
         score {d.score.toFixed(2)}
       </p>
     </div>
@@ -60,7 +60,7 @@ interface BestValueScatterProps {
 export function BestValueScatter({ data }: BestValueScatterProps) {
   if (data.length === 0) {
     return (
-      <div className="glass-card p-8 flex items-center justify-center text-[rgba(250,247,245,0.5)] text-sm">
+      <div className="glass-card p-8 flex items-center justify-center text-[color:var(--color-fg-muted)] text-sm">
         No data to display
       </div>
     );

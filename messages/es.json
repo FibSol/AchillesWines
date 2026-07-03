@@ -4,6 +4,7 @@
     "tagline": "Tu bodega doméstica, sin concesiones."
   },
   "nav": {
+    "themeToggle": "Cambiar entre tema oscuro y claro",
     "dashboard": "Panel",
     "domaines": "Bodegas",
     "bestValue": "Mejor C/P",

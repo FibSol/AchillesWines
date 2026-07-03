@@ -81,7 +81,7 @@ export function JobLogsDrawer({ jobId, jobStatus, sourceCode, onClose }: Props) 
   return (
     <Dialog.Root open={open} onOpenChange={(v) => !v && onClose()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-[rgba(9,8,15,0.6)] backdrop-blur-sm z-40" />
+        <Dialog.Overlay className="fixed inset-0 bg-[color:var(--color-input-bg)] backdrop-blur-sm z-40" />
         <Dialog.Content
           className="fixed top-0 right-0 bottom-0 z-50 w-[min(720px,92vw)] glass-card border-l border-[color:var(--color-border)] flex flex-col"
           style={{ borderRadius: 0 }}
@@ -131,7 +131,7 @@ export function JobLogsDrawer({ jobId, jobStatus, sourceCode, onClose }: Props) 
 
           <div
             ref={scrollRef}
-            className="flex-1 overflow-y-auto font-mono text-[11px] leading-relaxed p-4 bg-[rgba(9,8,15,0.7)]"
+            className="flex-1 overflow-y-auto font-mono text-[11px] leading-relaxed p-4 bg-[color:var(--color-overlay)]"
           >
             {error && (
               <p className="text-[color:var(--color-champagne-400)]">error: {error}</p>

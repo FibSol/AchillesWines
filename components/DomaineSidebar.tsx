@@ -60,8 +60,8 @@ export function DomaineSidebar({ countries, allLabel, allCount }: Props) {
         onClick={() => navigate("")}
         className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-md text-sm transition ${
           isAllActive
-            ? "bg-[rgba(165,56,96,0.22)] text-[color:var(--color-magenta-400)] font-semibold"
-            : "text-[color:var(--color-fg-muted)] hover:bg-[rgba(255,255,255,0.06)] hover:text-[color:var(--color-fg)]"
+            ? "bg-[color:var(--color-primary-soft)] text-[color:var(--color-magenta-400)] font-semibold"
+            : "text-[color:var(--color-fg-muted)] hover:bg-[color:var(--color-fill-subtle)] hover:text-[color:var(--color-fg)]"
         }`}
       >
         <span className="flex items-center gap-2">
@@ -81,8 +81,8 @@ export function DomaineSidebar({ countries, allLabel, allCount }: Props) {
             <div
               className={`w-full flex items-center gap-1 px-3 py-2 rounded-md text-sm transition ${
                 isCountryActive
-                  ? "bg-[rgba(165,56,96,0.22)] text-[color:var(--color-magenta-400)] font-semibold"
-                  : "text-[color:var(--color-fg-muted)] hover:bg-[rgba(255,255,255,0.06)] hover:text-[color:var(--color-fg)]"
+                  ? "bg-[color:var(--color-primary-soft)] text-[color:var(--color-magenta-400)] font-semibold"
+                  : "text-[color:var(--color-fg-muted)] hover:bg-[color:var(--color-fill-subtle)] hover:text-[color:var(--color-fg)]"
               }`}
             >
               {/* Chevron toggle */}
@@ -121,8 +121,8 @@ export function DomaineSidebar({ countries, allLabel, allCount }: Props) {
                       onClick={() => navigate(c.code, r.name)}
                       className={`w-full flex items-center justify-between gap-2 px-2 py-1.5 rounded-md text-xs transition ${
                         isRegionActive
-                          ? "bg-[rgba(165,56,96,0.22)] text-[color:var(--color-magenta-400)] font-semibold"
-                          : "text-[color:var(--color-fg-subtle)] hover:bg-[rgba(255,255,255,0.06)] hover:text-[color:var(--color-fg)]"
+                          ? "bg-[color:var(--color-primary-soft)] text-[color:var(--color-magenta-400)] font-semibold"
+                          : "text-[color:var(--color-fg-subtle)] hover:bg-[color:var(--color-fill-subtle)] hover:text-[color:var(--color-fg)]"
                       }`}
                     >
                       <span className="truncate text-left">{r.name}</span>

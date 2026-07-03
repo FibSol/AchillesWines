@@ -125,7 +125,7 @@ function describeState(s: SchedState): string {
 // ─── Shared select style ──────────────────────────────────────────────────────
 
 const SEL = [
-  "bg-[rgba(9,8,15,0.7)] border border-[color:var(--color-border)]",
+  "bg-[color:var(--color-overlay)] border border-[color:var(--color-border)]",
   "text-[color:var(--color-fg)] text-xs rounded px-2 py-1.5 outline-none",
   "focus:border-[color:var(--color-primary)] cursor-pointer transition-colors",
   "hover:border-[color:var(--color-primary)]",
