@@ -184,6 +184,7 @@ export function TastingStudio() {
       locked?: string[];
       excluded?: string[];
       filters?: TastingFilters;
+      shuffle?: boolean;
     }) => {
       const activeFilters = override?.filters !== undefined ? override.filters : filters;
       const req = {
@@ -193,6 +194,7 @@ export function TastingStudio() {
         lockedWineKeys: override?.locked ?? locked,
         excludeWineKeys: override?.excluded ?? excluded,
         filters: activeFilters,
+        shuffle: override?.shuffle ?? false,
       };
       setLoading(true);
       setError(null);
@@ -290,7 +292,7 @@ export function TastingStudio() {
       .filter((k) => !locked.includes(k));
     const nextExcluded = [...new Set([...excluded, ...toExclude])];
     setExcluded(nextExcluded);
-    void generate({ excluded: nextExcluded });
+    void generate({ excluded: nextExcluded, shuffle: true });
   }
 
   function reset() {

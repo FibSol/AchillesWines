@@ -4,6 +4,8 @@ import {
   orderFlight,
   buildFlight,
   modeFeasibility,
+  isReadyToDrink,
+  minReadyAgeYears,
   type TastingCandidate,
 } from "@/lib/tasting/engine";
 import type { WineColor } from "@/lib/pairing";
@@ -96,6 +98,50 @@ describe("orderFlight — serving sequence", () => {
     ];
     const ordered = orderFlight(wines).map((w) => w.wineKey);
     expect(ordered).toEqual(["young", "old"]);
+  });
+});
+
+describe("buildFlight — surprise randomization (rng)", () => {
+  it("without rng the selection is deterministic; with different rng values it varies", () => {
+    const pool = Array.from({ length: 30 }, (_, i) =>
+      mk({ color: "red", alcoholPct: 12 + (i % 5), avgRating: 80 + (i % 15) }),
+    );
+    const a = buildFlight("progressive", pool, { count: 6, currentYear: YEAR });
+    const b = buildFlight("progressive", pool, { count: 6, currentYear: YEAR });
+    expect(a.stops.map((s) => s.wineKey)).toEqual(b.stops.map((s) => s.wineKey));
+
+    // Two contrasting deterministic "rng"s must produce different flights.
+    const low = buildFlight("progressive", pool, { count: 6, currentYear: YEAR, rng: () => 0.05 });
+    const high = buildFlight("progressive", pool, { count: 6, currentYear: YEAR, rng: () => 0.95 });
+    expect(low.stops.map((s) => s.wineKey)).not.toEqual(high.stops.map((s) => s.wineKey));
+  });
+});
+
+describe("isReadyToDrink — drinking readiness", () => {
+  it("sparkling, rosé and NV wines are always ready", () => {
+    expect(isReadyToDrink(mk({ color: "sparkling", vintage: YEAR }), YEAR)).toBe(true);
+    expect(isReadyToDrink(mk({ color: "rosé", vintage: YEAR }), YEAR)).toBe(true);
+    expect(isReadyToDrink(mk({ color: "red", vintage: null }), YEAR)).toBe(true);
+  });
+
+  it("a young full-bodied red is not ready", () => {
+    const young = mk({ color: "red", primaryVariety: "Cabernet Sauvignon", alcoholPct: 14.5, vintage: YEAR - 1 });
+    expect(isReadyToDrink(young, YEAR)).toBe(false);
+    const mature = mk({ color: "red", primaryVariety: "Cabernet Sauvignon", alcoholPct: 14.5, vintage: YEAR - 6 });
+    expect(isReadyToDrink(mature, YEAR)).toBe(true);
+  });
+
+  it("grand cru reds need longer than village reds", () => {
+    const village = mk({ color: "red", primaryVariety: "Syrah", alcoholPct: 14, level: "village" });
+    const grandCru = mk({ color: "red", primaryVariety: "Syrah", alcoholPct: 14, level: "grand_cru" });
+    expect(minReadyAgeYears(grandCru)).toBeGreaterThan(minReadyAgeYears(village));
+  });
+
+  it("light whites are ready immediately, rich whites after a year", () => {
+    const crisp = mk({ color: "white", primaryVariety: "Sauvignon Blanc", alcoholPct: 12, vintage: YEAR });
+    expect(isReadyToDrink(crisp, YEAR)).toBe(true);
+    const rich = mk({ color: "white", primaryVariety: "Chardonnay", alcoholPct: 14, vintage: YEAR });
+    expect(isReadyToDrink(rich, YEAR)).toBe(false);
   });
 });
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { loadTastingCandidates } from "@/lib/tasting/candidates";
-import { buildFlight, TASTING_MODES, type TastingMode } from "@/lib/tasting/engine";
+import { buildFlight, isReadyToDrink, TASTING_MODES, type TastingMode } from "@/lib/tasting/engine";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +20,8 @@ const PostBody = z.object({
   lockedWineKeys: z.array(z.string()).max(8).default([]),
   excludeWineKeys: z.array(z.string()).max(200).default([]),
   filters: FiltersSchema.optional(),
+  /** "Surprise me": randomize the progressive selection. */
+  shuffle: z.boolean().default(false),
 });
 
 export async function POST(req: NextRequest) {
@@ -31,9 +33,18 @@ export async function POST(req: NextRequest) {
       { status: 400 },
     );
   }
-  const { mode, count, axisId, lockedWineKeys, excludeWineKeys, filters } = parsed.data;
+  const { mode, count, axisId, lockedWineKeys, excludeWineKeys, filters, shuffle } = parsed.data;
+  const currentYear = new Date().getFullYear();
 
   let pool = await loadTastingCandidates();
+  if (pool.length === 0) {
+    return NextResponse.json({ flight: null, poolSize: 0, empty: true });
+  }
+
+  // Never propose a wine that is not ready to drink (too young for its style).
+  // Locked wines are the user's explicit choice and stay in.
+  const lockedKeys = new Set(lockedWineKeys);
+  pool = pool.filter((c) => lockedKeys.has(c.wineKey) || isReadyToDrink(c, currentYear));
   if (pool.length === 0) {
     return NextResponse.json({ flight: null, poolSize: 0, empty: true });
   }
@@ -66,7 +77,8 @@ export async function POST(req: NextRequest) {
     axisId,
     lockedWineKeys,
     excludeWineKeys,
-    currentYear: new Date().getFullYear(),
+    currentYear,
+    rng: shuffle ? Math.random : undefined,
   });
 
   // Minimal pool list for the "add / swap from cellar" picker.

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { loadTastingCandidates } from "@/lib/tasting/candidates";
-import { TASTING_MODES, modeFeasibility, type TastingMode } from "@/lib/tasting/engine";
+import { isReadyToDrink, TASTING_MODES, modeFeasibility, type TastingMode } from "@/lib/tasting/engine";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +10,9 @@ export const dynamic = "force-dynamic";
  * building the filter UI client-side.
  */
 export async function GET() {
-  const pool = await loadTastingCandidates();
+  const currentYear = new Date().getFullYear();
+  // Same readiness rule as the generate route: too-young wines are not proposed.
+  const pool = (await loadTastingCandidates()).filter((c) => isReadyToDrink(c, currentYear));
   const modes: Record<TastingMode, { feasible: boolean; axesCount: number; wineCount: number }> =
     {} as Record<TastingMode, { feasible: boolean; axesCount: number; wineCount: number }>;
   for (const m of TASTING_MODES) {

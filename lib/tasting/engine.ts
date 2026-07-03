@@ -143,6 +143,13 @@ export interface SelectOptions {
   axisId?: string;
   /** Reference year for age / drink-now reasoning (defaults to a fixed value in tests). */
   currentYear: number;
+  /**
+   * Optional RNG (returns 0..1). When provided ("surprise me"), the
+   * progressive selection picks randomly among each bucket's best candidates
+   * instead of always taking the single most desirable one. Absent = fully
+   * deterministic (stable default flight, reproducible tests).
+   */
+  rng?: () => number;
 }
 
 /* ============================================================================
@@ -196,6 +203,49 @@ export function estimateWeight(c: Pick<TastingCandidate, "color" | "alcoholPct" 
   }
 
   return Math.round(clamp(w, 0, 100));
+}
+
+/* ============================================================================
+ * DRINKING READINESS
+ * ========================================================================== */
+
+/**
+ * Minimum years after the vintage before a wine is considered ready to drink.
+ * Heuristic (no drink-window data in the schema): inferred from color, body
+ * and appellation level. Conservative on the young side only — "too old" is
+ * the drink_now mode's business, not an exclusion.
+ */
+export function minReadyAgeYears(
+  c: Pick<TastingCandidate, "color" | "level" | "alcoholPct" | "primaryVariety">,
+): number {
+  const w = estimateWeight(c);
+  switch (c.color) {
+    case "sparkling":
+    case "rosé":
+    case "fortified":
+      return 0;
+    case "white":
+      return w > 40 ? 1 : 0;
+    case "orange":
+    case "sweet":
+      return 1;
+    case "red":
+    default: {
+      let years = w >= 70 ? 4 : w >= 55 ? 2 : 1;
+      // Grand cru / iconic reds are built for ageing — give them longer.
+      if (c.level === "grand_cru" || c.level === "iconic") years += 2;
+      return years;
+    }
+  }
+}
+
+/** Whether a wine is old enough to be proposed in a flight. NV = always ready. */
+export function isReadyToDrink(
+  c: Pick<TastingCandidate, "color" | "level" | "alcoholPct" | "primaryVariety" | "vintage">,
+  currentYear: number,
+): boolean {
+  if (c.vintage === null) return true;
+  return currentYear - c.vintage >= minReadyAgeYears(c);
 }
 
 /* ============================================================================
@@ -287,7 +337,15 @@ function selectProgressive(pool: TastingCandidate[], opts: SelectOptions): Tasti
     // Prefer a new producer; fall back to most desirable.
     const fresh = bucket.filter((c) => !usedProducers.has(c.producerName));
     const pickFrom = fresh.length > 0 ? fresh : bucket;
-    const pick = pickFrom.reduce((best, c) => (desirability(c) > desirability(best) ? c : best));
+    let pick: TastingCandidate;
+    if (opts.rng) {
+      // Surprise mode: pick randomly among the bucket's top candidates.
+      const ranked = [...pickFrom].sort((a, b) => desirability(b) - desirability(a));
+      const top = ranked.slice(0, Math.min(4, ranked.length));
+      pick = top[Math.min(top.length - 1, Math.floor(opts.rng() * top.length))];
+    } else {
+      pick = pickFrom.reduce((best, c) => (desirability(c) > desirability(best) ? c : best));
+    }
     chosen.push(pick);
     usedProducers.add(pick.producerName);
   }
