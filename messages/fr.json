@@ -364,7 +364,10 @@
       "chillFridge": "Réfrigérateur ~{minutes} min",
       "chillIce": "glace + eau ~{minutes} min",
       "readyFromCellar": "À température — servir directement de la cave",
-      "decant": "Carafer {minutes} min avant le service"
+      "decant": "Carafer {minutes} min avant le service",
+      "funFact": "Le saviez-vous ?",
+      "generating": "Préparation de la fiche…",
+      "aiDisclaimer": "Descriptions et anecdotes générées par IA (Claude) — vérifiez les faits marquants."
     },
     "ui": {
       "chooseMode": "Choisissez une logique de dégustation",

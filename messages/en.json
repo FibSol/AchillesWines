@@ -382,7 +382,10 @@
       "chillFridge": "Fridge ~{minutes} min",
       "chillIce": "ice + water ~{minutes} min",
       "readyFromCellar": "At temperature — serve straight from the cellar",
-      "decant": "Decant {minutes} min before serving"
+      "decant": "Decant {minutes} min before serving",
+      "funFact": "Did you know?",
+      "generating": "Preparing the sheet…",
+      "aiDisclaimer": "Descriptions and anecdotes are AI-generated (Claude) — double-check notable claims."
     },
     "ui": {
       "chooseMode": "Choose a tasting logic",

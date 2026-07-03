@@ -364,7 +364,10 @@
       "chillFridge": "Koelkast ~{minutes} min",
       "chillIce": "ijs + water ~{minutes} min",
       "readyFromCellar": "Op temperatuur — direct uit de kelder serveren",
-      "decant": "Decanteer {minutes} min vóór het serveren"
+      "decant": "Decanteer {minutes} min vóór het serveren",
+      "funFact": "Wist u dat?",
+      "generating": "Blad wordt voorbereid…",
+      "aiDisclaimer": "Beschrijvingen en anekdotes zijn AI-gegenereerd (Claude) — controleer opvallende beweringen."
     },
     "ui": {
       "chooseMode": "Kies een proeflogica",

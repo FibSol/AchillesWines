@@ -809,6 +809,30 @@ export const wineSimilarity = sqliteTable(
   })
 );
 
+/**
+ * AI-generated wine blurbs (description + anecdote) for the tasting print
+ * sheet. Generated once per (wine, locale) via the Anthropic API and cached
+ * here — never regenerated unless the row is deleted.
+ */
+export const aiWineNotes = sqliteTable(
+  "ai_wine_notes",
+  {
+    wineKey: text("wine_key")
+      .notNull()
+      .references(() => dimWine.wineKey),
+    locale: text("locale").notNull(),
+    description: text("description").notNull(),
+    funFact: text("fun_fact").notNull(),
+    model: text("model").notNull(),
+    createdAt: text("created_at")
+      .notNull()
+      .default(sql`(datetime('now'))`),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.wineKey, t.locale] }),
+  })
+);
+
 /* ============================================================================
  * Exports
  * ========================================================================== */
@@ -831,3 +855,4 @@ export type StagingRatingCandidate = typeof stagingRatingCandidates.$inferSelect
 export type MarketIndex = typeof factMarketIndex.$inferSelect;
 export type HarvestVolume = typeof factHarvestVolume.$inferSelect;
 export type WercStat = typeof factWercStats.$inferSelect;
+export type AiWineNote = typeof aiWineNotes.$inferSelect;

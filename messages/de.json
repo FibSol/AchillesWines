@@ -364,7 +364,10 @@
       "chillFridge": "Kühlschrank ~{minutes} Min",
       "chillIce": "Eis + Wasser ~{minutes} Min",
       "readyFromCellar": "Auf Temperatur — direkt aus dem Keller servieren",
-      "decant": "{minutes} Min vor dem Servieren dekantieren"
+      "decant": "{minutes} Min vor dem Servieren dekantieren",
+      "funFact": "Wussten Sie schon?",
+      "generating": "Blatt wird vorbereitet…",
+      "aiDisclaimer": "Beschreibungen und Anekdoten sind KI-generiert (Claude) — prüfen Sie auffällige Angaben."
     },
     "ui": {
       "chooseMode": "Wählen Sie eine Verkostungslogik",

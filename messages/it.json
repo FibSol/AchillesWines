@@ -364,7 +364,10 @@
       "chillFridge": "Frigorifero ~{minutes} min",
       "chillIce": "ghiaccio + acqua ~{minutes} min",
       "readyFromCellar": "A temperatura — servire direttamente dalla cantina",
-      "decant": "Decantare {minutes} min prima del servizio"
+      "decant": "Decantare {minutes} min prima del servizio",
+      "funFact": "Lo sapevate?",
+      "generating": "Preparazione della scheda…",
+      "aiDisclaimer": "Descrizioni e aneddoti generati dall'IA (Claude) — verificate le affermazioni rilevanti."
     },
     "ui": {
       "chooseMode": "Scegli una logica di degustazione",

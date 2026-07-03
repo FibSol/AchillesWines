@@ -54,6 +54,11 @@ interface PrepAction {
   wine: string;
 }
 
+export interface WineNote {
+  description: string;
+  funFact: string;
+}
+
 export interface PrintSheetInput {
   flight: TastingFlight;
   cellarTempC: number;
@@ -61,9 +66,11 @@ export interface PrintSheetInput {
   /** Translator scoped to the "tasting" namespace. */
   t: Translator;
   renderNote: (note: DirectiveNote) => string;
+  /** AI-written blurb per wineKey (description + anecdote). Optional. */
+  wineNotes?: Record<string, WineNote>;
 }
 
-export function buildPrintHtml({ flight, cellarTempC, locale, t, renderNote }: PrintSheetInput): string {
+export function buildPrintHtml({ flight, cellarTempC, locale, t, renderNote, wineNotes }: PrintSheetInput): string {
   const modeName = t(`modes.${flight.mode}.name`);
   const axis = flight.selectedAxis ? ` · ${flight.selectedAxis.label}` : "";
   const date = new Date().toLocaleDateString(locale, {
@@ -136,6 +143,7 @@ export function buildPrintHtml({ flight, cellarTempC, locale, t, renderNote }: P
         .filter(Boolean)
         .join(" · ");
       const notes = stop.notes.map((n) => `<li>${esc(renderNote(n))}</li>`).join("");
+      const blurb = wineNotes?.[stop.wineKey];
       return `<div class="stop">
         <div class="stop-head">
           <span class="pos">${stop.position}</span>
@@ -144,6 +152,8 @@ export function buildPrintHtml({ flight, cellarTempC, locale, t, renderNote }: P
             <p class="meta">${esc(meta)}</p>
           </div>
         </div>
+        ${blurb ? `<p class="desc">${esc(blurb.description)}</p>
+        <p class="fact"><span class="fact-label">${esc(t("print.funFact"))}</span> ${esc(blurb.funFact)}</p>` : ""}
         <p class="facts">${facts.map(esc).join(" &nbsp;·&nbsp; ")}</p>
         ${notes ? `<ul class="notes">${notes}</ul>` : ""}
       </div>`;
@@ -179,6 +189,9 @@ export function buildPrintHtml({ flight, cellarTempC, locale, t, renderNote }: P
   .name { font-weight: bold; margin: 0; }
   .meta { margin: 0.5mm 0 0; color: #666; font-size: 9pt; }
   .facts { margin: 1.5mm 0 1mm; font-size: 9pt; color: #333; border-top: 1px dotted #ccc; padding-top: 1.5mm; }
+  .desc { margin: 2mm 0 0; font-size: 9.5pt; }
+  .fact { margin: 1.5mm 0 2mm; padding: 1.5mm 2.5mm; font-size: 9pt; background: #faf5ec; border-left: 2px solid #e5b25d; }
+  .fact-label { font-weight: bold; color: #a53860; margin-right: 1mm; }
   .notes { font-size: 8.5pt; color: #555; }
   footer { margin-top: 6mm; color: #999; font-size: 8pt; text-align: center; }
 </style>
@@ -199,7 +212,7 @@ export function buildPrintHtml({ flight, cellarTempC, locale, t, renderNote }: P
 <h2>${esc(t("print.serviceTitle"))}</h2>
 ${stopBlocks}
 
-<footer>Achilles's Wines</footer>
+<footer>Achilles's Wines${wineNotes && Object.keys(wineNotes).length > 0 ? ` — ${esc(t("print.aiDisclaimer"))}` : ""}</footer>
 <script>addEventListener("load", () => setTimeout(() => print(), 200));</script>
 </body>
 </html>`;

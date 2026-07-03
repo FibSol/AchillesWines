@@ -26,7 +26,7 @@ import {
   Warehouse,
   Printer,
 } from "lucide-react";
-import { buildPrintHtml } from "@/lib/tasting/print";
+import { buildPrintHtml, type WineNote } from "@/lib/tasting/print";
 import type {
   TastingFlight,
   TastingMode,
@@ -152,6 +152,7 @@ export function TastingStudio() {
 
   const [mode, setMode] = useState<TastingMode>("progressive");
   const [cellarTemp, setCellarTemp] = useState(19);
+  const [printing, setPrinting] = useState(false);
   const [count, setCount] = useState(6);
   const [axisId, setAxisId] = useState<string | undefined>(undefined);
   const [locked, setLocked] = useState<string[]>([]);
@@ -298,17 +299,53 @@ export function TastingStudio() {
     void generate({ locked: [], excluded: [], axisId: undefined });
   }
 
-  function printSheet() {
-    if (!flight || flight.stops.length === 0) return;
+  async function printSheet() {
+    if (!flight || flight.stops.length === 0 || printing) return;
+    // Open the window synchronously (inside the click) so popup blockers allow it,
+    // then fill it once the AI blurbs are fetched.
+    const w = window.open("", "_blank");
+    if (!w) return;
+    w.document.write(
+      `<p style="font-family:system-ui,sans-serif;padding:2rem;color:#555">${t("print.generating")}</p>`,
+    );
+    setPrinting(true);
+    let wineNotes: Record<string, WineNote> | undefined;
+    try {
+      const r = await fetch("/api/tasting/wine-notes", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          locale,
+          wines: flight.stops.map((s) => ({
+            wineKey: s.wineKey,
+            producerName: s.producerName,
+            cuveeName: s.cuveeName,
+            vintage: s.vintage,
+            color: s.color,
+            appellationName: s.appellationName,
+            region: s.region,
+            grapes: s.grapes,
+          })),
+        }),
+      });
+      if (r.ok) {
+        const data: { notes?: Record<string, WineNote> } = await r.json();
+        wineNotes = data.notes;
+      }
+    } catch {
+      /* print without blurbs */
+    } finally {
+      setPrinting(false);
+    }
     const html = buildPrintHtml({
       flight,
       cellarTempC: cellarTemp,
       locale,
       t: (key, values) => t(key, values),
       renderNote,
+      wineNotes,
     });
-    const w = window.open("", "_blank");
-    if (!w) return;
+    w.document.open();
     w.document.write(html);
     w.document.close();
   }
@@ -609,11 +646,11 @@ export function TastingStudio() {
         </label>
         <button
           onClick={printSheet}
-          disabled={loading || !flight || flight.stops.length === 0}
+          disabled={loading || printing || !flight || flight.stops.length === 0}
           className="btn btn-ghost text-xs"
         >
           <Printer className="size-3.5" strokeWidth={2.5} />
-          {t("print.button")}
+          {printing ? t("print.generating") : t("print.button")}
         </button>
         {loading && (
           <span className="text-xs text-[color:var(--color-fg-subtle)] font-mono">{t("ui.loading")}</span>

@@ -364,7 +364,10 @@
       "chillFridge": "Frigorífico ~{minutes} min",
       "chillIce": "hielo + agua ~{minutes} min",
       "readyFromCellar": "A temperatura — servir directamente de la bodega",
-      "decant": "Decantar {minutes} min antes del servicio"
+      "decant": "Decantar {minutes} min antes del servicio",
+      "funFact": "¿Sabía que…?",
+      "generating": "Preparando la ficha…",
+      "aiDisclaimer": "Las descripciones y anécdotas son generadas por IA (Claude) — verifique las afirmaciones destacadas."
     },
     "ui": {
       "chooseMode": "Elija una lógica de cata",
