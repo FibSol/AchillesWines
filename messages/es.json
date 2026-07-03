@@ -376,6 +376,7 @@
       "aiDisclaimer": "Las descripciones y anécdotas son generadas por IA (Claude) — verifique las afirmaciones destacadas."
     },
     "card": {
+      "info": "Ficha del vino",
       "grapes": "Uvas",
       "alcohol": "Alcohol",
       "vintageScore": "Nota de la añada",

@@ -376,6 +376,7 @@
       "aiDisclaimer": "Beschreibungen und Anekdoten sind KI-generiert (Claude) — prüfen Sie auffällige Angaben."
     },
     "card": {
+      "info": "Steckbrief des Weins",
       "grapes": "Rebsorten",
       "alcohol": "Alkohol",
       "vintageScore": "Jahrgangsbewertung",

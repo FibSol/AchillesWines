@@ -376,6 +376,7 @@
       "aiDisclaimer": "Beschrijvingen en anekdotes zijn AI-gegenereerd (Claude) — controleer opvallende beweringen."
     },
     "card": {
+      "info": "Identiteitskaart van de wijn",
       "grapes": "Druiven",
       "alcohol": "Alcohol",
       "vintageScore": "Jaargangscore",

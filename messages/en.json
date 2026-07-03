@@ -394,6 +394,7 @@
       "aiDisclaimer": "Descriptions and anecdotes are AI-generated (Claude) — double-check notable claims."
     },
     "card": {
+      "info": "Wine identity card",
       "grapes": "Grapes",
       "alcohol": "Alcohol",
       "vintageScore": "Vintage score",

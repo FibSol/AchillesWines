@@ -376,6 +376,7 @@
       "aiDisclaimer": "Descriptions et anecdotes générées par IA (Claude) — vérifiez les faits marquants."
     },
     "card": {
+      "info": "Carte d'identité du vin",
       "grapes": "Cépages",
       "alcohol": "Alcool",
       "vintageScore": "Note du millésime",

@@ -25,6 +25,7 @@ import {
   ChevronDown,
   Warehouse,
   Printer,
+  Info,
 } from "lucide-react";
 import { buildPrintHtml, type WineNote } from "@/lib/tasting/print";
 import type {
@@ -783,31 +784,37 @@ function StopCard({
   // Compose a readable description from the wine's real attributes.
   const description = buildDescription(stop, t);
 
-  // Hover identity card: fetched once per wine, then cached for the session.
+  // Identity card: opened by hover (desktop) or pinned by the ℹ️ button (touch).
+  // Details are fetched once per wine, then cached for the session.
   const [showInfo, setShowInfo] = useState(false);
+  const [pinned, setPinned] = useState(false);
   const [details, setDetails] = useState<WineDetails | null>(
     wineDetailsCache.get(stop.wineKey) ?? null,
   );
   const hoverTimer = useRef<number | null>(null);
 
+  function loadDetails() {
+    if (wineDetailsCache.has(stop.wineKey)) {
+      setDetails(wineDetailsCache.get(stop.wineKey)!);
+      return;
+    }
+    void (async () => {
+      try {
+        const r = await fetch(`/api/cellar/wines/${encodeURIComponent(stop.wineKey)}/details`);
+        if (!r.ok) return;
+        const d: WineDetails = await r.json();
+        wineDetailsCache.set(stop.wineKey, d);
+        setDetails(d);
+      } catch {
+        /* card still shows the flight-level facts */
+      }
+    })();
+  }
+
   function infoEnter() {
     hoverTimer.current = window.setTimeout(() => {
       setShowInfo(true);
-      if (wineDetailsCache.has(stop.wineKey)) {
-        setDetails(wineDetailsCache.get(stop.wineKey)!);
-        return;
-      }
-      void (async () => {
-        try {
-          const r = await fetch(`/api/cellar/wines/${encodeURIComponent(stop.wineKey)}/details`);
-          if (!r.ok) return;
-          const d: WineDetails = await r.json();
-          wineDetailsCache.set(stop.wineKey, d);
-          setDetails(d);
-        } catch {
-          /* card still shows the flight-level facts */
-        }
-      })();
+      loadDetails();
     }, 250);
   }
 
@@ -815,6 +822,14 @@ function StopCard({
     if (hoverTimer.current !== null) window.clearTimeout(hoverTimer.current);
     setShowInfo(false);
   }
+
+  // Pinned card (touch): any click outside closes it.
+  useEffect(() => {
+    if (!pinned) return;
+    const close = () => setPinned(false);
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [pinned]);
 
   return (
     <div className="glass-card p-5">
@@ -839,6 +854,28 @@ function StopCard({
               <span className="font-semibold text-[color:var(--color-fg)] leading-tight truncate">
                 {stop.producerName}
               </span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // On touch devices a tap also fires mouseenter and the
+                  // emulated hover never leaves — clear it so the ℹ️ toggle
+                  // alone controls visibility.
+                  if (hoverTimer.current !== null) window.clearTimeout(hoverTimer.current);
+                  setShowInfo(false);
+                  setPinned((v) => !v);
+                  loadDetails();
+                }}
+                title={t("card.info")}
+                aria-label={t("card.info")}
+                className={[
+                  "p-0.5 rounded shrink-0 transition",
+                  pinned
+                    ? "text-[color:var(--color-primary)]"
+                    : "text-[color:var(--color-fg-subtle)] hover:text-[color:var(--color-primary)]",
+                ].join(" ")}
+              >
+                <Info className="size-3.5" strokeWidth={2.5} />
+              </button>
             </div>
             <p className="text-sm text-[color:var(--color-primary)]">
               {stop.cuveeName}
@@ -846,7 +883,7 @@ function StopCard({
                 <span className="ml-1.5 font-mono text-[color:var(--color-fg-muted)]">{stop.vintage}</span>
               )}
             </p>
-            {showInfo && <WineIdentityCard stop={stop} details={details} t={t} />}
+            {(showInfo || pinned) && <WineIdentityCard stop={stop} details={details} t={t} />}
           </div>
           <p className="text-[11px] text-[color:var(--color-fg-subtle)] mt-0.5">
             {stop.appellationName}
@@ -970,7 +1007,10 @@ function WineIdentityCard({
   ].slice(0, 3);
 
   return (
-    <div className="absolute left-0 top-full mt-1 z-40 w-80 max-w-[85vw] rounded-lg border border-[color:var(--color-border)] bg-[#14121D] p-4 shadow-2xl space-y-2.5 text-xs cursor-default">
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="absolute left-0 top-full mt-1 z-40 w-80 max-w-[85vw] rounded-lg border border-[color:var(--color-border)] bg-[#14121D] p-4 shadow-2xl space-y-2.5 text-xs cursor-default"
+    >
       {/* Header */}
       <div>
         <p className="font-semibold text-sm text-[color:var(--color-fg)] leading-tight">
