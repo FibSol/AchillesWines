@@ -346,6 +346,26 @@
       "red": "Calice da vino rosso",
       "universal": "Calice universale"
     },
+    "print": {
+      "button": "Stampa",
+      "cellarTemp": "Cantina (°C)",
+      "sheetTitle": "Scheda di degustazione",
+      "printedOn": "Stampata il {date}",
+      "cellarAt": "Temperatura della cantina: {temp} °C",
+      "prepTitle": "Piano di preparazione",
+      "prepSubtitle": "H = inizio della degustazione. Preparate ogni vino al momento indicato.",
+      "hMinus": "H − {minutes} min",
+      "actionFridge": "Mettere in frigorifero: {temp} °C → {low}–{high} °C",
+      "actionIceAlt": "(o secchiello di acqua e ghiaccio: ~{minutes} min)",
+      "actionDecant": "Aprire e decantare",
+      "nothingToPrep": "Tutti i vini si servono a temperatura di cantina — niente da preparare.",
+      "serviceTitle": "Ordine di servizio",
+      "serveAt": "Servire a {low}–{high} °C",
+      "chillFridge": "Frigorifero ~{minutes} min",
+      "chillIce": "ghiaccio + acqua ~{minutes} min",
+      "readyFromCellar": "A temperatura — servire direttamente dalla cantina",
+      "decant": "Decantare {minutes} min prima del servizio"
+    },
     "ui": {
       "chooseMode": "Scegli una logica di degustazione",
       "wines": "vini",

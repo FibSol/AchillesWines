@@ -346,6 +346,26 @@
       "red": "Verre à vin rouge",
       "universal": "Verre universel"
     },
+    "print": {
+      "button": "Imprimer",
+      "cellarTemp": "Cave (°C)",
+      "sheetTitle": "Fiche de dégustation",
+      "printedOn": "Imprimée le {date}",
+      "cellarAt": "Température de la cave : {temp} °C",
+      "prepTitle": "Plan de préparation",
+      "prepSubtitle": "H = début de la dégustation. Préparez chaque vin au moment indiqué.",
+      "hMinus": "H − {minutes} min",
+      "actionFridge": "Mettre au réfrigérateur : {temp} °C → {low}–{high} °C",
+      "actionIceAlt": "(ou seau glace + eau : ~{minutes} min)",
+      "actionDecant": "Ouvrir et carafer",
+      "nothingToPrep": "Tous les vins se servent à la température de la cave — rien à préparer.",
+      "serviceTitle": "Ordre de service",
+      "serveAt": "Service : {low}–{high} °C",
+      "chillFridge": "Réfrigérateur ~{minutes} min",
+      "chillIce": "glace + eau ~{minutes} min",
+      "readyFromCellar": "À température — servir directement de la cave",
+      "decant": "Carafer {minutes} min avant le service"
+    },
     "ui": {
       "chooseMode": "Choisissez une logique de dégustation",
       "wines": "vins",

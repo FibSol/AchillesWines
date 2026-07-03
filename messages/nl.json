@@ -346,6 +346,26 @@
       "red": "Rodewijnglas",
       "universal": "Universeel glas"
     },
+    "print": {
+      "button": "Afdrukken",
+      "cellarTemp": "Kelder (°C)",
+      "sheetTitle": "Proeverijblad",
+      "printedOn": "Afgedrukt op {date}",
+      "cellarAt": "Kellertemperatuur: {temp} °C",
+      "prepTitle": "Voorbereidingsplan",
+      "prepSubtitle": "H = start van de proeverij. Bereid elke wijn op het aangegeven moment voor.",
+      "hMinus": "H − {minutes} min",
+      "actionFridge": "In de koelkast leggen: {temp} °C → {low}–{high} °C",
+      "actionIceAlt": "(of emmer ijswater: ~{minutes} min)",
+      "actionDecant": "Openen en decanteren",
+      "nothingToPrep": "Alle wijnen worden op kellertemperatuur geserveerd — niets voor te bereiden.",
+      "serviceTitle": "Serveervolgorde",
+      "serveAt": "Serveren op {low}–{high} °C",
+      "chillFridge": "Koelkast ~{minutes} min",
+      "chillIce": "ijs + water ~{minutes} min",
+      "readyFromCellar": "Op temperatuur — direct uit de kelder serveren",
+      "decant": "Decanteer {minutes} min vóór het serveren"
+    },
     "ui": {
       "chooseMode": "Kies een proeflogica",
       "wines": "wijnen",

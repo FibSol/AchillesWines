@@ -448,3 +448,8 @@
 ### Validation
 - `npm run type-check` (tsc --noEmit): 0 errors
 - `npx vitest run tests/gates.test.ts`: 34/34 pass (incl. "accepts all 20 canonical critic codes")
+
+## 2026-07-03
+
+### Odysseus (Frontend) — printable tasting sheet with cellar-temperature prep plan
+- [Odysseus] **Added a printable preparation sheet to the Wine Tasting page.** New "Cave (°C)" input (default 19) + "Imprimer" button in the flight controls; clicking opens a light-themed A4 sheet (new window, auto-print) built by `lib/tasting/print.ts` (pure, DB-free). The sheet contains: (1) a **preparation plan** sorted by lead time — per wine, when to move it to the refrigerator (≈10 min/°C from cellar temp to the serving-range midpoint, e.g. 19 °C → 8–10 °C ≈ 100 min) with an ice-water-bucket alternative (≈2.5 min/°C), and when to open/decant; chilling is correctly scheduled *before* decanting (fridge lead = chill + decant); (2) the flight-level tasting directives; (3) the serving order with per-wine serve temp, glass, chill summary and tasting notes. i18n keys `tasting.print.*` added to all 6 message files. Verified with Playwright on /fr/tasting (sheet renders, plan coherent, no client errors) + `tsc --noEmit` clean. Also fixed this session: stale Turbopack dev cache made `/api/tasting/*` 404 — cleared `.next/dev`. · files: lib/tasting/print.ts, components/TastingStudio.tsx, messages/fr.json, messages/en.json, messages/nl.json, messages/de.json, messages/es.json, messages/it.json, PROGRESS.md

@@ -346,6 +346,26 @@
       "red": "Copa de vino tinto",
       "universal": "Copa universal"
     },
+    "print": {
+      "button": "Imprimir",
+      "cellarTemp": "Bodega (°C)",
+      "sheetTitle": "Ficha de cata",
+      "printedOn": "Impresa el {date}",
+      "cellarAt": "Temperatura de la bodega: {temp} °C",
+      "prepTitle": "Plan de preparación",
+      "prepSubtitle": "H = inicio de la cata. Prepare cada vino en el momento indicado.",
+      "hMinus": "H − {minutes} min",
+      "actionFridge": "Meter en el frigorífico: {temp} °C → {low}–{high} °C",
+      "actionIceAlt": "(o cubo de agua con hielo: ~{minutes} min)",
+      "actionDecant": "Abrir y decantar",
+      "nothingToPrep": "Todos los vinos se sirven a temperatura de bodega — nada que preparar.",
+      "serviceTitle": "Orden de servicio",
+      "serveAt": "Servir a {low}–{high} °C",
+      "chillFridge": "Frigorífico ~{minutes} min",
+      "chillIce": "hielo + agua ~{minutes} min",
+      "readyFromCellar": "A temperatura — servir directamente de la bodega",
+      "decant": "Decantar {minutes} min antes del servicio"
+    },
     "ui": {
       "chooseMode": "Elija una lógica de cata",
       "wines": "vinos",

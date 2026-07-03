@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
   ArrowUpNarrowWide,
   CalendarRange,
@@ -24,7 +24,9 @@ import {
   SlidersHorizontal,
   ChevronDown,
   Warehouse,
+  Printer,
 } from "lucide-react";
+import { buildPrintHtml } from "@/lib/tasting/print";
 import type {
   TastingFlight,
   TastingMode,
@@ -146,8 +148,10 @@ function buildDescription(stop: FlightStop, t: ReturnType<typeof useTranslations
 
 export function TastingStudio() {
   const t = useTranslations("tasting");
+  const locale = useLocale();
 
   const [mode, setMode] = useState<TastingMode>("progressive");
+  const [cellarTemp, setCellarTemp] = useState(19);
   const [count, setCount] = useState(6);
   const [axisId, setAxisId] = useState<string | undefined>(undefined);
   const [locked, setLocked] = useState<string[]>([]);
@@ -292,6 +296,21 @@ export function TastingStudio() {
     setExcluded([]);
     setAxisId(undefined);
     void generate({ locked: [], excluded: [], axisId: undefined });
+  }
+
+  function printSheet() {
+    if (!flight || flight.stops.length === 0) return;
+    const html = buildPrintHtml({
+      flight,
+      cellarTempC: cellarTemp,
+      locale,
+      t: (key, values) => t(key, values),
+      renderNote,
+    });
+    const w = window.open("", "_blank");
+    if (!w) return;
+    w.document.write(html);
+    w.document.close();
   }
 
   function applyFilters(next: TastingFilters) {
@@ -572,6 +591,29 @@ export function TastingStudio() {
         >
           <Plus className="size-3.5" strokeWidth={2.5} />
           {t("ui.addFromCellar")}
+        </button>
+
+        {/* Cellar temperature + printable prep sheet */}
+        <label className="flex items-center gap-2 text-xs text-[color:var(--color-fg-muted)]">
+          <span className="uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)]">
+            {t("print.cellarTemp")}
+          </span>
+          <input
+            type="number"
+            min={0}
+            max={30}
+            value={cellarTemp}
+            onChange={(e) => setCellarTemp(Number(e.target.value))}
+            className="w-16 px-2 py-1.5 rounded bg-[rgba(9,8,15,0.6)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)]"
+          />
+        </label>
+        <button
+          onClick={printSheet}
+          disabled={loading || !flight || flight.stops.length === 0}
+          className="btn btn-ghost text-xs"
+        >
+          <Printer className="size-3.5" strokeWidth={2.5} />
+          {t("print.button")}
         </button>
         {loading && (
           <span className="text-xs text-[color:var(--color-fg-subtle)] font-mono">{t("ui.loading")}</span>

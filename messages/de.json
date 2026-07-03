@@ -346,6 +346,26 @@
       "red": "Rotweinglas",
       "universal": "Universalglas"
     },
+    "print": {
+      "button": "Drucken",
+      "cellarTemp": "Keller (°C)",
+      "sheetTitle": "Verkostungsblatt",
+      "printedOn": "Gedruckt am {date}",
+      "cellarAt": "Kellertemperatur: {temp} °C",
+      "prepTitle": "Vorbereitungsplan",
+      "prepSubtitle": "H = Beginn der Verkostung. Bereiten Sie jeden Wein zum angegebenen Zeitpunkt vor.",
+      "hMinus": "H − {minutes} Min",
+      "actionFridge": "In den Kühlschrank legen: {temp} °C → {low}–{high} °C",
+      "actionIceAlt": "(oder Eiswasser-Kübel: ~{minutes} Min)",
+      "actionDecant": "Öffnen und dekantieren",
+      "nothingToPrep": "Alle Weine werden bei Kellertemperatur serviert — nichts vorzubereiten.",
+      "serviceTitle": "Servierreihenfolge",
+      "serveAt": "Servieren bei {low}–{high} °C",
+      "chillFridge": "Kühlschrank ~{minutes} Min",
+      "chillIce": "Eis + Wasser ~{minutes} Min",
+      "readyFromCellar": "Auf Temperatur — direkt aus dem Keller servieren",
+      "decant": "{minutes} Min vor dem Servieren dekantieren"
+    },
     "ui": {
       "chooseMode": "Wählen Sie eine Verkostungslogik",
       "wines": "Weine",

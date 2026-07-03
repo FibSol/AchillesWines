@@ -364,6 +364,26 @@
       "red": "Red-wine glass",
       "universal": "Universal glass"
     },
+    "print": {
+      "button": "Print",
+      "cellarTemp": "Cellar (°C)",
+      "sheetTitle": "Tasting sheet",
+      "printedOn": "Printed on {date}",
+      "cellarAt": "Cellar temperature: {temp} °C",
+      "prepTitle": "Preparation plan",
+      "prepSubtitle": "H = start of the tasting. Prepare each wine at the time shown.",
+      "hMinus": "H − {minutes} min",
+      "actionFridge": "Move to the refrigerator: {temp} °C → {low}–{high} °C",
+      "actionIceAlt": "(or ice-water bucket: ~{minutes} min)",
+      "actionDecant": "Open and decant",
+      "nothingToPrep": "Every wine serves at cellar temperature — nothing to prepare.",
+      "serviceTitle": "Serving order",
+      "serveAt": "Serve at {low}–{high} °C",
+      "chillFridge": "Fridge ~{minutes} min",
+      "chillIce": "ice + water ~{minutes} min",
+      "readyFromCellar": "At temperature — serve straight from the cellar",
+      "decant": "Decant {minutes} min before serving"
+    },
     "ui": {
       "chooseMode": "Choose a tasting logic",
       "wines": "wines",
