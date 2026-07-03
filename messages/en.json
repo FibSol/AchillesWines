@@ -393,6 +393,17 @@
       "generating": "Preparing the sheet…",
       "aiDisclaimer": "Descriptions and anecdotes are AI-generated (Claude) — double-check notable claims."
     },
+    "card": {
+      "grapes": "Grapes",
+      "alcohol": "Alcohol",
+      "vintageScore": "Vintage score",
+      "avgPrice": "Average price",
+      "criticScores": "Critic scores",
+      "prices": "Recorded prices",
+      "stock": "{n, plural, one {# bottle in stock} other {# bottles in stock}}",
+      "levelName": "{level, select, village {Village} premier_cru {Premier Cru} grand_cru {Grand Cru} iconic {Iconic cuvée} other {}}",
+      "loading": "Loading…"
+    },
     "ui": {
       "chooseMode": "Choose a tasting logic",
       "wines": "wines",

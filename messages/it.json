@@ -375,6 +375,17 @@
       "generating": "Preparazione della scheda…",
       "aiDisclaimer": "Descrizioni e aneddoti generati dall'IA (Claude) — verificate le affermazioni rilevanti."
     },
+    "card": {
+      "grapes": "Vitigni",
+      "alcohol": "Alcol",
+      "vintageScore": "Punteggio dell'annata",
+      "avgPrice": "Prezzo medio",
+      "criticScores": "Punteggi dei critici",
+      "prices": "Prezzi rilevati",
+      "stock": "{n, plural, one {# bottiglia disponibile} other {# bottiglie disponibili}}",
+      "levelName": "{level, select, village {Village} premier_cru {Premier Cru} grand_cru {Grand Cru} iconic {Cuvée iconica} other {}}",
+      "loading": "Caricamento…"
+    },
     "ui": {
       "chooseMode": "Scegli una logica di degustazione",
       "wines": "vini",

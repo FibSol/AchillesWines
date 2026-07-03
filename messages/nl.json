@@ -375,6 +375,17 @@
       "generating": "Blad wordt voorbereid…",
       "aiDisclaimer": "Beschrijvingen en anekdotes zijn AI-gegenereerd (Claude) — controleer opvallende beweringen."
     },
+    "card": {
+      "grapes": "Druiven",
+      "alcohol": "Alcohol",
+      "vintageScore": "Jaargangscore",
+      "avgPrice": "Gemiddelde prijs",
+      "criticScores": "Scores van critici",
+      "prices": "Genoteerde prijzen",
+      "stock": "{n, plural, one {# fles op voorraad} other {# flessen op voorraad}}",
+      "levelName": "{level, select, village {Village} premier_cru {Premier Cru} grand_cru {Grand Cru} iconic {Iconische cuvée} other {}}",
+      "loading": "Laden…"
+    },
     "ui": {
       "chooseMode": "Kies een proeflogica",
       "wines": "wijnen",

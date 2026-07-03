@@ -375,6 +375,17 @@
       "generating": "Blatt wird vorbereitet…",
       "aiDisclaimer": "Beschreibungen und Anekdoten sind KI-generiert (Claude) — prüfen Sie auffällige Angaben."
     },
+    "card": {
+      "grapes": "Rebsorten",
+      "alcohol": "Alkohol",
+      "vintageScore": "Jahrgangsbewertung",
+      "avgPrice": "Durchschnittspreis",
+      "criticScores": "Kritikerbewertungen",
+      "prices": "Erfasste Preise",
+      "stock": "{n, plural, one {# Flasche auf Lager} other {# Flaschen auf Lager}}",
+      "levelName": "{level, select, village {Village} premier_cru {Premier Cru} grand_cru {Grand Cru} iconic {Ikonische Cuvée} other {}}",
+      "loading": "Laden…"
+    },
     "ui": {
       "chooseMode": "Wählen Sie eine Verkostungslogik",
       "wines": "Weine",

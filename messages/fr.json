@@ -375,6 +375,17 @@
       "generating": "Préparation de la fiche…",
       "aiDisclaimer": "Descriptions et anecdotes générées par IA (Claude) — vérifiez les faits marquants."
     },
+    "card": {
+      "grapes": "Cépages",
+      "alcohol": "Alcool",
+      "vintageScore": "Note du millésime",
+      "avgPrice": "Prix moyen",
+      "criticScores": "Notes des critiques",
+      "prices": "Prix relevés",
+      "stock": "{n, plural, one {# bouteille en stock} other {# bouteilles en stock}}",
+      "levelName": "{level, select, village {Village} premier_cru {Premier Cru} grand_cru {Grand Cru} iconic {Cuvée iconique} other {}}",
+      "loading": "Chargement…"
+    },
     "ui": {
       "chooseMode": "Choisissez une logique de dégustation",
       "wines": "vins",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import {
   ArrowUpNarrowWide,
@@ -101,6 +101,15 @@ interface GenerateResponse {
   poolSize: number;
   empty: boolean;
 }
+
+interface WineDetails {
+  ratings: { criticCode: string; score: number; scale: string }[];
+  prices: { amountEur: number | null; retailer: string | null; priceKind: string | null; inStock: number | null }[];
+  avgPrice: number | null;
+}
+
+/** Module-level cache: the identity card of a wine doesn't change during a session. */
+const wineDetailsCache = new Map<string, WineDetails>();
 
 const ALL_MODES: TastingMode[] = [
   "progressive",
@@ -774,6 +783,39 @@ function StopCard({
   // Compose a readable description from the wine's real attributes.
   const description = buildDescription(stop, t);
 
+  // Hover identity card: fetched once per wine, then cached for the session.
+  const [showInfo, setShowInfo] = useState(false);
+  const [details, setDetails] = useState<WineDetails | null>(
+    wineDetailsCache.get(stop.wineKey) ?? null,
+  );
+  const hoverTimer = useRef<number | null>(null);
+
+  function infoEnter() {
+    hoverTimer.current = window.setTimeout(() => {
+      setShowInfo(true);
+      if (wineDetailsCache.has(stop.wineKey)) {
+        setDetails(wineDetailsCache.get(stop.wineKey)!);
+        return;
+      }
+      void (async () => {
+        try {
+          const r = await fetch(`/api/cellar/wines/${encodeURIComponent(stop.wineKey)}/details`);
+          if (!r.ok) return;
+          const d: WineDetails = await r.json();
+          wineDetailsCache.set(stop.wineKey, d);
+          setDetails(d);
+        } catch {
+          /* card still shows the flight-level facts */
+        }
+      })();
+    }, 250);
+  }
+
+  function infoLeave() {
+    if (hoverTimer.current !== null) window.clearTimeout(hoverTimer.current);
+    setShowInfo(false);
+  }
+
   return (
     <div className="glass-card p-5">
       <div className="flex items-start gap-4">
@@ -787,22 +829,25 @@ function StopCard({
 
         {/* Body */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <span
-              className="inline-block size-2.5 rounded-full shrink-0"
-              style={{ background: COLOR_DOT[stop.color] ?? "#FAF7F5" }}
-              title={stop.color}
-            />
-            <span className="font-semibold text-[color:var(--color-fg)] leading-tight truncate">
-              {stop.producerName}
-            </span>
+          <div className="relative" onMouseEnter={infoEnter} onMouseLeave={infoLeave}>
+            <div className="flex items-center gap-2 mb-0.5">
+              <span
+                className="inline-block size-2.5 rounded-full shrink-0"
+                style={{ background: COLOR_DOT[stop.color] ?? "#FAF7F5" }}
+                title={stop.color}
+              />
+              <span className="font-semibold text-[color:var(--color-fg)] leading-tight truncate">
+                {stop.producerName}
+              </span>
+            </div>
+            <p className="text-sm text-[color:var(--color-primary)]">
+              {stop.cuveeName}
+              {stop.vintage !== null && (
+                <span className="ml-1.5 font-mono text-[color:var(--color-fg-muted)]">{stop.vintage}</span>
+              )}
+            </p>
+            {showInfo && <WineIdentityCard stop={stop} details={details} t={t} />}
           </div>
-          <p className="text-sm text-[color:var(--color-primary)]">
-            {stop.cuveeName}
-            {stop.vintage !== null && (
-              <span className="ml-1.5 font-mono text-[color:var(--color-fg-muted)]">{stop.vintage}</span>
-            )}
-          </p>
           <p className="text-[11px] text-[color:var(--color-fg-subtle)] mt-0.5">
             {stop.appellationName}
             {stop.primaryVariety && <span> · {stop.primaryVariety}</span>}
@@ -897,6 +942,123 @@ function StopCard({
           </IconBtn>
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Hover popover: the wine's full identity card (flight data + critic/price details). */
+function WineIdentityCard({
+  stop,
+  details,
+  t,
+}: {
+  stop: FlightStop;
+  details: WineDetails | null;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  const levelName = stop.level !== "regional" ? t("card.levelName", { level: stop.level }) : "";
+  // One entry per critic (list is sorted best-first) and per retailer.
+  const uniqueRatings = [
+    ...new Map((details?.ratings ?? []).map((r) => [r.criticCode, r])).values(),
+  ];
+  const retailPrices = [
+    ...new Map(
+      (details?.prices ?? [])
+        .filter((p) => p.amountEur !== null && p.amountEur > 0)
+        .map((p) => [p.retailer ?? "—", p]),
+    ).values(),
+  ].slice(0, 3);
+
+  return (
+    <div className="absolute left-0 top-full mt-1 z-40 w-80 max-w-[85vw] rounded-lg border border-[color:var(--color-border)] bg-[#14121D] p-4 shadow-2xl space-y-2.5 text-xs cursor-default">
+      {/* Header */}
+      <div>
+        <p className="font-semibold text-sm text-[color:var(--color-fg)] leading-tight">
+          {stop.producerName}
+        </p>
+        <p className="text-[color:var(--color-primary)]">
+          {stop.cuveeName}
+          {stop.vintage !== null && (
+            <span className="ml-1.5 font-mono text-[color:var(--color-fg-muted)]">{stop.vintage}</span>
+          )}
+        </p>
+        <p className="text-[color:var(--color-fg-subtle)] mt-0.5">
+          {stop.appellationName} · {stop.region}
+          {levelName && <span className="text-[color:var(--color-accent)]"> · {levelName}</span>}
+        </p>
+      </div>
+
+      {/* Facts grid */}
+      <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[color:var(--color-fg-muted)]">
+        {stop.grapes.length > 0 && (
+          <>
+            <span className="text-[color:var(--color-fg-subtle)]">{t("card.grapes")}</span>
+            <span>{stop.grapes.join(", ")}</span>
+          </>
+        )}
+        {stop.alcoholPct !== null && stop.alcoholPct > 0 && (
+          <>
+            <span className="text-[color:var(--color-fg-subtle)]">{t("card.alcohol")}</span>
+            <span className="font-mono">{stop.alcoholPct} %</span>
+          </>
+        )}
+        {stop.vintageScore !== null && (
+          <>
+            <span className="text-[color:var(--color-fg-subtle)]">{t("card.vintageScore")}</span>
+            <span className="font-mono">{Math.round(stop.vintageScore)}/100</span>
+          </>
+        )}
+        {details?.avgPrice != null && details.avgPrice > 0 && (
+          <>
+            <span className="text-[color:var(--color-fg-subtle)]">{t("card.avgPrice")}</span>
+            <span className="font-mono">≈ {Math.round(details.avgPrice)} €</span>
+          </>
+        )}
+      </div>
+
+      {/* Critic scores */}
+      {details === null ? (
+        <p className="text-[color:var(--color-fg-subtle)] italic">{t("card.loading")}</p>
+      ) : (
+        <>
+          {uniqueRatings.length > 0 && (
+            <div>
+              <p className="uppercase tracking-[0.06em] text-[9px] text-[color:var(--color-fg-subtle)] mb-1">
+                {t("card.criticScores")}
+              </p>
+              <div className="flex flex-wrap gap-x-3 gap-y-0.5 font-mono text-[color:var(--color-fg)]">
+                {uniqueRatings.slice(0, 6).map((r, i) => (
+                  <span key={i}>
+                    <span className="text-[color:var(--color-accent)]">{r.criticCode}</span>{" "}
+                    {Math.round(r.score)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          {retailPrices.length > 0 && (
+            <div>
+              <p className="uppercase tracking-[0.06em] text-[9px] text-[color:var(--color-fg-subtle)] mb-1">
+                {t("card.prices")}
+              </p>
+              {retailPrices.map((p, i) => (
+                <p key={i} className="flex justify-between text-[color:var(--color-fg-muted)]">
+                  <span className="truncate">{p.retailer ?? "—"}</span>
+                  <span className="font-mono shrink-0 ml-2">{Math.round(p.amountEur!)} €</span>
+                </p>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Stock */}
+      <p className="text-[color:var(--color-fg-subtle)] border-t border-[color:var(--color-border)] pt-2">
+        {t("card.stock", { n: stop.qty })}
+        {stop.locations.length > 0 && (
+          <span> · {stop.locations.map((l) => l.name).join(", ")}</span>
+        )}
+      </p>
     </div>
   );
 }
