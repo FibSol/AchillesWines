@@ -406,7 +406,6 @@
       "emptyCellar": "Your cellar is empty. Add bottles to compose a tasting.",
       "emptyMode": "Not enough bottles in your cellar for this logic yet.",
       "directives": "Flight directives",
-      "chooseReplacement": "Choose a replacement",
       "searchWine": "Search a wine…",
       "cancel": "Cancel",
       "first": "First",
@@ -416,7 +415,7 @@
       "full": "Full",
       "lock": "Lock this wine",
       "locked": "Locked — kept on re-roll",
-      "swap": "Swap",
+      "swap": "Propose a replacement",
       "remove": "Remove",
       "decantMin": "Decant {minutes} min"
     },

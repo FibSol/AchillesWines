@@ -388,7 +388,6 @@
       "emptyCellar": "Su bodega está vacía. Añada botellas para componer una cata.",
       "emptyMode": "Aún no hay suficientes botellas en su bodega para esta lógica.",
       "directives": "Indicaciones de la cata",
-      "chooseReplacement": "Elegir un reemplazo",
       "searchWine": "Buscar un vino…",
       "cancel": "Cancelar",
       "first": "Primero",
@@ -398,7 +397,7 @@
       "full": "Con cuerpo",
       "lock": "Fijar este vino",
       "locked": "Fijado — se mantiene al rehacer",
-      "swap": "Sustituir",
+      "swap": "Proponer un sustituto",
       "remove": "Quitar",
       "decantMin": "Decantar {minutes} min"
     },

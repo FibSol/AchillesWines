@@ -167,7 +167,7 @@ export function TastingStudio() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [empty, setEmpty] = useState(false);
-  const [pickerFor, setPickerFor] = useState<string | "add" | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const renderNote = useCallback(
     (note: DirectiveNote) => t(`notes.${note.key}`, note.params ?? {}),
@@ -372,19 +372,33 @@ export function TastingStudio() {
     (filters.minRating !== null ? 1 : 0) +
     (filters.maxPriceEur !== null ? 1 : 0);
 
-  function pickReplacement(targetWineKey: string | "add", newWineKey: string) {
-    setPickerFor(null);
-    let nextLocked = [...locked];
-    let nextExcluded = [...excluded];
-    if (targetWineKey !== "add") {
-      nextExcluded = [...new Set([...nextExcluded, targetWineKey])];
-      nextLocked = nextLocked.filter((k) => k !== targetWineKey);
-    }
-    if (!nextLocked.includes(newWineKey)) nextLocked.push(newWineKey);
-    nextExcluded = nextExcluded.filter((k) => k !== newWineKey);
+  /** "Add from cellar" picker: lock the chosen wine into the flight. */
+  function addFromPool(newWineKey: string) {
+    setPickerOpen(false);
+    const nextLocked = locked.includes(newWineKey) ? locked : [...locked, newWineKey];
+    const nextExcluded = excluded.filter((k) => k !== newWineKey);
     setLocked(nextLocked);
     setExcluded(nextExcluded);
     void generate({ locked: nextLocked, excluded: nextExcluded });
+  }
+
+  /**
+   * Swap: propose a replacement instead of showing a list. The clicked wine is
+   * excluded, every other stop is pinned for this generation only, and the
+   * engine fills the freed slot (randomized — clicking again re-proposes).
+   */
+  function proposeReplacement(wineKey: string) {
+    if (!flight) return;
+    const others = flight.stops.map((s) => s.wineKey).filter((k) => k !== wineKey);
+    const nextExcluded = [...new Set([...excluded, wineKey])];
+    const nextLocked = locked.filter((k) => k !== wineKey);
+    setExcluded(nextExcluded);
+    setLocked(nextLocked);
+    void generate({
+      excluded: nextExcluded,
+      locked: [...new Set([...nextLocked, ...others])].slice(0, 8),
+      shuffle: true,
+    });
   }
 
   const inFlightKeys = new Set(flight?.stops.map((s) => s.wineKey) ?? []);
@@ -626,7 +640,7 @@ export function TastingStudio() {
           {t("ui.reset")}
         </button>
         <button
-          onClick={() => setPickerFor("add")}
+          onClick={() => setPickerOpen(true)}
           disabled={loading || availablePoolWines.length === 0}
           className="btn btn-ghost text-xs"
         >
@@ -713,7 +727,7 @@ export function TastingStudio() {
               total={flight.stops.length}
               onToggleLock={() => toggleLock(stop.wineKey)}
               onRemove={() => removeStop(stop.wineKey)}
-              onSwap={() => setPickerFor(stop.wineKey)}
+              onSwap={() => proposeReplacement(stop.wineKey)}
               renderNote={renderNote}
               t={t}
             />
@@ -721,13 +735,13 @@ export function TastingStudio() {
         </section>
       )}
 
-      {/* Replacement / add picker */}
-      {pickerFor !== null && (
+      {/* Add-from-cellar picker */}
+      {pickerOpen && (
         <PoolPicker
           wines={availablePoolWines}
-          title={pickerFor === "add" ? t("ui.addFromCellar") : t("ui.chooseReplacement")}
-          onPick={(wineKey) => pickReplacement(pickerFor, wineKey)}
-          onClose={() => setPickerFor(null)}
+          title={t("ui.addFromCellar")}
+          onPick={(wineKey) => addFromPool(wineKey)}
+          onClose={() => setPickerOpen(false)}
           searchLabel={t("ui.searchWine")}
           cancelLabel={t("ui.cancel")}
         />

@@ -388,7 +388,6 @@
       "emptyCellar": "La tua cantina è vuota. Aggiungi bottiglie per comporre una degustazione.",
       "emptyMode": "Non ci sono ancora abbastanza bottiglie in cantina per questa logica.",
       "directives": "Indicazioni di degustazione",
-      "chooseReplacement": "Scegli un sostituto",
       "searchWine": "Cerca un vino…",
       "cancel": "Annulla",
       "first": "Prima",
@@ -398,7 +397,7 @@
       "full": "Corposo",
       "lock": "Blocca questo vino",
       "locked": "Bloccato — mantenuto al rilancio",
-      "swap": "Sostituisci",
+      "swap": "Proponi un sostituto",
       "remove": "Rimuovi",
       "decantMin": "Decanta {minutes} min"
     },

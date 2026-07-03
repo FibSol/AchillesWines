@@ -388,7 +388,6 @@
       "emptyCellar": "Votre cave est vide. Ajoutez des bouteilles pour composer une dégustation.",
       "emptyMode": "Pas encore assez de bouteilles dans votre cave pour cette logique.",
       "directives": "Conseils de dégustation",
-      "chooseReplacement": "Choisir un remplaçant",
       "searchWine": "Rechercher un vin…",
       "cancel": "Annuler",
       "first": "D'abord",
@@ -398,7 +397,7 @@
       "full": "Corsé",
       "lock": "Verrouiller ce vin",
       "locked": "Verrouillé — conservé au tirage",
-      "swap": "Remplacer",
+      "swap": "Proposer un remplaçant",
       "remove": "Retirer",
       "decantMin": "Carafer {minutes} min"
     },

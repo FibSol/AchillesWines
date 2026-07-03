@@ -388,7 +388,6 @@
       "emptyCellar": "Ihr Keller ist leer. Fügen Sie Flaschen hinzu, um eine Verkostung zusammenzustellen.",
       "emptyMode": "Noch nicht genug Flaschen im Keller für diese Logik.",
       "directives": "Verkostungshinweise",
-      "chooseReplacement": "Ersatz wählen",
       "searchWine": "Wein suchen…",
       "cancel": "Abbrechen",
       "first": "Zuerst",
@@ -398,7 +397,7 @@
       "full": "Vollmundig",
       "lock": "Diesen Wein sperren",
       "locked": "Gesperrt — bleibt beim Neumischen",
-      "swap": "Tauschen",
+      "swap": "Ersatz vorschlagen",
       "remove": "Entfernen",
       "decantMin": "{minutes} Min dekantieren"
     },

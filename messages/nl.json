@@ -388,7 +388,6 @@
       "emptyCellar": "Je kelder is leeg. Voeg flessen toe om een proeverij samen te stellen.",
       "emptyMode": "Nog niet genoeg flessen in je kelder voor deze logica.",
       "directives": "Proefaanwijzingen",
-      "chooseReplacement": "Kies een vervanger",
       "searchWine": "Zoek een wijn…",
       "cancel": "Annuleren",
       "first": "Eerst",
@@ -398,7 +397,7 @@
       "full": "Vol",
       "lock": "Vergrendel deze wijn",
       "locked": "Vergrendeld — blijft bij opnieuw",
-      "swap": "Vervangen",
+      "swap": "Stel een vervanger voor",
       "remove": "Verwijderen",
       "decantMin": "Decanteren {minutes} min"
     },
