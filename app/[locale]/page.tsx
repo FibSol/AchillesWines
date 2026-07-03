@@ -39,22 +39,13 @@ export default async function DashboardPage({
       {/* Hero */}
       <section className="relative pt-8 pb-10">
         <div className="space-y-5">
-          <p className="badge badge-verified w-fit">
-            <span className="relative flex size-2" aria-hidden>
-              <span className="absolute inline-flex h-full w-full rounded-full bg-[color:var(--color-champagne-400)] opacity-60 motion-safe:animate-ping" />
-              <span className="relative inline-flex size-2 rounded-full bg-[color:var(--color-champagne-400)]" />
-            </span>
-            <span>Athena · v1.3.0</span>
-          </p>
-          <h1 className="display-xl">
-            <span className="text-gradient">Achilles&apos;s</span> Wines.
-          </h1>
-          <p className="text-lg text-[color:var(--color-fg-muted)] max-w-2xl leading-relaxed">
+          <p className="micro-label">Athena · v1.3.0</p>
+          <h1 className="display-xl">Achilles&apos;s Wines</h1>
+          <p className="text-base text-[color:var(--color-fg-muted)] max-w-2xl leading-relaxed">
             {tMeta("tagline")} — {t("subtitle")}
           </p>
         </div>
-        {/* Editorial hairline — magenta→champagne, fades to nothing */}
-        <div className="mt-10 h-px w-full bg-[linear-gradient(90deg,rgba(165,56,96,0.55),rgba(229,178,93,0.18)_45%,transparent)]" />
+        <div className="mt-10 h-px w-full bg-[color:var(--color-border)]" />
       </section>
 
       {/* Stats grid */}

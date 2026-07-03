@@ -56,7 +56,7 @@ export default async function LocaleLayout({
           }}
         />
       </head>
-      <body className={`${fraunces.variable} ${inter.variable} grain`} suppressHydrationWarning>
+      <body className={`${fraunces.variable} ${inter.variable}`} suppressHydrationWarning>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <SiteNav />
           <main className="mx-auto max-w-screen-2xl px-4 sm:px-8 py-8">
@@ -65,7 +65,7 @@ export default async function LocaleLayout({
           <footer className="border-t border-[color:var(--color-border)] mt-16 py-6">
             <div className="mx-auto max-w-screen-2xl px-4 sm:px-8 flex items-center justify-between text-xs text-[color:var(--color-fg-subtle)]">
               <span>© 2026 Achilles&apos;s Wines · Personal use</span>
-              <span className="text-display italic text-sm text-gradient">A.</span>
+              <span className="text-display text-sm text-[color:var(--color-primary)]">A.</span>
             </div>
           </footer>
         </NextIntlClientProvider>

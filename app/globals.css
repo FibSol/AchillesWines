@@ -1,51 +1,52 @@
 @import "tailwindcss";
 
 /* ============================================================================
- * ATHENA DESIGN TOKENS — v2 "Robe du vin"
- * Deux robes : Nuit (cave, défaut) et Jour (papier crème, encre bordeaux).
- * Palette tirée du vin : bordeaux/rubis (magenta vin), or champagne, crème.
- * Le thème actif est porté par <html data-theme="dark|light">.
+ * ATHENA DESIGN TOKENS — v3 "Précision"
+ * Langage produit premium : quasi-monochrome, surfaces planes, un seul accent
+ * bordeaux utilisé avec parcimonie. Sans-serif précis, beaucoup d'air.
+ * Deux robes : Nuit (défaut) et Jour — <html data-theme="dark|light">.
  * ========================================================================== */
 
 @theme {
-  /* Palette — static scales (identiques dans les deux thèmes) */
-  --color-noir-950: #0b0710;
-  --color-noir-900: #151019;
-  --color-noir-800: #201826;
-  --color-noir-700: #2e2233;
-  --color-noir-600: #443349;
+  /* Palette — static scales */
+  --color-noir-950: #060506;
+  --color-noir-900: #0b0a0c;
+  --color-noir-800: #141316;
+  --color-noir-700: #1f1d22;
+  --color-noir-600: #2c2a30;
 
-  --color-magenta-300: #e07898;
-  --color-magenta-400: #c44472;
-  --color-magenta-500: #a53860;
-  --color-magenta-600: #8a2a4e;
-  --color-magenta-700: #6e1f3d;
+  /* Bordeaux — the single accent */
+  --color-magenta-300: #d4728c;
+  --color-magenta-400: #c43550;
+  --color-magenta-500: #a8263c;
+  --color-magenta-600: #8e1f33;
+  --color-magenta-700: #6f1827;
 
-  --color-champagne-300: #f5d08c;
-  --color-champagne-400: #edc072;
-  --color-champagne-500: #e5b25d;
-  --color-champagne-600: #c99440;
-  --color-champagne-700: #a57530;
+  /* Or discret — réservé aux notes / distinctions */
+  --color-champagne-300: #d9bd8a;
+  --color-champagne-400: #c9a96a;
+  --color-champagne-500: #b8954f;
+  --color-champagne-600: #9a7a3d;
+  --color-champagne-700: #7d622f;
 
-  --color-creme-50:  #fdfcf8;
-  --color-creme-100: #f7f4ea;
-  --color-creme-200: #ede8d5;
-  --color-creme-300: #dcd4bc;
+  --color-creme-50:  #fafaf8;
+  --color-creme-100: #f4f4f1;
+  --color-creme-200: #e8e8e3;
+  --color-creme-300: #d6d6cf;
 
-  /* Encre — texte du thème clair */
-  --color-encre-900: #33121f;
-  --color-encre-700: #4d2233;
+  --color-encre-900: #17161a;
+  --color-encre-700: #302e36;
 
   /* Fonts — plain strings; next/font vars applied directly in @layer base */
   --font-display: "Fraunces", Georgia, serif;
   --font-sans:    "Inter", system-ui, -apple-system, sans-serif;
   --font-mono:    "JetBrains Mono", "Geist Mono", "Fira Code", monospace;
 
-  /* Radius */
+  /* Radius — plat et précis */
   --radius-sm: 4px;
   --radius-md: 8px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
 }
 
 /* ============================================================================
@@ -58,105 +59,93 @@
 
   --color-bg:           var(--color-noir-900);
   --color-bg-elevated:  var(--color-noir-800);
-  --color-bg-overlay:   rgba(21, 16, 25, 0.88);
+  --color-bg-overlay:   rgba(11, 10, 12, 0.92);
   --color-surface:      var(--color-creme-100);
   --color-surface-muted: var(--color-creme-200);
 
   --color-primary:       var(--color-magenta-500);
   --color-primary-hover: var(--color-magenta-400);
-  --color-primary-fg:    var(--color-creme-100);
-  --color-on-primary:    var(--color-noir-900);
-  --color-accent:        var(--color-champagne-500);
+  --color-primary-fg:    #f5f5f4;
+  --color-on-primary:    #ffffff;
+  --color-accent:        var(--color-champagne-400);
 
-  --color-fg:        var(--color-creme-100);
-  --color-fg-muted:  rgba(247, 244, 234, 0.68);
-  --color-fg-subtle: rgba(247, 244, 234, 0.42);
-  --color-fg-faint:  rgba(247, 244, 234, 0.25);
+  --color-fg:        #f5f5f4;
+  --color-fg-muted:  rgba(245, 245, 244, 0.64);
+  --color-fg-subtle: rgba(245, 245, 244, 0.42);
+  --color-fg-faint:  rgba(245, 245, 244, 0.26);
 
-  --color-border:        rgba(165, 56, 96, 0.18);
-  --color-border-strong: rgba(165, 56, 96, 0.42);
+  --color-border:        rgba(255, 255, 255, 0.09);
+  --color-border-strong: rgba(255, 255, 255, 0.22);
 
-  /* Surfaces & fills */
-  --color-card:        rgba(21, 16, 25, 0.55);
-  --color-card-highlight: rgba(247, 244, 234, 0.04);
-  --color-popover:     #191320;
-  --color-input-bg:    rgba(11, 7, 16, 0.6);
-  --color-inset-bg:    rgba(11, 7, 16, 0.4);
-  --color-overlay:     rgba(11, 7, 16, 0.7);
-  --color-scrim:       rgba(8, 5, 15, 0.7);
-  --color-fill-subtle: rgba(255, 255, 255, 0.05);
-  --color-fill:        rgba(255, 255, 255, 0.09);
+  /* Surfaces & fills — planes, opaques */
+  --color-card:           var(--color-noir-800);
+  --color-card-highlight: transparent;
+  --color-popover:        #1a181d;
+  --color-input-bg:       rgba(255, 255, 255, 0.05);
+  --color-inset-bg:       rgba(255, 255, 255, 0.03);
+  --color-overlay:        rgba(6, 5, 6, 0.75);
+  --color-scrim:          rgba(0, 0, 0, 0.6);
+  --color-fill-subtle:    rgba(255, 255, 255, 0.05);
+  --color-fill:           rgba(255, 255, 255, 0.09);
 
-  /* Primary tints (wine washes) */
-  --color-primary-tint: rgba(165, 56, 96, 0.07);
-  --color-primary-wash: rgba(165, 56, 96, 0.12);
-  --color-primary-soft: rgba(165, 56, 96, 0.19);
+  /* Accent washes — bordeaux, très bas volume */
+  --color-primary-tint: rgba(168, 38, 60, 0.09);
+  --color-primary-wash: rgba(168, 38, 60, 0.15);
+  --color-primary-soft: rgba(168, 38, 60, 0.24);
 
-  --color-danger:       #e05555;
-  --color-warning:      var(--color-champagne-500);
-  --color-success:      #5ea87a;
-  --color-success-tint: rgba(94, 168, 122, 0.1);
+  --color-danger:       #d64545;
+  --color-warning:      var(--color-champagne-400);
+  --color-success:      #4f9a70;
+  --color-success-tint: rgba(79, 154, 112, 0.12);
 
-  /* Body backdrop tints */
-  --bg-tint-1: rgba(165, 56, 96, 0.07);
-  --bg-tint-2: rgba(229, 178, 93, 0.04);
-
-  /* Shadows */
-  --shadow-magenta:  0 0 0 1px rgba(165, 56, 96, 0.32), 0 8px 32px -8px rgba(165, 56, 96, 0.18);
-  --shadow-elevated: 0 10px 40px -10px rgba(0, 0, 0, 0.7);
-
-  --grain-opacity: 0.035;
+  --shadow-magenta:  0 0 0 1px rgba(255, 255, 255, 0.12);
+  --shadow-elevated: 0 16px 48px -16px rgba(0, 0, 0, 0.6);
 }
 
 [data-theme="light"] {
   color-scheme: light;
 
-  --color-bg:           #f3ecdd;
-  --color-bg-elevated:  #faf6ec;
-  --color-bg-overlay:   rgba(247, 244, 234, 0.9);
-  --color-surface:      var(--color-noir-900);
-  --color-surface-muted: var(--color-noir-800);
+  --color-bg:           var(--color-creme-50);
+  --color-bg-elevated:  #ffffff;
+  --color-bg-overlay:   rgba(250, 250, 248, 0.92);
+  --color-surface:      var(--color-encre-900);
+  --color-surface-muted: var(--color-encre-700);
 
   --color-primary:       var(--color-magenta-600);
   --color-primary-hover: var(--color-magenta-700);
   --color-primary-fg:    var(--color-encre-900);
-  --color-on-primary:    var(--color-creme-50);
+  --color-on-primary:    #ffffff;
   --color-accent:        var(--color-champagne-700);
 
   --color-fg:        var(--color-encre-900);
-  --color-fg-muted:  rgba(51, 18, 31, 0.72);
-  --color-fg-subtle: rgba(51, 18, 31, 0.5);
-  --color-fg-faint:  rgba(51, 18, 31, 0.32);
+  --color-fg-muted:  rgba(23, 22, 26, 0.66);
+  --color-fg-subtle: rgba(23, 22, 26, 0.45);
+  --color-fg-faint:  rgba(23, 22, 26, 0.3);
 
-  --color-border:        rgba(138, 42, 78, 0.22);
-  --color-border-strong: rgba(138, 42, 78, 0.45);
+  --color-border:        rgba(23, 22, 26, 0.1);
+  --color-border-strong: rgba(23, 22, 26, 0.26);
 
-  --color-card:        rgba(253, 252, 248, 0.72);
-  --color-card-highlight: rgba(255, 255, 255, 0.6);
-  --color-popover:     #fffcf4;
-  --color-input-bg:    rgba(255, 255, 255, 0.65);
-  --color-inset-bg:    rgba(51, 18, 31, 0.04);
-  --color-overlay:     rgba(247, 244, 234, 0.82);
-  --color-scrim:       rgba(51, 18, 31, 0.45);
-  --color-fill-subtle: rgba(51, 18, 31, 0.05);
-  --color-fill:        rgba(51, 18, 31, 0.09);
+  --color-card:           #ffffff;
+  --color-card-highlight: transparent;
+  --color-popover:        #ffffff;
+  --color-input-bg:       rgba(23, 22, 26, 0.04);
+  --color-inset-bg:       rgba(23, 22, 26, 0.03);
+  --color-overlay:        rgba(250, 250, 248, 0.85);
+  --color-scrim:          rgba(23, 22, 26, 0.4);
+  --color-fill-subtle:    rgba(23, 22, 26, 0.05);
+  --color-fill:           rgba(23, 22, 26, 0.09);
 
-  --color-primary-tint: rgba(138, 42, 78, 0.06);
-  --color-primary-wash: rgba(138, 42, 78, 0.11);
-  --color-primary-soft: rgba(138, 42, 78, 0.18);
+  --color-primary-tint: rgba(142, 31, 51, 0.07);
+  --color-primary-wash: rgba(142, 31, 51, 0.12);
+  --color-primary-soft: rgba(142, 31, 51, 0.2);
 
   --color-danger:       #b03434;
   --color-warning:      var(--color-champagne-700);
   --color-success:      #3f7d58;
   --color-success-tint: rgba(63, 125, 88, 0.12);
 
-  --bg-tint-1: rgba(165, 56, 96, 0.06);
-  --bg-tint-2: rgba(201, 148, 64, 0.08);
-
-  --shadow-magenta:  0 0 0 1px rgba(138, 42, 78, 0.25), 0 8px 32px -8px rgba(138, 42, 78, 0.15);
-  --shadow-elevated: 0 10px 40px -10px rgba(51, 18, 31, 0.18);
-
-  --grain-opacity: 0.05;
+  --shadow-magenta:  0 0 0 1px rgba(23, 22, 26, 0.14);
+  --shadow-elevated: 0 16px 48px -16px rgba(23, 22, 26, 0.16);
 }
 
 /* ============================================================================
@@ -175,37 +164,34 @@
     /* var(--font-inter) is injected on body by next/font at runtime */
     font-family: var(--font-inter), var(--font-sans);
     font-feature-settings: "cv11";
-    background:
-      radial-gradient(at 20% 0%, var(--bg-tint-1), transparent 50%),
-      radial-gradient(at 80% 100%, var(--bg-tint-2), transparent 50%),
-      var(--color-bg);
+    background: var(--color-bg);
     min-height: 100svh;
-    transition: background-color 240ms ease-out, color 240ms ease-out;
+    transition: background-color 200ms ease-out, color 200ms ease-out;
   }
 
+  /* Titres : sans-serif précis, graisse contenue, pas d'italique décoratif */
   h1, h2, h3, h4, .display {
-    /* var(--font-fraunces) is injected on body by next/font at runtime */
-    font-family: var(--font-fraunces), var(--font-display);
-    font-weight: 800;
-    letter-spacing: -0.04em;
-    line-height: 1;
+    font-family: var(--font-inter), var(--font-sans);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
   }
 
   h1, .display-xl {
-    font-style: italic;
-    font-size: clamp(2.5rem, 5vw + 1rem, 5.5rem);
+    font-size: clamp(2rem, 2.5vw + 1rem, 3.25rem);
+    letter-spacing: -0.03em;
   }
 
-  h2 { font-size: clamp(1.75rem, 2vw + 1rem, 2.75rem); }
-  h3 { font-size: clamp(1.25rem, 1vw + 1rem, 1.75rem); }
+  h2 { font-size: clamp(1.5rem, 1.5vw + 0.75rem, 2rem); }
+  h3 { font-size: clamp(1.125rem, 0.75vw + 0.875rem, 1.375rem); }
 
   a {
-    color: var(--color-primary);
+    color: var(--color-fg);
     text-decoration: none;
     transition: color 120ms ease-out;
   }
   a:hover {
-    color: var(--color-accent);
+    color: var(--color-primary);
   }
 
   ::selection {
@@ -220,7 +206,7 @@
   }
   select option:checked,
   select option:hover {
-    background: var(--color-primary-soft);
+    background: var(--color-fill);
     color: var(--color-fg);
   }
   select option:disabled {
@@ -234,7 +220,7 @@
     background: var(--color-fill);
     border-radius: 8px;
   }
-  ::-webkit-scrollbar-thumb:hover { background: var(--color-primary-soft); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-border-strong); }
 }
 
 /* ============================================================================
@@ -242,43 +228,17 @@
  * ========================================================================== */
 
 @layer components {
+  /* Carte plane : surface opaque, bord 1px, aucun flou ni halo */
   .glass-card {
     background: var(--color-card);
-    backdrop-filter: blur(20px) saturate(130%);
-    /* Liquid glass: 1px border + inner highlight simulates edge refraction */
     border: 1px solid var(--color-border);
-    box-shadow: inset 0 1px 0 var(--color-card-highlight);
     border-radius: var(--radius-lg);
-    transition: border-color 180ms cubic-bezier(0.23, 1, 0.32, 1),
-                transform 180ms cubic-bezier(0.23, 1, 0.32, 1),
-                box-shadow 180ms cubic-bezier(0.23, 1, 0.32, 1),
-                background-color 240ms ease-out;
+    transition: border-color 160ms ease-out, background-color 200ms ease-out;
   }
   @media (hover: hover) and (pointer: fine) {
     .glass-card:hover {
       border-color: var(--color-border-strong);
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-magenta), inset 0 1px 0 var(--color-card-highlight);
     }
-  }
-
-  .gradient-border {
-    position: relative;
-    border-radius: var(--radius-lg);
-  }
-  .gradient-border::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    padding: 1px;
-    border-radius: inherit;
-    background: linear-gradient(135deg, var(--color-magenta-500), var(--color-champagne-500));
-    -webkit-mask:
-      linear-gradient(#fff 0 0) content-box,
-      linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
   }
 
   .btn {
@@ -286,21 +246,22 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.625rem 1.25rem;
-    border-radius: var(--radius-md);
+    padding: 0.625rem 1.5rem;
+    border-radius: var(--radius-sm);
     font-family: var(--font-inter), var(--font-sans);
-    font-weight: 600;
-    font-size: 0.9375rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+    letter-spacing: 0.01em;
     line-height: 1;
     /* Explicit properties — never transition: all */
-    transition: background-color 160ms cubic-bezier(0.23, 1, 0.32, 1),
-                border-color 160ms cubic-bezier(0.23, 1, 0.32, 1),
-                color 160ms cubic-bezier(0.23, 1, 0.32, 1),
-                transform 120ms cubic-bezier(0.23, 1, 0.32, 1);
+    transition: background-color 160ms ease-out,
+                border-color 160ms ease-out,
+                color 160ms ease-out,
+                transform 120ms ease-out;
     cursor: pointer;
   }
   .btn:active {
-    transform: scale(0.97);
+    transform: scale(0.98);
   }
   .btn-primary {
     background: var(--color-primary);
@@ -314,12 +275,12 @@
   .btn-ghost {
     background: transparent;
     color: var(--color-fg);
-    border: 1px solid var(--color-border);
+    border: 1px solid var(--color-border-strong);
   }
   @media (hover: hover) and (pointer: fine) {
     .btn-ghost:hover {
-      border-color: var(--color-border-strong);
-      color: var(--color-primary);
+      border-color: var(--color-fg-muted);
+      background: var(--color-fill-subtle);
     }
   }
 
@@ -328,59 +289,54 @@
     align-items: center;
     gap: 0.375rem;
     padding: 0.25rem 0.625rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-radius: var(--radius-sm);
     font-family: var(--font-sans);
-    letter-spacing: 0.02em;
   }
   .badge-verified {
-    background: rgba(229, 178, 93, 0.1);
-    color: var(--color-accent);
-    border: 1px solid rgba(229, 178, 93, 0.28);
+    color: var(--color-fg-muted);
+    border: 1px solid var(--color-border-strong);
   }
   .badge-reviewed {
-    background: rgba(229, 178, 93, 0.08);
-    color: var(--color-accent);
-    border: 1px solid rgba(229, 178, 93, 0.22);
+    color: var(--color-fg-muted);
+    border: 1px solid var(--color-border);
   }
   .badge-needs-review {
-    background: var(--color-primary-wash);
     color: var(--color-primary);
-    border: 1px solid var(--color-border-strong);
+    border: 1px solid var(--color-primary-soft);
+    background: var(--color-primary-tint);
   }
 
   .stat-card {
-    padding: 1.5rem;
+    padding: 1.75rem;
     background: var(--color-card);
-    backdrop-filter: blur(20px);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
-    transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1),
-                border-color 200ms cubic-bezier(0.23, 1, 0.32, 1),
-                background-color 240ms ease-out;
+    transition: border-color 160ms ease-out, background-color 200ms ease-out;
   }
   @media (hover: hover) and (pointer: fine) {
     .stat-card:hover {
       border-color: var(--color-border-strong);
-      transform: translateY(-2px);
     }
   }
   .stat-card-value {
-    /* Numbers in sans — legibility over decoration */
     font-family: var(--font-inter), var(--font-sans);
     font-size: 2.25rem;
-    font-weight: 700;
-    color: var(--color-accent);
+    font-weight: 600;
+    color: var(--color-fg);
     line-height: 1;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
   }
   .stat-card-label {
-    font-size: 0.8125rem;
-    color: var(--color-fg-muted);
+    font-size: 0.75rem;
+    color: var(--color-fg-subtle);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-top: 0.5rem;
+    letter-spacing: 0.08em;
+    margin-top: 0.625rem;
     font-family: var(--font-inter), var(--font-sans);
   }
 }
@@ -390,32 +346,19 @@
  * ========================================================================== */
 
 @layer utilities {
+  /* Réservé au monogramme "A." — seule survivance serif */
   .text-display {
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-style: italic;
-    letter-spacing: -0.04em;
+    font-family: var(--font-fraunces), var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.02em;
   }
 
-  .text-gradient {
-    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
-  /* Grain overlay — always on a fixed pseudo-element to avoid GPU repaint */
-  .grain {
-    position: relative;
-  }
-  .grain::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 50;
-    opacity: var(--grain-opacity);
-    mix-blend-mode: overlay;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* Micro-label produit : uppercase espacé, à la Tesla */
+  .micro-label {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-fg-subtle);
   }
 }

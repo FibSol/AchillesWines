@@ -286,7 +286,7 @@ export default async function DomainePage({
 
       {/* ── 3. Cuvées summary table ───────────────────────────────────────── */}
       <section className="mb-10">
-        <h2 className="text-xl font-display mb-4" style={{ color: "var(--color-fg)" }}>
+        <h2 className="text-xl font-semibold mb-4" style={{ color: "var(--color-fg)" }}>
           {t("cuvees")}
         </h2>
         {cuveeSummaries.length === 0 ? (
@@ -384,7 +384,7 @@ export default async function DomainePage({
       {/* ── 4. Evolution chart ────────────────────────────────────────────── */}
       {hasVintageData && (
         <section className="mb-10">
-          <h2 className="text-xl font-display mb-4" style={{ color: "var(--color-fg)" }}>
+          <h2 className="text-xl font-semibold mb-4" style={{ color: "var(--color-fg)" }}>
             {t("evolution")}
           </h2>
           <CuveeEvolutionChart
@@ -405,7 +405,7 @@ export default async function DomainePage({
 
       {/* ── 5. Detailed wine table ────────────────────────────────────────── */}
       <section className="mb-6">
-        <h2 className="text-xl font-display mb-4" style={{ color: "var(--color-fg)" }}>
+        <h2 className="text-xl font-semibold mb-4" style={{ color: "var(--color-fg)" }}>
           {t("detailedWines")}
         </h2>
         <DomaineDetailTable

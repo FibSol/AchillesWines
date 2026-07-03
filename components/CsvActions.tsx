@@ -141,7 +141,7 @@ export function CsvActions({
           <Dialog.Overlay className="fixed inset-0 bg-[color:var(--color-overlay)] backdrop-blur-sm z-40" />
           <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[min(560px,90vw)] max-h-[85vh] overflow-y-auto glass-card p-6">
             <div className="flex items-center justify-between mb-4">
-              <Dialog.Title className="text-lg font-display text-[color:var(--color-fg)]">
+              <Dialog.Title className="text-lg font-semibold text-[color:var(--color-fg)]">
                 {labels.importTitle}
               </Dialog.Title>
               <Dialog.Close className="text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-magenta-400)]">
@@ -185,7 +185,7 @@ export function CsvActions({
 
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div className="glass-card p-3">
-                    <p className="text-2xl font-display text-[color:var(--color-success)]">
+                    <p className="text-2xl font-semibold text-[color:var(--color-success)]">
                       {result.inserted}
                     </p>
                     <p className="text-[10px] uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)]">
@@ -193,7 +193,7 @@ export function CsvActions({
                     </p>
                   </div>
                   <div className="glass-card p-3">
-                    <p className="text-2xl font-display text-[color:var(--color-champagne-400)]">
+                    <p className="text-2xl font-semibold text-[color:var(--color-champagne-400)]">
                       {result.merged}
                     </p>
                     <p className="text-[10px] uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)]">
@@ -201,7 +201,7 @@ export function CsvActions({
                     </p>
                   </div>
                   <div className="glass-card p-3">
-                    <p className="text-2xl font-display text-[color:var(--color-warning)]">
+                    <p className="text-2xl font-semibold text-[color:var(--color-warning)]">
                       {result.rejected}
                     </p>
                     <p className="text-[10px] uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)]">

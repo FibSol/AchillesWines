@@ -54,7 +54,7 @@ export function SiteNav() {
     <header className="sticky top-0 z-40 border-b border-[color:var(--color-border)] bg-[color:var(--color-bg-overlay)] backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-screen-2xl items-center gap-6 px-4 sm:px-8">
         <Link href="/" className="flex items-center gap-2 group">
-          <span className="text-display text-2xl text-gradient">A.</span>
+          <span className="text-display text-2xl text-[color:var(--color-primary)]">A.</span>
           <span className="hidden sm:inline font-semibold tracking-tight text-[color:var(--color-fg)]">
             {tMeta("appName")}
           </span>

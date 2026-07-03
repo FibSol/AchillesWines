@@ -703,7 +703,7 @@ function AddBottleDialog({
           }}
         >
           <div className="flex items-center justify-between mb-4">
-            <Dialog.Title className="text-lg font-display text-[color:var(--color-fg)]">
+            <Dialog.Title className="text-lg font-semibold text-[color:var(--color-fg)]">
               {labels.addBottle}
             </Dialog.Title>
             <Dialog.Close className="text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-magenta-400)]">
@@ -1009,7 +1009,7 @@ function ConsumeDialog({
           }}
         >
           <div className="flex items-center justify-between mb-3">
-            <Dialog.Title className="text-base font-display text-[color:var(--color-fg)]">
+            <Dialog.Title className="text-base font-semibold text-[color:var(--color-fg)]">
               {bottle?.producerName} ·{" "}
               <span className="text-[color:var(--color-champagne-400)]">{bottle?.cuveeName}</span>
               {bottle?.vintage && (

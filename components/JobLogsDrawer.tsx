@@ -90,7 +90,7 @@ export function JobLogsDrawer({ jobId, jobStatus, sourceCode, onClose }: Props) 
             <div className="flex items-center gap-3 min-w-0">
               <ScrollText className="size-4 text-[color:var(--color-champagne-400)] shrink-0" strokeWidth={2.5} />
               <div className="min-w-0">
-                <Dialog.Title className="font-display text-base text-[color:var(--color-fg)] truncate">
+                <Dialog.Title className="font-semibold text-base text-[color:var(--color-fg)] truncate">
                   {sourceCode ?? "scraper"} · <span className="font-mono text-sm text-[color:var(--color-fg-muted)]">{jobId?.slice(-8)}</span>
                 </Dialog.Title>
                 <p className="text-[10px] uppercase tracking-[0.08em] text-[color:var(--color-fg-subtle)] mt-0.5">

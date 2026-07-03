@@ -328,7 +328,7 @@ export function MenuComposer({ labels }: { labels: MenuLabels }) {
                   <span className="font-mono text-xs text-[color:var(--color-fg-subtle)]">
                     {idx + 1}.
                   </span>
-                  <h3 className="text-base font-display text-[color:var(--color-fg)]">
+                  <h3 className="text-base font-semibold text-[color:var(--color-fg)]">
                     {labels.courseTypes[course.type]}
                   </h3>
                   {course.dish && (

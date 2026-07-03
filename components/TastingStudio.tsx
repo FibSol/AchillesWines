@@ -711,7 +711,7 @@ export function TastingStudio() {
       {/* Flight-level directives */}
       {flight && flight.stops.length > 0 && (
         <section className="glass-card p-5">
-          <h3 className="flex items-center gap-2 text-sm font-display text-[color:var(--color-fg)] mb-3">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-[color:var(--color-fg)] mb-3">
             <Sparkles className="size-4 text-[color:var(--color-accent)]" strokeWidth={2.5} />
             {t("ui.directives")}
           </h3>
@@ -836,7 +836,7 @@ function StopCard({
       <div className="flex items-start gap-4">
         {/* Order number */}
         <div className="shrink-0 flex flex-col items-center">
-          <span className="display-xl text-2xl text-gradient leading-none">{stop.position}</span>
+          <span className="display-xl text-2xl text-[color:var(--color-primary)] leading-none">{stop.position}</span>
           <span className="mt-1 font-mono text-[9px] uppercase text-[color:var(--color-fg-subtle)]">
             {stop.position === 1 ? t("ui.first") : stop.position === total ? t("ui.last") : t("ui.then")}
           </span>
@@ -1165,7 +1165,7 @@ function PoolPicker({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-display text-[color:var(--color-fg)]">{title}</h3>
+          <h3 className="text-sm font-semibold text-[color:var(--color-fg)]">{title}</h3>
           <button onClick={onClose} className="p-1 text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-primary)]" aria-label={cancelLabel}>
             <X className="size-4" strokeWidth={2.5} />
           </button>

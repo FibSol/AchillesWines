@@ -146,7 +146,7 @@ export function SimilarWines({ wines, labels }: SimilarWinesProps) {
   return (
     <div>
       <div className="mb-4">
-        <h2 className="text-xl font-display" style={{ color: "var(--color-fg)" }}>
+        <h2 className="text-xl font-semibold" style={{ color: "var(--color-fg)" }}>
           {labels.title}
         </h2>
         <p className="text-xs mt-1" style={{ color: "rgba(250,247,245,0.45)" }}>
