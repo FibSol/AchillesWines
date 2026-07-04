@@ -323,6 +323,23 @@
     }
   },
   "tasting": {
+      "guest": {
+        "title": "Guest bottle",
+        "hint": "Add an off-cellar bottle (a friend's, a discovery) to the tasting and printed sheet.",
+        "producer": "Producer",
+        "cuvee": "Cuvée",
+        "vintage": "Vintage",
+        "color": "Colour",
+        "region": "Region",
+        "appellation": "Appellation",
+        "grapes": "Grapes",
+        "abv": "ABV (%)",
+        "price": "Price (€)",
+        "submit": "Add bottle",
+        "add": "Guest bottle",
+        "badge": "Guest",
+        "saveGuestsOnly": "Guest bottles can't be saved to the cellar."
+      },
     "sessions": {
       "save": "Save tasting",
       "saving": "Saving…",
@@ -375,6 +392,14 @@
       "universal": "Universal glass"
     },
     "print": {
+      "startLabel": "Bottles start",
+      "startCellar": "Cellar",
+      "startAmbient": "Room temp",
+      "startFridge": "Fridge (overnight)",
+      "ambientTemp": "Room (°C)",
+      "ambientAt": "Room temperature: {temp} °C",
+      "readyAmbient": "At temperature — serve straight away",
+      "guestTag": "off-cellar",
       "button": "Print",
       "cellarTemp": "Cellar (°C)",
       "sheetTitle": "Tasting sheet",

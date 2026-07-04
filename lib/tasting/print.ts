@@ -14,7 +14,7 @@
  * temperature (≈ 8 min per °C to gain, e.g. 6 °C → 17 °C ≈ 1 h 30).
  */
 
-import type { TastingFlight, FlightStop, DirectiveNote } from "@/lib/tasting/engine";
+import { isGuestWineKey, type TastingFlight, type FlightStop, type DirectiveNote } from "@/lib/tasting/engine";
 
 type Translator = (key: string, values?: Record<string, string | number>) => string;
 
@@ -40,7 +40,7 @@ export function chillPlan(serveTempC: [number, number], cellarTempC: number): Ch
   };
 }
 
-export type BottleStart = "cellar" | "fridgeOvernight";
+export type BottleStart = "cellar" | "ambient" | "fridgeOvernight";
 
 export const FRIDGE_TEMP_C = 6;
 const WARM_MIN_PER_C = 8; // bottle warming at room temperature
@@ -119,7 +119,11 @@ export function buildPrintHtml({
   wineNotes,
   bottlesStart = "cellar",
 }: PrintSheetInput): string {
+  // Both "cellar" and "ambient" are warm starts (chill down); only the fridge
+  // start inverts the plan (warm the reds up). Ambient differs from cellar only
+  // in wording and its default temperature (a room, not a temperature-controlled cave).
   const fromFridge = bottlesStart === "fridgeOvernight";
+  const isAmbient = bottlesStart === "ambient";
   const modeName = t(`modes.${flight.mode}.name`);
   const axis = flight.selectedAxis ? ` · ${flight.selectedAxis.label}` : "";
   const date = new Date().toLocaleDateString(locale, {
@@ -215,7 +219,7 @@ export function buildPrintHtml({
           facts.push(t("print.chillFridge", { minutes: chill.fridgeMinutes }));
           facts.push(t("print.chillIce", { minutes: chill.iceBathMinutes }));
         } else {
-          facts.push(t("print.readyFromCellar"));
+          facts.push(t(isAmbient ? "print.readyAmbient" : "print.readyFromCellar"));
         }
       }
       if (stop.decantMinutes > 0) {
@@ -226,6 +230,7 @@ export function buildPrintHtml({
         stop.region,
         stop.grapes.join(", "),
         formatPrice(stop.avgPriceEur, locale),
+        isGuestWineKey(stop.wineKey) ? t("print.guestTag") : null,
       ]
         .filter(Boolean)
         .join(" · ");
@@ -288,7 +293,9 @@ export function buildPrintHtml({
 <header>
   <h1>Achilles's Wines <small>· ${esc(t("print.sheetTitle"))}</small></h1>
   <p class="subline">${esc(modeName)}${esc(axis)} — ${esc(t("print.printedOn", { date }))} · ${esc(
-    fromFridge ? t("print.fridgeAt", { temp: FRIDGE_TEMP_C }) : t("print.cellarAt", { temp: cellarTempC }),
+    fromFridge
+      ? t("print.fridgeAt", { temp: FRIDGE_TEMP_C })
+      : t(isAmbient ? "print.ambientAt" : "print.cellarAt", { temp: cellarTempC }),
   )}</p>
 </header>
 

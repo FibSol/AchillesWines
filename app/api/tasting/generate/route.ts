@@ -1,7 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { loadTastingCandidates } from "@/lib/tasting/candidates";
-import { buildFlight, isReadyToDrink, TASTING_MODES, type TastingMode } from "@/lib/tasting/engine";
+import {
+  buildFlight,
+  guestToCandidate,
+  isReadyToDrink,
+  TASTING_MODES,
+  type TastingMode,
+} from "@/lib/tasting/engine";
+
+const WINE_COLORS = ["red", "white", "rosé", "sparkling", "sweet", "fortified", "orange"] as const;
+const APPELLATION_LEVELS = ["regional", "village", "premier_cru", "grand_cru", "iconic"] as const;
+
+/** An off-cellar "guest" bottle folded into the flight for this request only (never persisted). */
+const GuestWineSchema = z.object({
+  wineKey: z.string().startsWith("guest:").max(80),
+  producerName: z.string().min(1).max(120),
+  cuveeName: z.string().max(120).default(""),
+  vintage: z.number().int().min(1900).max(2100).nullable().default(null),
+  color: z.enum(WINE_COLORS),
+  appellationName: z.string().max(120).default(""),
+  countryCode: z.string().min(2).max(3).default("FR"),
+  region: z.string().max(120).default(""),
+  level: z.enum(APPELLATION_LEVELS).default("regional"),
+  varieties: z.array(z.string().max(60)).max(8).default([]),
+  alcoholPct: z.number().min(0).max(25).nullable().default(null),
+  avgPriceEur: z.number().nonnegative().nullable().default(null),
+});
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +45,8 @@ const PostBody = z.object({
   lockedWineKeys: z.array(z.string()).max(8).default([]),
   excludeWineKeys: z.array(z.string()).max(200).default([]),
   filters: FiltersSchema.optional(),
+  /** Off-cellar bottles folded into the flight (max one full flight's worth). */
+  guestWines: z.array(GuestWineSchema).max(8).default([]),
   /** "Surprise me": randomize the progressive selection. */
   shuffle: z.boolean().default(false),
 });
@@ -33,25 +60,32 @@ export async function POST(req: NextRequest) {
       { status: 400 },
     );
   }
-  const { mode, count, axisId, lockedWineKeys, excludeWineKeys, filters, shuffle } = parsed.data;
+  const { mode, count, axisId, lockedWineKeys, excludeWineKeys, filters, guestWines, shuffle } =
+    parsed.data;
   const currentYear = new Date().getFullYear();
 
-  let pool = await loadTastingCandidates();
+  // Guest bottles are always kept and always in the flight: treat them as locked
+  // so they bypass the readiness filter, the user filters and the selection logic.
+  const guests = guestWines.map(guestToCandidate);
+  const guestKeys = guests.map((g) => g.wineKey);
+  const effectiveLocked = [...new Set([...lockedWineKeys, ...guestKeys])];
+
+  let pool = [...guests, ...(await loadTastingCandidates())];
   if (pool.length === 0) {
     return NextResponse.json({ flight: null, poolSize: 0, empty: true });
   }
 
   // Never propose a wine that is not ready to drink (too young for its style).
-  // Locked wines are the user's explicit choice and stay in.
-  const lockedKeys = new Set(lockedWineKeys);
+  // Locked / guest wines are the user's explicit choice and stay in.
+  const lockedKeys = new Set(effectiveLocked);
   pool = pool.filter((c) => lockedKeys.has(c.wineKey) || isReadyToDrink(c, currentYear));
   if (pool.length === 0) {
     return NextResponse.json({ flight: null, poolSize: 0, empty: true });
   }
 
-  // Apply filters (locked wines are always kept regardless of filters)
+  // Apply filters (locked / guest wines are always kept regardless of filters)
   if (filters) {
-    const lockedSet = new Set(lockedWineKeys);
+    const lockedSet = new Set(effectiveLocked);
     pool = pool.filter((c) => {
       if (lockedSet.has(c.wineKey)) return true;
       if (filters.countries.length > 0 && !filters.countries.includes(c.countryCode)) return false;
@@ -75,7 +109,7 @@ export async function POST(req: NextRequest) {
   const flight = buildFlight(mode as TastingMode, pool, {
     count,
     axisId,
-    lockedWineKeys,
+    lockedWineKeys: effectiveLocked,
     excludeWineKeys,
     currentYear,
     rng: shuffle ? Math.random : undefined,
