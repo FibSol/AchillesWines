@@ -323,6 +323,23 @@
     }
   },
   "tasting": {
+      "guest": {
+        "title": "Botella invitada",
+        "hint": "Añade una botella de fuera de la bodega (de un amigo, un hallazgo) a la cata y a la ficha impresa.",
+        "producer": "Productor",
+        "cuvee": "Cuvée",
+        "vintage": "Añada",
+        "color": "Color",
+        "region": "Región",
+        "appellation": "Denominación",
+        "grapes": "Uvas",
+        "abv": "Grado (%)",
+        "price": "Precio (€)",
+        "submit": "Añadir botella",
+        "add": "Botella invitada",
+        "badge": "Invitada",
+        "saveGuestsOnly": "Las botellas invitadas no se pueden guardar en la bodega."
+      },
     "sessions": {
       "save": "Guardar la cata",
       "saving": "Guardando…",
@@ -357,6 +374,14 @@
       "universal": "Copa universal"
     },
     "print": {
+      "startLabel": "Inicio",
+      "startCellar": "Bodega",
+      "startAmbient": "Ambiente",
+      "startFridge": "Nevera (noche)",
+      "ambientTemp": "Ambiente (°C)",
+      "ambientAt": "Temperatura ambiente: {temp} °C",
+      "readyAmbient": "A temperatura — servir directamente",
+      "guestTag": "fuera de bodega",
       "button": "Imprimir",
       "cellarTemp": "Bodega (°C)",
       "sheetTitle": "Ficha de cata",

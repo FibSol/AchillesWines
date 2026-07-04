@@ -323,6 +323,23 @@
     }
   },
   "tasting": {
+      "guest": {
+        "title": "Bouteille invitée",
+        "hint": "Ajoutez une bouteille hors cave (celle d'un ami, une découverte) à la dégustation et à la fiche imprimée.",
+        "producer": "Producteur",
+        "cuvee": "Cuvée",
+        "vintage": "Millésime",
+        "color": "Couleur",
+        "region": "Région",
+        "appellation": "Appellation",
+        "grapes": "Cépages",
+        "abv": "Degré (%)",
+        "price": "Prix (€)",
+        "submit": "Ajouter la bouteille",
+        "add": "Bouteille invitée",
+        "badge": "Invité",
+        "saveGuestsOnly": "Les bouteilles invitées ne peuvent pas être enregistrées dans la cave."
+      },
     "sessions": {
       "save": "Enregistrer la dégustation",
       "saving": "Enregistrement…",
@@ -357,6 +374,14 @@
       "universal": "Verre universel"
     },
     "print": {
+      "startLabel": "Départ",
+      "startCellar": "Cave",
+      "startAmbient": "Ambiante",
+      "startFridge": "Frigo (la veille)",
+      "ambientTemp": "Ambiante (°C)",
+      "ambientAt": "Température ambiante : {temp} °C",
+      "readyAmbient": "À température ambiante — servir directement",
+      "guestTag": "hors cave",
       "button": "Imprimer",
       "cellarTemp": "Cave (°C)",
       "sheetTitle": "Fiche de dégustation",

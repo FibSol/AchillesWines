@@ -27,15 +27,29 @@ import {
   Printer,
   Info,
   BookmarkPlus,
+  UserPlus,
 } from "lucide-react";
 import { SavedTastings } from "@/components/SavedTastings";
-import { buildPrintHtml, type WineNote } from "@/lib/tasting/print";
-import type {
-  TastingFlight,
-  TastingMode,
-  FlightStop,
-  DirectiveNote,
+import { buildPrintHtml, type WineNote, type BottleStart } from "@/lib/tasting/print";
+import {
+  GUEST_KEY_PREFIX,
+  isGuestWineKey,
+  type TastingFlight,
+  type TastingMode,
+  type FlightStop,
+  type DirectiveNote,
+  type GuestWineInput,
 } from "@/lib/tasting/engine";
+
+const GUEST_COLORS: GuestWineInput["color"][] = [
+  "red",
+  "white",
+  "rosé",
+  "sparkling",
+  "sweet",
+  "fortified",
+  "orange",
+];
 
 export const COLOR_DOT: Record<string, string> = {
   red: "#A53860",
@@ -160,16 +174,19 @@ function buildDescription(stop: FlightStop, t: ReturnType<typeof useTranslations
 
 export function TastingStudio() {
   const t = useTranslations("tasting");
+  const tColors = useTranslations("colors");
   const locale = useLocale();
 
   const [mode, setMode] = useState<TastingMode>("progressive");
   const [cellarTemp, setCellarTemp] = useState(19);
-  const [fridgeOvernight, setFridgeOvernight] = useState(false);
+  const [bottlesStart, setBottlesStart] = useState<BottleStart>("cellar");
   const [printing, setPrinting] = useState(false);
   const [count, setCount] = useState(6);
   const [axisId, setAxisId] = useState<string | undefined>(undefined);
   const [locked, setLocked] = useState<string[]>([]);
   const [excluded, setExcluded] = useState<string[]>([]);
+  const [guests, setGuests] = useState<GuestWineInput[]>([]);
+  const [guestFormOpen, setGuestFormOpen] = useState(false);
   const [filters, setFilters] = useState<TastingFilters>(EMPTY_FILTERS);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
@@ -197,6 +214,7 @@ export function TastingStudio() {
       axisId?: string | undefined;
       locked?: string[];
       excluded?: string[];
+      guests?: GuestWineInput[];
       filters?: TastingFilters;
       shuffle?: boolean;
     }) => {
@@ -207,6 +225,7 @@ export function TastingStudio() {
         axisId: override?.axisId !== undefined ? override.axisId : axisId,
         lockedWineKeys: override?.locked ?? locked,
         excludeWineKeys: override?.excluded ?? excluded,
+        guestWines: override?.guests ?? guests,
         filters: activeFilters,
         shuffle: override?.shuffle ?? false,
       };
@@ -233,7 +252,7 @@ export function TastingStudio() {
         setLoading(false);
       }
     },
-    [mode, count, axisId, locked, excluded, filters],
+    [mode, count, axisId, locked, excluded, guests, filters],
   );
 
   // On mount: load feasibility + auto-curate the default progressive flight.
@@ -291,11 +310,34 @@ export function TastingStudio() {
   }
 
   function removeStop(wineKey: string) {
+    // Guest bottles are re-injected on every generate, so excluding them does
+    // nothing — they have to be dropped from the guest list instead.
+    if (isGuestWineKey(wineKey)) {
+      removeGuest(wineKey);
+      return;
+    }
     const nextExcluded = [...excluded, wineKey];
     const nextLocked = locked.filter((k) => k !== wineKey);
     setExcluded(nextExcluded);
     setLocked(nextLocked);
     void generate({ excluded: nextExcluded, locked: nextLocked });
+  }
+
+  /** Fold a user-entered off-cellar bottle into the flight, bumping the count so nothing is displaced. */
+  function addGuest(input: GuestWineInput) {
+    setGuestFormOpen(false);
+    const nextGuests = [...guests, input];
+    const currentStops = flight?.stops.length ?? 0;
+    const nextCount = Math.min(8, Math.max(count, currentStops + 1));
+    setGuests(nextGuests);
+    if (nextCount !== count) setCount(nextCount);
+    void generate({ guests: nextGuests, count: nextCount });
+  }
+
+  function removeGuest(wineKey: string) {
+    const nextGuests = guests.filter((g) => g.wineKey !== wineKey);
+    setGuests(nextGuests);
+    void generate({ guests: nextGuests });
   }
 
   function surprise() {
@@ -361,7 +403,7 @@ export function TastingStudio() {
       t: (key, values) => t(key, values),
       renderNote,
       wineNotes,
-      bottlesStart: fridgeOvernight ? "fridgeOvernight" : "cellar",
+      bottlesStart,
     });
     w.document.open();
     w.document.write(html);
@@ -371,6 +413,12 @@ export function TastingStudio() {
   /** Snapshot the current flight so it can be rated and cleared from the cellar later. */
   async function saveTasting() {
     if (!flight || flight.stops.length === 0 || saving) return;
+    // Guest bottles are not in the cellar, so they can't be snapshotted / consumed.
+    const cellarStops = flight.stops.filter((s) => !isGuestWineKey(s.wineKey));
+    if (cellarStops.length === 0) {
+      setError(t("guest.saveGuestsOnly"));
+      return;
+    }
     setSaving(true);
     try {
       const r = await fetch("/api/tasting/sessions", {
@@ -378,7 +426,7 @@ export function TastingStudio() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           mode: flight.mode,
-          wines: flight.stops.map((s) => ({ wineKey: s.wineKey, position: s.position })),
+          wines: cellarStops.map((s) => ({ wineKey: s.wineKey, position: s.position })),
         }),
       });
       if (!r.ok) {
@@ -687,30 +735,43 @@ export function TastingStudio() {
           <Plus className="size-3.5" strokeWidth={2.5} />
           {t("ui.addFromCellar")}
         </button>
+        <button
+          onClick={() => setGuestFormOpen(true)}
+          disabled={loading}
+          className="btn btn-ghost text-xs"
+        >
+          <UserPlus className="size-3.5" strokeWidth={2.5} />
+          {t("guest.add")}
+        </button>
 
-        {/* Cellar temperature + printable prep sheet */}
+        {/* Where the bottles start (drives the preparation plan) + temperature */}
         <label className="flex items-center gap-2 text-xs text-[color:var(--color-fg-muted)]">
           <span className="uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)]">
-            {t("print.cellarTemp")}
+            {t("print.startLabel")}
+          </span>
+          <select
+            value={bottlesStart}
+            onChange={(e) => setBottlesStart(e.target.value as BottleStart)}
+            className="px-2 py-1.5 rounded bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)]"
+          >
+            <option value="cellar">{t("print.startCellar")}</option>
+            <option value="ambient">{t("print.startAmbient")}</option>
+            <option value="fridgeOvernight">{t("print.startFridge")}</option>
+          </select>
+        </label>
+        <label className="flex items-center gap-2 text-xs text-[color:var(--color-fg-muted)]">
+          <span className="uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)]">
+            {bottlesStart === "ambient" ? t("print.ambientTemp") : t("print.cellarTemp")}
           </span>
           <input
             type="number"
             min={0}
             max={30}
-            value={cellarTemp}
-            disabled={fridgeOvernight}
+            value={bottlesStart === "fridgeOvernight" ? 6 : cellarTemp}
+            disabled={bottlesStart === "fridgeOvernight"}
             onChange={(e) => setCellarTemp(Number(e.target.value))}
             className="w-16 px-2 py-1.5 rounded bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-xs text-[color:var(--color-fg)] focus:outline-none focus:border-[color:var(--color-primary)] disabled:opacity-40"
           />
-        </label>
-        <label className="flex items-center gap-1.5 text-xs text-[color:var(--color-fg-muted)] cursor-pointer">
-          <input
-            type="checkbox"
-            checked={fridgeOvernight}
-            onChange={(e) => setFridgeOvernight(e.target.checked)}
-            className="accent-[color:var(--color-primary)]"
-          />
-          {t("print.fridgeOvernight")}
         </label>
         <button
           onClick={printSheet}
@@ -772,6 +833,7 @@ export function TastingStudio() {
               key={stop.wineKey}
               stop={stop}
               isLocked={locked.includes(stop.wineKey)}
+              isGuest={isGuestWineKey(stop.wineKey)}
               total={flight.stops.length}
               onToggleLock={() => toggleLock(stop.wineKey)}
               onRemove={() => removeStop(stop.wineKey)}
@@ -797,6 +859,205 @@ export function TastingStudio() {
           cancelLabel={t("ui.cancel")}
         />
       )}
+
+      {/* Guest-bottle form */}
+      {guestFormOpen && (
+        <GuestWineForm
+          onAdd={addGuest}
+          onClose={() => setGuestFormOpen(false)}
+          t={t}
+          tColors={tColors}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------------------- */
+
+/** Modal form to fold an off-cellar "guest" bottle into the flight and printed sheet. */
+function GuestWineForm({
+  onAdd,
+  onClose,
+  t,
+  tColors,
+}: {
+  onAdd: (input: GuestWineInput) => void;
+  onClose: () => void;
+  t: ReturnType<typeof useTranslations>;
+  tColors: ReturnType<typeof useTranslations>;
+}) {
+  const [producerName, setProducerName] = useState("");
+  const [cuveeName, setCuveeName] = useState("");
+  const [vintage, setVintage] = useState("");
+  const [color, setColor] = useState<GuestWineInput["color"]>("red");
+  const [region, setRegion] = useState("");
+  const [appellationName, setAppellationName] = useState("");
+  const [grapes, setGrapes] = useState("");
+  const [alcohol, setAlcohol] = useState("");
+  const [price, setPrice] = useState("");
+
+  const canSubmit = producerName.trim().length > 0;
+
+  function submit() {
+    if (!canSubmit) return;
+    const vintageNum = Number.parseInt(vintage, 10);
+    const alcoholNum = Number.parseFloat(alcohol);
+    const priceNum = Number.parseFloat(price);
+    // A random suffix keeps two same-named guest bottles distinct.
+    const rand = Math.random().toString(36).slice(2, 8);
+    onAdd({
+      wineKey: `${GUEST_KEY_PREFIX}${rand}`,
+      producerName: producerName.trim(),
+      cuveeName: cuveeName.trim(),
+      vintage: Number.isFinite(vintageNum) && vintage.trim() !== "" ? vintageNum : null,
+      color,
+      appellationName: appellationName.trim(),
+      countryCode: "FR",
+      region: region.trim(),
+      level: "regional",
+      varieties: grapes
+        .split(",")
+        .map((g) => g.trim())
+        .filter(Boolean),
+      alcoholPct: Number.isFinite(alcoholNum) && alcohol.trim() !== "" ? alcoholNum : null,
+      avgPriceEur: Number.isFinite(priceNum) && price.trim() !== "" ? priceNum : null,
+    });
+  }
+
+  const inputCls =
+    "w-full px-2.5 py-1.5 rounded-md bg-[color:var(--color-input-bg)] border border-[color:var(--color-border)] text-sm text-[color:var(--color-fg)] placeholder:text-[color:var(--color-fg-subtle)] focus:outline-none focus:border-[color:var(--color-primary)]";
+  const labelCls =
+    "text-xs uppercase tracking-[0.06em] text-[color:var(--color-fg-subtle)] mb-1 block";
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[color:var(--color-scrim)] backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <div
+        className="glass-card w-full max-w-lg max-h-[85vh] flex flex-col p-5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-[color:var(--color-fg)]">
+            <UserPlus className="size-4 text-[color:var(--color-primary)]" strokeWidth={2.5} />
+            {t("guest.title")}
+          </h3>
+          <button
+            onClick={onClose}
+            className="p-1 text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-primary)]"
+            aria-label={t("ui.cancel")}
+          >
+            <X className="size-4" strokeWidth={2.5} />
+          </button>
+        </div>
+        <p className="text-xs text-[color:var(--color-fg-muted)] mb-4">{t("guest.hint")}</p>
+
+        <div className="overflow-y-auto scrollbar-thin grid grid-cols-2 gap-3">
+          <div className="col-span-2">
+            <label className={labelCls}>{t("guest.producer")} *</label>
+            <input
+              className={inputCls}
+              value={producerName}
+              onChange={(e) => setProducerName(e.target.value)}
+              placeholder="Domaine Michel Lafarge"
+              autoFocus
+            />
+          </div>
+          <div className="col-span-2">
+            <label className={labelCls}>{t("guest.cuvee")}</label>
+            <input
+              className={inputCls}
+              value={cuveeName}
+              onChange={(e) => setCuveeName(e.target.value)}
+              placeholder="L'Exception"
+            />
+          </div>
+          <div>
+            <label className={labelCls}>{t("guest.vintage")}</label>
+            <input
+              className={inputCls}
+              type="number"
+              value={vintage}
+              onChange={(e) => setVintage(e.target.value)}
+              placeholder="2020"
+            />
+          </div>
+          <div>
+            <label className={labelCls}>{t("guest.color")}</label>
+            <select
+              className={inputCls}
+              value={color}
+              onChange={(e) => setColor(e.target.value as GuestWineInput["color"])}
+            >
+              {GUEST_COLORS.map((c) => (
+                <option key={c} value={c}>
+                  {tColors(c)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>{t("guest.region")}</label>
+            <input
+              className={inputCls}
+              value={region}
+              onChange={(e) => setRegion(e.target.value)}
+              placeholder="Bourgogne"
+            />
+          </div>
+          <div>
+            <label className={labelCls}>{t("guest.appellation")}</label>
+            <input
+              className={inputCls}
+              value={appellationName}
+              onChange={(e) => setAppellationName(e.target.value)}
+              placeholder="Bourgogne Passetoutgrain"
+            />
+          </div>
+          <div className="col-span-2">
+            <label className={labelCls}>{t("guest.grapes")}</label>
+            <input
+              className={inputCls}
+              value={grapes}
+              onChange={(e) => setGrapes(e.target.value)}
+              placeholder="Gamay, Pinot Noir"
+            />
+          </div>
+          <div>
+            <label className={labelCls}>{t("guest.abv")}</label>
+            <input
+              className={inputCls}
+              type="number"
+              step="0.1"
+              value={alcohol}
+              onChange={(e) => setAlcohol(e.target.value)}
+              placeholder="12.5"
+            />
+          </div>
+          <div>
+            <label className={labelCls}>{t("guest.price")}</label>
+            <input
+              className={inputCls}
+              type="number"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="€"
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2 mt-5">
+          <button onClick={onClose} className="btn btn-ghost text-xs">
+            {t("ui.cancel")}
+          </button>
+          <button onClick={submit} disabled={!canSubmit} className="btn btn-primary text-xs">
+            <Plus className="size-3.5" strokeWidth={2.5} />
+            {t("guest.submit")}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -806,6 +1067,7 @@ export function TastingStudio() {
 function StopCard({
   stop,
   isLocked,
+  isGuest,
   total,
   onToggleLock,
   onRemove,
@@ -815,6 +1077,7 @@ function StopCard({
 }: {
   stop: FlightStop;
   isLocked: boolean;
+  isGuest: boolean;
   total: number;
   onToggleLock: () => void;
   onRemove: () => void;
@@ -835,6 +1098,8 @@ function StopCard({
   const hoverTimer = useRef<number | null>(null);
 
   function loadDetails() {
+    // Guest bottles have no cellar record — there is nothing to fetch.
+    if (isGuest) return;
     if (wineDetailsCache.has(stop.wineKey)) {
       setDetails(wineDetailsCache.get(stop.wineKey)!);
       return;
@@ -895,28 +1160,37 @@ function StopCard({
               <span className="font-semibold text-[color:var(--color-fg)] leading-tight truncate">
                 {stop.producerName}
               </span>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // On touch devices a tap also fires mouseenter and the
-                  // emulated hover never leaves — clear it so the ℹ️ toggle
-                  // alone controls visibility.
-                  if (hoverTimer.current !== null) window.clearTimeout(hoverTimer.current);
-                  setShowInfo(false);
-                  setPinned((v) => !v);
-                  loadDetails();
-                }}
-                title={t("card.info")}
-                aria-label={t("card.info")}
-                className={[
-                  "p-0.5 rounded shrink-0 transition",
-                  pinned
-                    ? "text-[color:var(--color-primary)]"
-                    : "text-[color:var(--color-fg-subtle)] hover:text-[color:var(--color-primary)]",
-                ].join(" ")}
-              >
-                <Info className="size-3.5" strokeWidth={2.5} />
-              </button>
+              {isGuest && (
+                <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[color:var(--color-primary-soft)] text-[color:var(--color-accent)] text-[9px] font-mono uppercase tracking-[0.06em]">
+                  <UserPlus className="size-2.5" strokeWidth={2.5} />
+                  {t("guest.badge")}
+                </span>
+              )}
+              {/* A guest bottle has no cellar record, so there is no identity card to show. */}
+              {!isGuest && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // On touch devices a tap also fires mouseenter and the
+                    // emulated hover never leaves — clear it so the ℹ️ toggle
+                    // alone controls visibility.
+                    if (hoverTimer.current !== null) window.clearTimeout(hoverTimer.current);
+                    setShowInfo(false);
+                    setPinned((v) => !v);
+                    loadDetails();
+                  }}
+                  title={t("card.info")}
+                  aria-label={t("card.info")}
+                  className={[
+                    "p-0.5 rounded shrink-0 transition",
+                    pinned
+                      ? "text-[color:var(--color-primary)]"
+                      : "text-[color:var(--color-fg-subtle)] hover:text-[color:var(--color-primary)]",
+                  ].join(" ")}
+                >
+                  <Info className="size-3.5" strokeWidth={2.5} />
+                </button>
+              )}
             </div>
             <p className="text-sm text-[color:var(--color-primary)]">
               {stop.cuveeName}
@@ -924,7 +1198,7 @@ function StopCard({
                 <span className="ml-1.5 font-mono text-[color:var(--color-fg-muted)]">{stop.vintage}</span>
               )}
             </p>
-            {(showInfo || pinned) && <WineIdentityCard stop={stop} details={details} t={t} />}
+            {!isGuest && (showInfo || pinned) && <WineIdentityCard stop={stop} details={details} t={t} />}
           </div>
           <p className="text-[11px] text-[color:var(--color-fg-subtle)] mt-0.5">
             {stop.appellationName}
@@ -1009,12 +1283,17 @@ function StopCard({
 
         {/* Actions */}
         <div className="shrink-0 flex flex-col gap-1.5">
-          <IconBtn onClick={onToggleLock} active={isLocked} title={isLocked ? t("ui.locked") : t("ui.lock")}>
-            {isLocked ? <Lock className="size-3.5" strokeWidth={2.5} /> : <LockOpen className="size-3.5" strokeWidth={2.5} />}
-          </IconBtn>
-          <IconBtn onClick={onSwap} title={t("ui.swap")}>
-            <Replace className="size-3.5" strokeWidth={2.5} />
-          </IconBtn>
+          {/* Lock / swap are meaningless for a guest bottle — it is always pinned and has no cellar alternative. */}
+          {!isGuest && (
+            <>
+              <IconBtn onClick={onToggleLock} active={isLocked} title={isLocked ? t("ui.locked") : t("ui.lock")}>
+                {isLocked ? <Lock className="size-3.5" strokeWidth={2.5} /> : <LockOpen className="size-3.5" strokeWidth={2.5} />}
+              </IconBtn>
+              <IconBtn onClick={onSwap} title={t("ui.swap")}>
+                <Replace className="size-3.5" strokeWidth={2.5} />
+              </IconBtn>
+            </>
+          )}
           <IconBtn onClick={onRemove} title={t("ui.remove")}>
             <X className="size-3.5" strokeWidth={2.5} />
           </IconBtn>

@@ -6,6 +6,10 @@ import {
   modeFeasibility,
   isReadyToDrink,
   minReadyAgeYears,
+  guestToCandidate,
+  isGuestWineKey,
+  GUEST_KEY_PREFIX,
+  type GuestWineInput,
   type TastingCandidate,
 } from "@/lib/tasting/engine";
 import type { WineColor } from "@/lib/pairing";
@@ -236,6 +240,59 @@ describe("buildFlight — drink_now", () => {
     expect(keys).not.toContain("fresh");
     expect(keys).toContain("old");
     expect(keys).toContain("lastold");
+  });
+});
+
+describe("guest bottles", () => {
+  const guest: GuestWineInput = {
+    wineKey: `${GUEST_KEY_PREFIX}abc123`,
+    producerName: "Domaine Michel Lafarge",
+    cuveeName: "L'Exception",
+    vintage: 2020,
+    color: "red",
+    appellationName: "Bourgogne Passetoutgrain",
+    countryCode: "FR",
+    region: "Bourgogne",
+    varieties: ["Gamay", "Pinot Noir"],
+    alcoholPct: 12.5,
+    avgPriceEur: 22,
+  };
+
+  it("isGuestWineKey distinguishes guests from cellar wines", () => {
+    expect(isGuestWineKey(`${GUEST_KEY_PREFIX}xyz`)).toBe(true);
+    expect(isGuestWineKey("a1b2c3d4e5f6")).toBe(false);
+  });
+
+  it("guestToCandidate fills engine defaults (no stock, no ratings)", () => {
+    const c = guestToCandidate(guest);
+    expect(c.qty).toBe(0);
+    expect(c.locations).toEqual([]);
+    expect(c.avgRating).toBeNull();
+    expect(c.vintageScore).toBeNull();
+    expect(c.primaryVariety).toBe("Gamay");
+    expect(c.canonicalName).toBe("Domaine Michel Lafarge L'Exception 2020");
+    expect(c.isNonVintage).toBe(false);
+    expect(c.level).toBe("regional");
+  });
+
+  it("a guest with no vintage is treated as non-vintage", () => {
+    const c = guestToCandidate({ ...guest, vintage: null });
+    expect(c.vintage).toBeNull();
+    expect(c.isNonVintage).toBe(true);
+  });
+
+  it("a locked guest is always kept in the flight, even as a 7th wine", () => {
+    const cellar = Array.from({ length: 6 }, (_, i) =>
+      mk({ wineKey: `c${i}`, color: "red", alcoholPct: 13, primaryVariety: "Merlot" }),
+    );
+    const g = guestToCandidate(guest);
+    const flight = buildFlight("progressive", [g, ...cellar], {
+      count: 7,
+      currentYear: YEAR,
+      lockedWineKeys: [g.wineKey],
+    });
+    expect(flight.stops).toHaveLength(7);
+    expect(flight.stops.map((s) => s.wineKey)).toContain(g.wineKey);
   });
 });
 

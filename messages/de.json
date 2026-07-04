@@ -323,6 +323,23 @@
     }
   },
   "tasting": {
+      "guest": {
+        "title": "Gastflasche",
+        "hint": "Fügen Sie eine Flasche außerhalb des Kellers (von einem Freund, eine Entdeckung) zur Verkostung und zum gedruckten Blatt hinzu.",
+        "producer": "Erzeuger",
+        "cuvee": "Cuvée",
+        "vintage": "Jahrgang",
+        "color": "Farbe",
+        "region": "Region",
+        "appellation": "Appellation",
+        "grapes": "Rebsorten",
+        "abv": "Alkohol (%)",
+        "price": "Preis (€)",
+        "submit": "Flasche hinzufügen",
+        "add": "Gastflasche",
+        "badge": "Gast",
+        "saveGuestsOnly": "Gastflaschen können nicht im Keller gespeichert werden."
+      },
     "sessions": {
       "save": "Verkostung speichern",
       "saving": "Speichern…",
@@ -357,6 +374,14 @@
       "universal": "Universalglas"
     },
     "print": {
+      "startLabel": "Ausgangspunkt",
+      "startCellar": "Keller",
+      "startAmbient": "Raumtemp.",
+      "startFridge": "Kühlschrank (über Nacht)",
+      "ambientTemp": "Raum (°C)",
+      "ambientAt": "Raumtemperatur: {temp} °C",
+      "readyAmbient": "Auf Temperatur — direkt servieren",
+      "guestTag": "kellerextern",
       "button": "Drucken",
       "cellarTemp": "Keller (°C)",
       "sheetTitle": "Verkostungsblatt",

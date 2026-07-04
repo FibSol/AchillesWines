@@ -78,6 +78,72 @@ export interface TastingCandidate {
   locations: WineLocation[];
 }
 
+/**
+ * A "guest" bottle: a wine that is NOT in the cellar (a friend's bottle, a
+ * restaurant pick, a sample) that the user wants to fold into a flight and the
+ * printed sheet. It carries just the attributes the engine needs; there is no
+ * inventory, no ratings and no cellar location behind it.
+ */
+export interface GuestWineInput {
+  /** Client-generated key, always prefixed `guest:` so it never collides with a real wine_key. */
+  wineKey: string;
+  producerName: string;
+  cuveeName: string;
+  vintage: number | null;
+  color: WineColor;
+  appellationName: string;
+  countryCode: string;
+  region: string;
+  level?: AppellationLevel;
+  varieties: string[];
+  alcoholPct: number | null;
+  avgPriceEur: number | null;
+}
+
+export const GUEST_KEY_PREFIX = "guest:";
+
+/** Whether a wineKey belongs to a guest (off-cellar) bottle rather than a cellar wine. */
+export function isGuestWineKey(wineKey: string): boolean {
+  return wineKey.startsWith(GUEST_KEY_PREFIX);
+}
+
+/**
+ * Turn a user-entered guest bottle into a full engine candidate. Everything the
+ * cellar would normally supply (stock, ratings, vintage chart, locations) is
+ * left empty — the wine simply rides through the same ordering / directive
+ * logic as any cellar wine.
+ */
+export function guestToCandidate(g: GuestWineInput): TastingCandidate {
+  const vintage = g.vintage ?? null;
+  const canonical =
+    [g.producerName, g.cuveeName, vintage !== null ? String(vintage) : ""]
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .join(" ") || g.producerName;
+  return {
+    wineKey: g.wineKey,
+    producerName: g.producerName,
+    cuveeName: g.cuveeName,
+    canonicalName: canonical,
+    vintage,
+    isNonVintage: vintage === null,
+    color: g.color,
+    alcoholPct: g.alcoholPct,
+    appellationName: g.appellationName,
+    countryCode: g.countryCode,
+    region: g.region,
+    subregion: null,
+    level: g.level ?? "regional",
+    primaryVariety: g.varieties[0] ?? null,
+    varieties: g.varieties,
+    avgRating: null,
+    vintageScore: null,
+    avgPriceEur: g.avgPriceEur,
+    qty: 0,
+    locations: [],
+  };
+}
+
 /** Structured, translatable note: the client renders t(`tasting.notes.${key}`, params). */
 export interface DirectiveNote {
   key: string;

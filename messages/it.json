@@ -323,6 +323,23 @@
     }
   },
   "tasting": {
+      "guest": {
+        "title": "Bottiglia ospite",
+        "hint": "Aggiungi una bottiglia fuori cantina (di un amico, una scoperta) alla degustazione e alla scheda stampata.",
+        "producer": "Produttore",
+        "cuvee": "Cuvée",
+        "vintage": "Annata",
+        "color": "Colore",
+        "region": "Regione",
+        "appellation": "Denominazione",
+        "grapes": "Uve",
+        "abv": "Gradazione (%)",
+        "price": "Prezzo (€)",
+        "submit": "Aggiungi bottiglia",
+        "add": "Bottiglia ospite",
+        "badge": "Ospite",
+        "saveGuestsOnly": "Le bottiglie ospiti non possono essere salvate in cantina."
+      },
     "sessions": {
       "save": "Salva la degustazione",
       "saving": "Salvataggio…",
@@ -357,6 +374,14 @@
       "universal": "Calice universale"
     },
     "print": {
+      "startLabel": "Partenza",
+      "startCellar": "Cantina",
+      "startAmbient": "Ambiente",
+      "startFridge": "Frigo (notte)",
+      "ambientTemp": "Ambiente (°C)",
+      "ambientAt": "Temperatura ambiente: {temp} °C",
+      "readyAmbient": "A temperatura — servire subito",
+      "guestTag": "fuori cantina",
       "button": "Stampa",
       "cellarTemp": "Cantina (°C)",
       "sheetTitle": "Scheda di degustazione",

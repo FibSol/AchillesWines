@@ -323,6 +323,23 @@
     }
   },
   "tasting": {
+      "guest": {
+        "title": "Gastfles",
+        "hint": "Voeg een fles van buiten de kelder (van een vriend, een ontdekking) toe aan de proeverij en het afgedrukte blad.",
+        "producer": "Producent",
+        "cuvee": "Cuvée",
+        "vintage": "Jaargang",
+        "color": "Kleur",
+        "region": "Regio",
+        "appellation": "Appellatie",
+        "grapes": "Druiven",
+        "abv": "Alcohol (%)",
+        "price": "Prijs (€)",
+        "submit": "Fles toevoegen",
+        "add": "Gastfles",
+        "badge": "Gast",
+        "saveGuestsOnly": "Gastflessen kunnen niet in de kelder worden opgeslagen."
+      },
     "sessions": {
       "save": "Proeverij opslaan",
       "saving": "Opslaan…",
@@ -357,6 +374,14 @@
       "universal": "Universeel glas"
     },
     "print": {
+      "startLabel": "Startpunt",
+      "startCellar": "Kelder",
+      "startAmbient": "Kamertemp.",
+      "startFridge": "Koelkast (nacht)",
+      "ambientTemp": "Kamer (°C)",
+      "ambientAt": "Kamertemperatuur: {temp} °C",
+      "readyAmbient": "Op temperatuur — direct serveren",
+      "guestTag": "buiten kelder",
       "button": "Afdrukken",
       "cellarTemp": "Kelder (°C)",
       "sheetTitle": "Proeverijblad",
