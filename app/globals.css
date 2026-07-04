@@ -1,10 +1,11 @@
 @import "tailwindcss";
 
 /* ============================================================================
- * ATHENA DESIGN TOKENS — v3 "Précision"
- * Langage produit premium : quasi-monochrome, surfaces planes, un seul accent
- * bordeaux utilisé avec parcimonie. Sans-serif précis, beaucoup d'air.
- * Deux robes : Nuit (défaut) et Jour — <html data-theme="dark|light">.
+ * ATHENA DESIGN TOKENS — v4 "Éditorial"
+ * Inspiré de lesvinsjulien.com : lumineux, naturel, éditorial. Serif fin et
+ * élégant pour les titres, kickers uppercase très espacés, texte gris taupe
+ * chaud, un seul accent bordeaux, boutons ghost à bord fin.
+ * Jour est désormais la robe par défaut ; Nuit via <html data-theme="dark">.
  * ========================================================================== */
 
 @theme {
@@ -29,13 +30,14 @@
   --color-champagne-600: #9a7a3d;
   --color-champagne-700: #7d622f;
 
-  --color-creme-50:  #fafaf8;
-  --color-creme-100: #f4f4f1;
-  --color-creme-200: #e8e8e3;
-  --color-creme-300: #d6d6cf;
+  --color-creme-50:  #fdfdfc;
+  --color-creme-100: #f6f5f2;
+  --color-creme-200: #ebe9e4;
+  --color-creme-300: #d8d5cd;
 
-  --color-encre-900: #17161a;
-  --color-encre-700: #302e36;
+  /* Encre & taupe — la voix du thème jour (cf. lesvinsjulien) */
+  --color-encre-900: #2b2b2b;
+  --color-encre-700: #5e5858;
 
   /* Fonts — plain strings; next/font vars applied directly in @layer base */
   --font-display: "Fraunces", Georgia, serif;
@@ -51,10 +53,57 @@
 
 /* ============================================================================
  * SEMANTIC TOKENS — theme-switchable
- * Dark ("Nuit") is the default; [data-theme="light"] overrides below.
+ * Light ("Jour", éditorial) is the default; [data-theme="dark"] overrides.
  * ========================================================================== */
 
 :root {
+  color-scheme: light;
+
+  --color-bg:           #ffffff;
+  --color-bg-elevated:  var(--color-creme-50);
+  --color-bg-overlay:   rgba(255, 255, 255, 0.92);
+  --color-surface:      var(--color-encre-900);
+  --color-surface-muted: var(--color-encre-700);
+
+  --color-primary:       var(--color-magenta-600);
+  --color-primary-hover: var(--color-magenta-700);
+  --color-primary-fg:    var(--color-encre-900);
+  --color-on-primary:    #ffffff;
+  --color-accent:        var(--color-champagne-700);
+
+  /* Texte : titres presque noirs, courant gris taupe chaud */
+  --color-fg:        var(--color-encre-900);
+  --color-fg-muted:  #5e5858;
+  --color-fg-subtle: rgba(94, 88, 88, 0.62);
+  --color-fg-faint:  rgba(94, 88, 88, 0.4);
+
+  --color-border:        rgba(94, 88, 88, 0.16);
+  --color-border-strong: rgba(94, 88, 88, 0.34);
+
+  --color-card:           #ffffff;
+  --color-card-highlight: transparent;
+  --color-popover:        #ffffff;
+  --color-input-bg:       rgba(94, 88, 88, 0.05);
+  --color-inset-bg:       rgba(94, 88, 88, 0.035);
+  --color-overlay:        rgba(255, 255, 255, 0.88);
+  --color-scrim:          rgba(43, 43, 43, 0.42);
+  --color-fill-subtle:    rgba(94, 88, 88, 0.06);
+  --color-fill:           rgba(94, 88, 88, 0.1);
+
+  --color-primary-tint: rgba(142, 31, 51, 0.06);
+  --color-primary-wash: rgba(142, 31, 51, 0.11);
+  --color-primary-soft: rgba(142, 31, 51, 0.18);
+
+  --color-danger:       #b03434;
+  --color-warning:      var(--color-champagne-700);
+  --color-success:      #3f7d58;
+  --color-success-tint: rgba(63, 125, 88, 0.12);
+
+  --shadow-magenta:  0 0 0 1px rgba(94, 88, 88, 0.14);
+  --shadow-elevated: 0 16px 48px -16px rgba(43, 43, 43, 0.16);
+}
+
+[data-theme="dark"] {
   color-scheme: dark;
 
   --color-bg:           var(--color-noir-900);
@@ -77,7 +126,6 @@
   --color-border:        rgba(255, 255, 255, 0.09);
   --color-border-strong: rgba(255, 255, 255, 0.22);
 
-  /* Surfaces & fills — planes, opaques */
   --color-card:           var(--color-noir-800);
   --color-card-highlight: transparent;
   --color-popover:        #1a181d;
@@ -88,7 +136,6 @@
   --color-fill-subtle:    rgba(255, 255, 255, 0.05);
   --color-fill:           rgba(255, 255, 255, 0.09);
 
-  /* Accent washes — bordeaux, très bas volume */
   --color-primary-tint: rgba(168, 38, 60, 0.09);
   --color-primary-wash: rgba(168, 38, 60, 0.15);
   --color-primary-soft: rgba(168, 38, 60, 0.24);
@@ -100,52 +147,6 @@
 
   --shadow-magenta:  0 0 0 1px rgba(255, 255, 255, 0.12);
   --shadow-elevated: 0 16px 48px -16px rgba(0, 0, 0, 0.6);
-}
-
-[data-theme="light"] {
-  color-scheme: light;
-
-  --color-bg:           var(--color-creme-50);
-  --color-bg-elevated:  #ffffff;
-  --color-bg-overlay:   rgba(250, 250, 248, 0.92);
-  --color-surface:      var(--color-encre-900);
-  --color-surface-muted: var(--color-encre-700);
-
-  --color-primary:       var(--color-magenta-600);
-  --color-primary-hover: var(--color-magenta-700);
-  --color-primary-fg:    var(--color-encre-900);
-  --color-on-primary:    #ffffff;
-  --color-accent:        var(--color-champagne-700);
-
-  --color-fg:        var(--color-encre-900);
-  --color-fg-muted:  rgba(23, 22, 26, 0.66);
-  --color-fg-subtle: rgba(23, 22, 26, 0.45);
-  --color-fg-faint:  rgba(23, 22, 26, 0.3);
-
-  --color-border:        rgba(23, 22, 26, 0.1);
-  --color-border-strong: rgba(23, 22, 26, 0.26);
-
-  --color-card:           #ffffff;
-  --color-card-highlight: transparent;
-  --color-popover:        #ffffff;
-  --color-input-bg:       rgba(23, 22, 26, 0.04);
-  --color-inset-bg:       rgba(23, 22, 26, 0.03);
-  --color-overlay:        rgba(250, 250, 248, 0.85);
-  --color-scrim:          rgba(23, 22, 26, 0.4);
-  --color-fill-subtle:    rgba(23, 22, 26, 0.05);
-  --color-fill:           rgba(23, 22, 26, 0.09);
-
-  --color-primary-tint: rgba(142, 31, 51, 0.07);
-  --color-primary-wash: rgba(142, 31, 51, 0.12);
-  --color-primary-soft: rgba(142, 31, 51, 0.2);
-
-  --color-danger:       #b03434;
-  --color-warning:      var(--color-champagne-700);
-  --color-success:      #3f7d58;
-  --color-success-tint: rgba(63, 125, 88, 0.12);
-
-  --shadow-magenta:  0 0 0 1px rgba(23, 22, 26, 0.14);
-  --shadow-elevated: 0 16px 48px -16px rgba(23, 22, 26, 0.16);
 }
 
 /* ============================================================================
@@ -169,21 +170,21 @@
     transition: background-color 200ms ease-out, color 200ms ease-out;
   }
 
-  /* Titres : sans-serif précis, graisse contenue, pas d'italique décoratif */
+  /* Titres : serif fin et élégant (à la Canela), jamais gras, jamais italique */
   h1, h2, h3, h4, .display {
-    font-family: var(--font-inter), var(--font-sans);
-    font-weight: 600;
-    letter-spacing: -0.025em;
-    line-height: 1.1;
+    font-family: var(--font-fraunces), var(--font-display);
+    font-weight: 380;
+    letter-spacing: -0.015em;
+    line-height: 1.12;
   }
 
   h1, .display-xl {
-    font-size: clamp(2rem, 2.5vw + 1rem, 3.25rem);
-    letter-spacing: -0.03em;
+    font-size: clamp(2.25rem, 3vw + 1rem, 3.75rem);
+    letter-spacing: -0.02em;
   }
 
-  h2 { font-size: clamp(1.5rem, 1.5vw + 0.75rem, 2rem); }
-  h3 { font-size: clamp(1.125rem, 0.75vw + 0.875rem, 1.375rem); }
+  h2 { font-size: clamp(1.5rem, 1.5vw + 0.75rem, 2.125rem); }
+  h3 { font-size: clamp(1.25rem, 0.75vw + 0.875rem, 1.5rem); }
 
   a {
     color: var(--color-fg);
@@ -246,12 +247,12 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.625rem 1.5rem;
+    padding: 0.6875rem 1.5rem;
     border-radius: var(--radius-sm);
     font-family: var(--font-inter), var(--font-sans);
-    font-weight: 500;
+    font-weight: 400;
     font-size: 0.875rem;
-    letter-spacing: 0.01em;
+    letter-spacing: 0.02em;
     line-height: 1;
     /* Explicit properties — never transition: all */
     transition: background-color 160ms ease-out,
@@ -323,19 +324,19 @@
     }
   }
   .stat-card-value {
-    font-family: var(--font-inter), var(--font-sans);
-    font-size: 2.25rem;
-    font-weight: 600;
+    font-family: var(--font-fraunces), var(--font-display);
+    font-size: 2.375rem;
+    font-weight: 380;
     color: var(--color-fg);
     line-height: 1;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
   }
   .stat-card-label {
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
     color: var(--color-fg-subtle);
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.18em;
     margin-top: 0.625rem;
     font-family: var(--font-inter), var(--font-sans);
   }
@@ -353,12 +354,12 @@
     letter-spacing: -0.02em;
   }
 
-  /* Micro-label produit : uppercase espacé, à la Tesla */
+  /* Kicker éditorial : uppercase très espacé (cf. lesvinsjulien h2) */
   .micro-label {
-    font-size: 0.6875rem;
-    font-weight: 500;
+    font-size: 0.75rem;
+    font-weight: 400;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--color-fg-subtle);
+    letter-spacing: 0.25em;
+    color: var(--color-fg-muted);
   }
 }

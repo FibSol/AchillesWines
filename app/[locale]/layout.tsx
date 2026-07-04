@@ -52,7 +52,7 @@ export default async function LocaleLayout({
         {/* Apply the persisted theme before first paint to avoid a flash. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem("achilles-theme");if(t==="light")document.documentElement.dataset.theme="light";}catch(e){}`,
+            __html: `try{var t=localStorage.getItem("achilles-theme");if(t==="dark")document.documentElement.dataset.theme="dark";}catch(e){}`,
           }}
         />
       </head>
