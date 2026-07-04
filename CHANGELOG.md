@@ -8,6 +8,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **Wine Spectator vintage chart** — ingested the public WS wallet-card PDF (updated Jan 2026) into `fact_vintage_rating` via `scripts/seed_ws_vintage_chart.mjs` + committed source data in `scripts/data/ws-vintage-chart-2026.json`. 130 region×vintage scores (/100) across 15 Achilles regions, mapped from WS buckets onto the canonical `dim_appellation.region` vocabulary (Left Bank → Médoc+Graves, Right Bank → Libournais, Tuscany cuvées → Toscane, etc.) with the WS sub-bucket preserved in `subregion`. Adds first-ever vintage coverage for La Rioja. New-World/no-overlap buckets are intentionally skipped (logged) to avoid floating heatmap cells; reuses the existing `wine_spectator` source and is idempotent (clears-then-reinserts by source). No PerimeterX bypass — the data comes from the open S3 PDF.
+---
+
+## [1.5.0] — 2026-07-04
+
+### Added
+- **Saved tastings** (#48) — save a generated flight as a tasting session, rate each wine with a personal score (/100), and remove all tasted bottles from the cellar in one click. Removal logs each bottle to `cellar_consumption` (`occasion='tasting'`); a rating set after removal still syncs to the drink log. New tables `tasting_sessions` + `tasting_session_wines` (migration `0024`, registered in the drizzle journal so prod migrates automatically at add-on startup). i18n in all 6 locales.
 - **Official critic ratings** — curated primary-tier critic set ({WA→RP/Parker, Vinous→VN, JD/Jeb Dunnuck, JMIB→JM/Jasper Morris, RVF→LVF/Les Vins de France, Hachette}) via a new `lib/critics.ts` registry holding display labels, full names, and an `official` flag. Official critics now sort first in the vintage divergence heatmap, domaine detail table, and producer charts; all other critics stay ingested as a secondary tier.
 - **`JD` (Jeb Dunnuck) critic code** — added to the canonical enum, schema, scrapers, and migration `0022`.
 

@@ -1,7 +1,10 @@
 # Changelog
 
-## Unreleased
+## 1.5.0 — 2026-07-04
 
+- Saved tastings: save a flight, rate each wine (/100) and remove all tasted bottles from the cellar in one click (#48)
+- Official critic tier (RP, Vinous, JD, JM, LVF, Hachette) sorted first in heatmap and rating tables
+- Jeb Dunnuck gets his own JD critic code (was misattributed to JG / John Gilman)
 - Cellar KPIs panel + bottle details dialog + tasting page filters
 - Pairing page: purchase price fallback chip
 

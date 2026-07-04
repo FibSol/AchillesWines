@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS tasting_sessions (
   mode       TEXT NOT NULL,
   created_at INTEGER NOT NULL DEFAULT (unixepoch())
 );
-
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS tasting_session_wines (
   session_wine_id INTEGER PRIMARY KEY AUTOINCREMENT,
   session_id      INTEGER NOT NULL REFERENCES tasting_sessions(session_id),
@@ -21,6 +21,6 @@ CREATE TABLE IF NOT EXISTS tasting_session_wines (
   CONSTRAINT chk_session_score_range
     CHECK (personal_score IS NULL OR (personal_score BETWEEN 0 AND 100))
 );
-
+--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS idx_session_wine
   ON tasting_session_wines (session_id, wine_key);
