@@ -323,6 +323,15 @@
     }
   },
   "tasting": {
+    "sessions": {
+      "save": "Salva la degustazione",
+      "saving": "Salvataggio…",
+      "title": "Degustazioni salvate",
+      "removeAll": "Rimuovi dalla cantina",
+      "removedBadge": "Rimosso",
+      "yourScore": "Voto",
+      "delete": "Elimina la degustazione"
+    },
     "title": "Degustazione",
     "subtitle": "Componi una degustazione di 6 vini dalla tua cantina — selezione, indicazioni e l'ordine in cui berli.",
     "modes": {

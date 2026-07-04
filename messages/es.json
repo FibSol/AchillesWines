@@ -323,6 +323,15 @@
     }
   },
   "tasting": {
+    "sessions": {
+      "save": "Guardar la cata",
+      "saving": "Guardando…",
+      "title": "Catas guardadas",
+      "removeAll": "Retirar de la bodega",
+      "removedBadge": "Retirado",
+      "yourScore": "Nota",
+      "delete": "Eliminar la cata"
+    },
     "title": "Cata de vinos",
     "subtitle": "Componga una cata de 6 vinos desde su bodega — selección, indicaciones y el orden para beberlos.",
     "modes": {

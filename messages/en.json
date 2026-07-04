@@ -323,6 +323,15 @@
     }
   },
   "tasting": {
+    "sessions": {
+      "save": "Save tasting",
+      "saving": "Saving…",
+      "title": "Saved tastings",
+      "removeAll": "Remove from cellar",
+      "removedBadge": "Removed",
+      "yourScore": "Score",
+      "delete": "Delete tasting"
+    },
     "title": "Wine Tasting",
     "subtitle": "Build a 6-wine flight from your cellar — selection, directives and the order to drink it in.",
     "modes": {

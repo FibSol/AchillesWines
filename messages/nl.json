@@ -323,6 +323,15 @@
     }
   },
   "tasting": {
+    "sessions": {
+      "save": "Proeverij opslaan",
+      "saving": "Opslaan…",
+      "title": "Opgeslagen proeverijen",
+      "removeAll": "Uit de kelder halen",
+      "removedBadge": "Verwijderd",
+      "yourScore": "Score",
+      "delete": "Proeverij verwijderen"
+    },
     "title": "Wijnproeverij",
     "subtitle": "Stel een proeverij van 6 wijnen samen uit je kelder — selectie, aanwijzingen en de volgorde om te drinken.",
     "modes": {

@@ -1,5 +1,10 @@
 # Achilles's Wines — Progress Log
 
+## 2026-07-04
+
+### Odysseus (Frontend) — saved tastings: rate wines + one-click removal from cellar (#48)
+- [Odysseus] **Tasting flights can now be saved, rated and cleared from the cellar in one click.** New tables `tasting_sessions` + `tasting_session_wines` (migration `0024`, applied to dev DB). "Save tasting" button in the Tasting Studio snapshots the current flight (mode + wines in serving order). A new **Saved tastings** section (`components/SavedTastings.tsx`) lists sessions newest-first: per-wine personal score input (/100, saved on change), a **Remove from cellar** button that consumes 1 bottle of every not-yet-consumed wine (decrements/deletes `cellar_inventory`, logs `cellar_consumption` with `occasion='tasting'` and the score), and session delete. The `cellar_consumption.consumption_id` is kept on each session wine so a rating set *after* removal still syncs to the drink log. API: `POST/GET /api/tasting/sessions`, `PATCH/DELETE /api/tasting/sessions/[id]`, `POST /api/tasting/sessions/[id]/consume`. i18n keys `tasting.sessions.*` in all 6 locales. Verified end-to-end against the dev server (save → rate → consume → late-rating sync → inventory decrement) with full cellar restore; `tsc --noEmit` clean, 179 vitest tests pass. · files: db/schema.ts, db/migrations/0024_tasting_sessions.sql, app/api/tasting/sessions/route.ts, app/api/tasting/sessions/[id]/route.ts, app/api/tasting/sessions/[id]/consume/route.ts, components/SavedTastings.tsx, components/TastingStudio.tsx, messages/{en,fr,nl,de,es,it}.json, PROGRESS.md
+
 ## 2026-06-15
 
 ### Patroclus (Backend) — James Suckling via Tastingbook + Bordeaux Grand Cru classification reference

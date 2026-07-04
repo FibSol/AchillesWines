@@ -323,6 +323,15 @@
     }
   },
   "tasting": {
+    "sessions": {
+      "save": "Verkostung speichern",
+      "saving": "Speichern…",
+      "title": "Gespeicherte Verkostungen",
+      "removeAll": "Aus dem Keller entnehmen",
+      "removedBadge": "Entnommen",
+      "yourScore": "Note",
+      "delete": "Verkostung löschen"
+    },
     "title": "Weinverkostung",
     "subtitle": "Stellen Sie eine Verkostung mit 6 Weinen aus Ihrem Keller zusammen — Auswahl, Hinweise und Trinkreihenfolge.",
     "modes": {

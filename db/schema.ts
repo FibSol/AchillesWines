@@ -834,6 +834,48 @@ export const aiWineNotes = sqliteTable(
 );
 
 /* ============================================================================
+ * TASTING SESSIONS (saved flights)
+ * ========================================================================== */
+
+/** A saved tasting flight the user intends to (or did) drink. */
+export const tastingSessions = sqliteTable("tasting_sessions", {
+  sessionId: integer("session_id").primaryKey({ autoIncrement: true }),
+  mode: text("mode").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+/** Wines of a saved tasting, in serving order, with the user's rating. */
+export const tastingSessionWines = sqliteTable(
+  "tasting_session_wines",
+  {
+    sessionWineId: integer("session_wine_id").primaryKey({ autoIncrement: true }),
+    sessionId: integer("session_id")
+      .notNull()
+      .references(() => tastingSessions.sessionId),
+    wineKey: text("wine_key")
+      .notNull()
+      .references(() => dimWine.wineKey),
+    position: integer("position").notNull(),
+    personalScore: integer("personal_score"),
+    /** Set when the bottle was removed from the cellar via this session. */
+    consumedAt: integer("consumed_at", { mode: "timestamp" }),
+    /** The cellar_consumption row created on removal (to sync later ratings). */
+    consumptionId: integer("consumption_id").references(
+      () => cellarConsumption.consumptionId,
+    ),
+  },
+  (t) => ({
+    sessionWineIdx: uniqueIndex("idx_session_wine").on(t.sessionId, t.wineKey),
+    scoreCheck: check(
+      "chk_session_score_range",
+      sql`${t.personalScore} IS NULL OR (${t.personalScore} BETWEEN 0 AND 100)`,
+    ),
+  })
+);
+
+/* ============================================================================
  * Exports
  * ========================================================================== */
 
@@ -856,3 +898,5 @@ export type MarketIndex = typeof factMarketIndex.$inferSelect;
 export type HarvestVolume = typeof factHarvestVolume.$inferSelect;
 export type WercStat = typeof factWercStats.$inferSelect;
 export type AiWineNote = typeof aiWineNotes.$inferSelect;
+export type TastingSession = typeof tastingSessions.$inferSelect;
+export type TastingSessionWine = typeof tastingSessionWines.$inferSelect;

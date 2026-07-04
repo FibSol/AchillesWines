@@ -323,6 +323,15 @@
     }
   },
   "tasting": {
+    "sessions": {
+      "save": "Enregistrer la dégustation",
+      "saving": "Enregistrement…",
+      "title": "Dégustations enregistrées",
+      "removeAll": "Retirer de la cave",
+      "removedBadge": "Retiré",
+      "yourScore": "Note",
+      "delete": "Supprimer la dégustation"
+    },
     "title": "Dégustation",
     "subtitle": "Composez une dégustation de 6 vins depuis votre cave — sélection, conseils et ordre de service.",
     "modes": {

@@ -26,7 +26,9 @@ import {
   Warehouse,
   Printer,
   Info,
+  BookmarkPlus,
 } from "lucide-react";
+import { SavedTastings } from "@/components/SavedTastings";
 import { buildPrintHtml, type WineNote } from "@/lib/tasting/print";
 import type {
   TastingFlight,
@@ -35,7 +37,7 @@ import type {
   DirectiveNote,
 } from "@/lib/tasting/engine";
 
-const COLOR_DOT: Record<string, string> = {
+export const COLOR_DOT: Record<string, string> = {
   red: "#A53860",
   white: "#E5B25D",
   "rosé": "#E07898",
@@ -178,6 +180,8 @@ export function TastingStudio() {
   const [error, setError] = useState<string | null>(null);
   const [empty, setEmpty] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [savedToken, setSavedToken] = useState(0);
 
   const renderNote = useCallback(
     (note: DirectiveNote) => t(`notes.${note.key}`, note.params ?? {}),
@@ -362,6 +366,32 @@ export function TastingStudio() {
     w.document.open();
     w.document.write(html);
     w.document.close();
+  }
+
+  /** Snapshot the current flight so it can be rated and cleared from the cellar later. */
+  async function saveTasting() {
+    if (!flight || flight.stops.length === 0 || saving) return;
+    setSaving(true);
+    try {
+      const r = await fetch("/api/tasting/sessions", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          mode: flight.mode,
+          wines: flight.stops.map((s) => ({ wineKey: s.wineKey, position: s.position })),
+        }),
+      });
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({}));
+        setError(String(j.error ?? r.statusText));
+        return;
+      }
+      setSavedToken((n) => n + 1);
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setSaving(false);
+    }
   }
 
   function applyFilters(next: TastingFilters) {
@@ -690,6 +720,14 @@ export function TastingStudio() {
           <Printer className="size-3.5" strokeWidth={2.5} />
           {printing ? t("print.generating") : t("print.button")}
         </button>
+        <button
+          onClick={saveTasting}
+          disabled={loading || saving || !flight || flight.stops.length === 0}
+          className="btn btn-ghost text-xs"
+        >
+          <BookmarkPlus className="size-3.5" strokeWidth={2.5} />
+          {saving ? t("sessions.saving") : t("sessions.save")}
+        </button>
         {loading && (
           <span className="text-xs text-[color:var(--color-fg-subtle)] font-mono">{t("ui.loading")}</span>
         )}
@@ -744,6 +782,9 @@ export function TastingStudio() {
           ))}
         </section>
       )}
+
+      {/* Saved tastings: rate the wines, remove them from the cellar in one click */}
+      <SavedTastings refreshToken={savedToken} />
 
       {/* Add-from-cellar picker */}
       {pickerOpen && (
